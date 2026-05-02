@@ -1,92 +1,86 @@
 ---
-title: 戰鬥資訊資產 (RCG_BattleInfoAsset) 說明
-description: 戰鬥日誌左側顯示的「即時統計資訊」設定（本回合打出手牌數、傷害總量等）
+title: Battle Info Asset (RCG_BattleInfoAsset)
+description: Configures the "live stats info" shown on the left of the battle log (cards played this turn, etc.)
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-en
 ---
 
-> [!WARNING]
-> Translation pending — this file needs an English translation.
-The original zh-Hant content is included below for reference.
+# Battle Info Asset
 
+> Class name: `RCG_BattleInfoAsset`
 
-# 戰鬥資訊資產
+## Purpose
 
-> 程式類別名稱：`RCG_BattleInfoAsset`
+**Configures the live stats info shown on the left side of the battle log**. Examples: "Cards played this turn: 3", "Total damage: 120", "Remaining draw slots: 2". Each stat item is an `RCG_BattleInfoAsset` instance; the battle UI sorts them by `m_Order` and displays them in order.
 
-## 用途
+Inherits from `RCG_Asset<RCG_BattleInfoAsset>`.
 
-**戰鬥日誌左側顯示的即時統計資訊**。例如「本回合打出手牌：3」「累積傷害：120」「剩餘抽卡格：2」。每個統計項目是一個 `RCG_BattleInfoAsset` 實例；戰鬥 UI 會依 `m_Order` 排序並逐一顯示。
-
-繼承自 `RCG_Asset<RCG_BattleInfoAsset>`。
-
-## 編輯器中的樣貌
+## Editor Layout
 
 ```
 RCG_BattleInfoAsset: <ID>
     Enable
     InfoType   ▾ IntVariable
-    Variable   ← InfoType=IntVariable 時顯示
+    Variable   ← shown when InfoType=IntVariable
     Order
     HideIfZero
 ```
 
-## 主要欄位
+## Main Fields
 
-| 編輯器顯示 | 必填 | 說明 |
+| Editor Display | Required | Description |
 |---|---|---|
-| **Enable** | 是 | 是否啟用此資訊（false 直接從顯示中拿掉） |
-| **InfoType** | 是 | 資訊類型，目前只有 `IntVariable` |
-| **Variable** | InfoType=IntVariable | 要顯示的整數變數（`IntVariable`），可綁定戰鬥計數器 |
-| **Order** | 是 | 顯示順序，越小越前面 |
-| **HideIfZero** | — | 為 0 時隱藏（避免一堆 0 洗版） |
+| **Enable** | yes | Whether this info is enabled (false → hidden from UI) |
+| **InfoType** | yes | Info type; currently only `IntVariable` |
+| **Variable** | when InfoType=IntVariable | The integer variable to display (`IntVariable`); can bind to a battle counter |
+| **Order** | yes | Display order; smaller comes first |
+| **HideIfZero** | — | Hide when value is 0 (avoid clutter from many zero entries) |
 
-## 行為說明
+## Behavior
 
 ### `ShowInfo(data)`
-*   `m_HideIfZero = true` 且 `Variable.GetValue() == 0` → 不顯示。
-*   否則顯示。
+*   `m_HideIfZero = true` and `Variable.GetValue() == 0` → not shown.
+*   Otherwise → shown.
 
 ### `GetInfo(data)`
-依 `InfoType` 取得字串：
-*   `IntVariable` → `m_Variable.GetDescription(iData)`（已格式化，含標籤前綴等）。
+Per `InfoType`:
+*   `IntVariable` → `m_Variable.GetDescription(iData)` (formatted, with prefix tag).
 
-## 注意事項
+## Caveats
 
-*   **`InfoType` 目前只支援 `IntVariable`**：未來可能新增 String / Float 類型，但目前 enum 只有一個值。
-*   **`m_Order` 衝突時**：兩個 Asset 同 Order 的顯示順序不保證；建議手動分開值。
-*   **HideIfZero 對非 IntVariable 無效**：邏輯目前只 cover IntVariable case。
+*   **`InfoType` currently only supports `IntVariable`**: future may add String / Float types but the enum currently has one value.
+*   **`m_Order` collisions**: identical Order values don't guarantee display order; manually distinguish values.
+*   **HideIfZero ineffective for non-IntVariable**: logic only covers IntVariable case.
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## Appendix: Programmer Reference
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_BattleInfoAsset.cs`
-*   **繼承自**：`RCG_Asset<RCG_BattleInfoAsset>`
-*   **AssetGroup**：`EditBattleSetting`
+### A.1 Class Info
+*   **File**: `CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_BattleInfoAsset.cs`
+*   **Inherits**: `RCG_Asset<RCG_BattleInfoAsset>`
+*   **AssetGroup**: `EditBattleSetting`
 
-### A.2 欄位對照
+### A.2 Field Mapping
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| Code Field | Editor Display | Type | Notes |
 |---|---|---|---|
-| `m_Enable` | Enable | `bool` | 預設 `true` |
-| `m_InfoType` | InfoType | `InfoType` enum | 目前只有 `IntVariable` |
+| `m_Enable` | Enable | `bool` | Default `true` |
+| `m_InfoType` | InfoType | `InfoType` enum | Currently only `IntVariable` |
 | `m_Variable` | Variable | `IntVariable` | `Conditional(IntVariable)` |
-| `m_Order` | Order | `int` | 預設 0；越小越前 |
-| `m_HideIfZero` | HideIfZero | `bool` | 預設 `false` |
+| `m_Order` | Order | `int` | Default 0; smaller comes first |
+| `m_HideIfZero` | HideIfZero | `bool` | Default `false` |
 
-### A.3 重要 Method
+### A.3 Key Methods
 
-*   **`ShowInfo(TriggerEffectData)`** — 是否要顯示；依 `m_HideIfZero` 與 Variable 值判斷。
-*   **`GetInfo(TriggerEffectData)`** — 取格式化後的字串。
+*   **`ShowInfo(TriggerEffectData)`** — whether to show; per `m_HideIfZero` and Variable value.
+*   **`GetInfo(TriggerEffectData)`** — formatted string.
 
-### A.4 與其他系統的互動
+### A.4 System Interactions
 
-*   **`IntVariable`** — 變數綁定來源。
-*   **戰鬥日誌左側 UI** — 顯示這些 Asset 的消費端。
+*   **`IntVariable`** — variable binding source.
+*   **Battle log left UI** — consumer of these Assets.
 
-### A.5 已知議題
+### A.5 Known Issues
 
-*   `InfoType` enum 只有一個值，預示未來擴充計畫但尚未實作。
+*   `InfoType` enum has one value, hinting at planned expansion not yet implemented.

@@ -1,85 +1,79 @@
 ---
-title: 戰鬥組合 (RCG_BattleSet) 說明
-description: 一場具體戰鬥的怪物配置 + 標籤 + 敵人類型；地圖節點實際進入戰鬥時用此資料生成
+title: Battle Set (RCG_BattleSet)
+description: A specific battle's monster configuration + tags + enemy type — used to spawn the battle when a map node triggers
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-en
 ---
 
-> [!WARNING]
-> Translation pending — this file needs an English translation.
-The original zh-Hant content is included below for reference.
+# Battle Set
 
+> Class name: `RCG_BattleSet`
 
-# 戰鬥組合
+## Purpose
 
-> 程式類別名稱：`RCG_BattleSet`
+**A specific battle's monster configuration**. Examples: "3 Goblins + 1 Goblin Chef", "Boss Whale solo", "Elite encounter: Dragon + Mage" are different BattleSets. When a map node triggers a battle, an `RCG_BattleSet` is drawn from `RCG_BattleSetDropPool` to spawn the battle.
 
-## 用途
+Inherits from `RCG_Asset<RCG_BattleSet>`.
 
-**一場具體戰鬥的怪物配置**。例如「3 哥布林 + 1 哥布林大廚」「Boss 鯨魚單體」「精英遭遇：龍 + 法師」都是不同的 BattleSet。地圖節點觸發戰鬥時，從 `RCG_BattleSetDropPool` 抽出一個 `RCG_BattleSet` 來生成本場戰鬥。
-
-繼承自 `RCG_Asset<RCG_BattleSet>`。
-
-## 編輯器中的樣貌
+## Editor Layout
 
 ```
 RCG_BattleSet: <ID>
-    EnemyType  ← 敵人類型（普通 / 精英 / Boss）
-    Tags       ← BattleSet 標籤（用於 DropPool 篩選）
-    MonsterSet ← 怪物配置（站位、ID、獎勵資源等）
-    Preview    ← 即時預覽配置
+    EnemyType  ← enemy type (Normal / Elite / Boss)
+    Tags       ← BattleSet tags (used by DropPool filtering)
+    MonsterSet ← monster configuration (positions, IDs, reward resources)
+    Preview    ← live preview of the configuration
 ```
 
-## 主要欄位
+## Main Fields
 
-| 編輯器顯示 | 必填 | 說明 |
+| Editor Display | Required | Description |
 |---|---|---|
-| **MonsterSet** | 是 | 完整的怪物配置（`RCG_MonsterSet`：每個站位放哪隻怪物、會掉哪些獎勵資源） |
-| **Tags** | 否 | BattleSet 標籤（章節 / 場景類型等），DropPool 用標籤過濾 |
-| **EnemyType** | 是 | 敵人類型（`Normal` / `Elite` / `Boss`），影響獎勵、戰鬥音樂、UI 標題 |
+| **MonsterSet** | yes | Full monster configuration (`RCG_MonsterSet`: which monster goes in each slot, what reward resources drop) |
+| **Tags** | no | BattleSet tags (chapter / scene type, etc.) — used by DropPool filtering |
+| **EnemyType** | yes | Enemy type (`Normal` / `Elite` / `Boss`); affects rewards, BGM, UI title |
 
-## 行為說明
+## Behavior
 
-### 取預設
-`RCG_BattleSet.DefaultBattleSet` 直接取 `RCG_BattleSetGenData.DefaultID` 對應的資料；缺漏時的 fallback。
+### Default Fetch
+`RCG_BattleSet.DefaultBattleSet` directly takes the data for `RCG_BattleSetGenData.DefaultID`; fallback when missing.
 
-### 預覽
-顯示 ID + EnemyType、Tags 列表、`MonsterSet.Preview` 的怪物站位視覺化。
+### Preview
+Shows ID + EnemyType, tag list, and `MonsterSet.Preview` monster position visualization.
 
-## 注意事項
+## Caveats
 
-*   **EnemyType 是 Tag 物件**而非 enum：原本是 enum (`m_EnemyType = EnemyType.Normal`)，已改用 `RCG_EnemyTypeTagGenData` 並把舊欄位註解；新增類型直接編 Tag asset 即可。
-*   **MonsterSet 內的獎勵資源**：曾有過 `m_MonsterSet.m_RewardResources.Clear()` 的反序列化清理（已註解掉）；若需特殊清理邏輯可解註參考。
+*   **EnemyType is a Tag object**, not an enum: was originally an enum (`m_EnemyType = EnemyType.Normal`); now uses `RCG_EnemyTypeTagGenData` with the legacy field commented out. To add types, edit Tag assets directly.
+*   **Reward resources inside MonsterSet**: there used to be a `m_MonsterSet.m_RewardResources.Clear()` cleanup on deserialize (now commented out); reference for special cleanup logic.
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## Appendix: Programmer Reference
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSet.cs`
-*   **繼承自**：`RCG_Asset<RCG_BattleSet>`
-*   **AssetGroup**：`EditBattleSetting`
+### A.1 Class Info
+*   **File**: `CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSet.cs`
+*   **Inherits**: `RCG_Asset<RCG_BattleSet>`
+*   **AssetGroup**: `EditBattleSetting`
 
-### A.2 欄位對照
+### A.2 Field Mapping
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| Code Field | Editor Display | Type | Notes |
 |---|---|---|---|
-| `m_MonsterSet` | MonsterSet | `RCG_MonsterSet` | 主要配置容器 |
-| `m_Tags` | Tags | `List<RCG_BattleSetTagGenData>` | DropPool 用 |
-| `m_EnemyType` | EnemyType | `RCG_EnemyTypeTagGenData` | 取代舊 enum |
+| `m_MonsterSet` | MonsterSet | `RCG_MonsterSet` | Main configuration container |
+| `m_Tags` | Tags | `List<RCG_BattleSetTagGenData>` | DropPool filtering |
+| `m_EnemyType` | EnemyType | `RCG_EnemyTypeTagGenData` | Replaces legacy enum |
 
-### A.3 重要 Method
+### A.3 Key Methods
 
-*   **`Preview` / `OnGUI`** — 編輯器渲染。
-*   **`DefaultBattleSet`** (static) — `Util.GetData(RCG_BattleSetGenData.DefaultID)`。
+*   **`Preview` / `OnGUI`** — editor rendering.
+*   **`DefaultBattleSet`** (static) — `Util.GetData(RCG_BattleSetGenData.DefaultID)`.
 
-### A.4 與其他系統的互動
+### A.4 System Interactions
 
-*   **`RCG_MonsterSet`** — 怪物站位 + 獎勵的詳細容器。
-*   **`RCG_BattleSetDropPool`** — 戰鬥組合的隨機池。
-*   **`RCG_BattleSetGenData`** — Asset Entry 包裝。
+*   **`RCG_MonsterSet`** — detailed container for positions + rewards.
+*   **`RCG_BattleSetDropPool`** — drop pool for battle setups.
+*   **`RCG_BattleSetGenData`** — Asset Entry wrapper.
 
-### A.5 已知議題
+### A.5 Known Issues
 
-*   舊版 `m_EnemyType` (enum) 已註解，標示遷移成 Tag 型別的歷史。
+*   Legacy `m_EnemyType` (enum) commented out, marking the migration to the Tag type.
