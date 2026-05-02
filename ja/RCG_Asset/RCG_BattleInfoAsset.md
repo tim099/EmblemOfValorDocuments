@@ -1,92 +1,86 @@
 ---
-title: 戰鬥資訊資產 (RCG_BattleInfoAsset) 說明
-description: 戰鬥日誌左側顯示的「即時統計資訊」設定（本回合打出手牌數、傷害總量等）
+title: 戦闘情報資産 (RCG_BattleInfoAsset)
+description: 戦闘ログ左側に表示される「リアルタイム統計情報」設定（このターン使用カード数、ダメージ総量等）
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-ja
 ---
 
-> [!WARNING]
-> 翻訳待機中 — このファイルは日本語翻訳が必要です。
-参考用に zh-Hant 原文を以下に掲載しています。
+# 戦闘情報資産
 
-
-# 戰鬥資訊資產
-
-> 程式類別名稱：`RCG_BattleInfoAsset`
+> クラス名：`RCG_BattleInfoAsset`
 
 ## 用途
 
-**戰鬥日誌左側顯示的即時統計資訊**。例如「本回合打出手牌：3」「累積傷害：120」「剩餘抽卡格：2」。每個統計項目是一個 `RCG_BattleInfoAsset` 實例；戰鬥 UI 會依 `m_Order` 排序並逐一顯示。
+**戦闘ログ左側に表示されるリアルタイム統計情報**。例：「このターン使用カード：3」「累積ダメージ：120」「残り抽選枠：2」。各統計項目が1つの `RCG_BattleInfoAsset` インスタンス；戦闘 UI が `m_Order` でソートし順次表示。
 
-繼承自 `RCG_Asset<RCG_BattleInfoAsset>`。
+`RCG_Asset<RCG_BattleInfoAsset>` を継承。
 
-## 編輯器中的樣貌
+## エディタ上の見た目
 
 ```
 RCG_BattleInfoAsset: <ID>
     Enable
     InfoType   ▾ IntVariable
-    Variable   ← InfoType=IntVariable 時顯示
+    Variable   ← InfoType=IntVariable 時に表示
     Order
     HideIfZero
 ```
 
-## 主要欄位
+## 主要フィールド
 
-| 編輯器顯示 | 必填 | 說明 |
+| エディタ表示 | 必須 | 説明 |
 |---|---|---|
-| **Enable** | 是 | 是否啟用此資訊（false 直接從顯示中拿掉） |
-| **InfoType** | 是 | 資訊類型，目前只有 `IntVariable` |
-| **Variable** | InfoType=IntVariable | 要顯示的整數變數（`IntVariable`），可綁定戰鬥計數器 |
-| **Order** | 是 | 顯示順序，越小越前面 |
-| **HideIfZero** | — | 為 0 時隱藏（避免一堆 0 洗版） |
+| **Enable** | はい | この情報を有効にするか（false で表示から除外） |
+| **InfoType** | はい | 情報タイプ、現状は `IntVariable` のみ |
+| **Variable** | InfoType=IntVariable 時 | 表示する整数変数（`IntVariable`）、戦闘カウンターにバインド可 |
+| **Order** | はい | 表示順序、小さいほど前 |
+| **HideIfZero** | — | 0 時に非表示（0 だらけの氾濫回避） |
 
-## 行為說明
+## 動作説明
 
 ### `ShowInfo(data)`
-*   `m_HideIfZero = true` 且 `Variable.GetValue() == 0` → 不顯示。
-*   否則顯示。
+*   `m_HideIfZero = true` かつ `Variable.GetValue() == 0` → 非表示。
+*   それ以外 → 表示。
 
 ### `GetInfo(data)`
-依 `InfoType` 取得字串：
-*   `IntVariable` → `m_Variable.GetDescription(iData)`（已格式化，含標籤前綴等）。
+`InfoType` に応じて文字列取得：
+*   `IntVariable` → `m_Variable.GetDescription(iData)`（フォーマット済、タグプレフィックス含む）。
 
 ## 注意事項
 
-*   **`InfoType` 目前只支援 `IntVariable`**：未來可能新增 String / Float 類型，但目前 enum 只有一個值。
-*   **`m_Order` 衝突時**：兩個 Asset 同 Order 的顯示順序不保證；建議手動分開值。
-*   **HideIfZero 對非 IntVariable 無效**：邏輯目前只 cover IntVariable case。
+*   **`InfoType` は現状 `IntVariable` のみサポート**：将来 String / Float 型を追加する可能性があるが、現在 enum は1値のみ。
+*   **`m_Order` 衝突時**：同 Order 値の Asset の表示順序は保証されない；値を手動で分けることを推奨。
+*   **HideIfZero は非 IntVariable には無効**：ロジックは現状 IntVariable case のみ対応。
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## 付録：プログラマ参考 (Programmer Reference)
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_BattleInfoAsset.cs`
-*   **繼承自**：`RCG_Asset<RCG_BattleInfoAsset>`
+### A.1 クラス情報
+*   **ファイル**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_BattleInfoAsset.cs`
+*   **継承**：`RCG_Asset<RCG_BattleInfoAsset>`
 *   **AssetGroup**：`EditBattleSetting`
 
-### A.2 欄位對照
+### A.2 フィールドマッピング
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| コードフィールド | エディタ表示 | 型 | 備考 |
 |---|---|---|---|
-| `m_Enable` | Enable | `bool` | 預設 `true` |
-| `m_InfoType` | InfoType | `InfoType` enum | 目前只有 `IntVariable` |
+| `m_Enable` | Enable | `bool` | デフォルト `true` |
+| `m_InfoType` | InfoType | `InfoType` enum | 現状 `IntVariable` のみ |
 | `m_Variable` | Variable | `IntVariable` | `Conditional(IntVariable)` |
-| `m_Order` | Order | `int` | 預設 0；越小越前 |
-| `m_HideIfZero` | HideIfZero | `bool` | 預設 `false` |
+| `m_Order` | Order | `int` | デフォルト 0；小さいほど前 |
+| `m_HideIfZero` | HideIfZero | `bool` | デフォルト `false` |
 
-### A.3 重要 Method
+### A.3 主要メソッド
 
-*   **`ShowInfo(TriggerEffectData)`** — 是否要顯示；依 `m_HideIfZero` 與 Variable 值判斷。
-*   **`GetInfo(TriggerEffectData)`** — 取格式化後的字串。
+*   **`ShowInfo(TriggerEffectData)`** — 表示要否；`m_HideIfZero` と Variable 値で判定。
+*   **`GetInfo(TriggerEffectData)`** — フォーマット後の文字列取得。
 
-### A.4 與其他系統的互動
+### A.4 他システムとの連携
 
-*   **`IntVariable`** — 變數綁定來源。
-*   **戰鬥日誌左側 UI** — 顯示這些 Asset 的消費端。
+*   **`IntVariable`** — 変数バインドソース。
+*   **戦闘ログ左側 UI** — これらの Asset の消費先。
 
-### A.5 已知議題
+### A.5 既知の問題
 
-*   `InfoType` enum 只有一個值，預示未來擴充計畫但尚未實作。
+*   `InfoType` enum が1値のみ、将来拡張計画を示唆するが未実装。

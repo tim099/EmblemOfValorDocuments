@@ -1,85 +1,79 @@
 ---
-title: 戰鬥開場動作 (RCG_BattleStartActionData) 說明
-description: 戰鬥一開始就觸發的特殊行為：偷襲傷害、暈眩、初始 buff 等
+title: 戦闘開始アクション (RCG_BattleStartActionData)
+description: 戦闘開始時に発動する特殊行動：奇襲ダメージ、スタン、初期バフ等
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-ja
 ---
 
-> [!WARNING]
-> 翻訳待機中 — このファイルは日本語翻訳が必要です。
-参考用に zh-Hant 原文を以下に掲載しています。
+# 戦闘開始アクション
 
-
-# 戰鬥開場動作
-
-> 程式類別名稱：`RCG_BattleStartActionData`
+> クラス名：`RCG_BattleStartActionData`
 
 ## 用途
 
-**戰鬥剛開始時要觸發的特殊行為**。例如「偷襲」可以在敵人行動前先扣血、「準備充足」可以給己方初始 buff、「魔法陣」可以 turn 0 就釋放 AOE。每場戰鬥可以引用一個 `RCG_BattleStartActionData`，內含 `User`（誰來執行）+ 一連串 `RCG_BattleSetting`（要做什麼）。
+**戦闘の最初に発動する特殊行動**。例：「奇襲」は敵の行動前に先に血を削り、「準備充分」は味方に初期バフを付与、「魔法陣」は turn 0 で AOE 解放。各戦闘は1つの `RCG_BattleStartActionData` を参照可能、内に `User`（誰が実行）+ 一連の `RCG_BattleSetting`（何をするか）。
 
-繼承自 `RCG_Asset<RCG_BattleStartActionData>`。
+`RCG_Asset<RCG_BattleStartActionData>` を継承。
 
-## 編輯器中的樣貌
+## エディタ上の見た目
 
 ```
 RCG_BattleStartActionData: <ID>
-    User                  ← 執行者選擇規則
-    BattleStartActions    ← 要執行的 BattleSetting 序列
+    User                  ← 実行者選択ルール
+    BattleStartActions    ← 実行する BattleSetting 順序
 ```
 
-## 主要欄位
+## 主要フィールド
 
-| 編輯器顯示 | 必填 | 說明 |
+| エディタ表示 | 必須 | 説明 |
 |---|---|---|
-| **User** | 是 | 執行者選擇規則（`RCG_SelectTargetData`）。預設選 Ally / All 範圍；空 → fallback 到玩家第一位 |
-| **BattleStartActions** | 是 | 戰鬥開始時要按順序執行的 `RCG_BattleSetting` 序列（傷害、buff、抽牌⋯） |
+| **User** | はい | 実行者選択ルール（`RCG_SelectTargetData`）。デフォルト Ally / All 範囲；空 → プレイヤー先頭にフォールバック |
+| **BattleStartActions** | はい | 戦闘開始時に順次実行する `RCG_BattleSetting` 順序（ダメージ、バフ、抽選） |
 
-## 行為說明
+## 動作説明
 
 ### `AddAction(TriggerEffectData)`
-1. 用 `m_User` 取得目標清單。
-2. 取第一個目標當作 `iData.User`（找不到 → 玩家第一位）。
-3. 把 `m_BattleStartActions` 全部依序加入動作佇列（`PushBack` 模式）。
+1. `m_User` でターゲット一覧取得。
+2. 最初のターゲットを `iData.User` にする（無ければ → プレイヤー先頭）。
+3. `m_BattleStartActions` を全て順次アクションキューに追加（`PushBack` モード）。
 
-### 預設 ID
-`RCG_BattleStartActionGenData.DefaultID = "None"`：表示「無開場動作」。
+### デフォルト ID
+`RCG_BattleStartActionGenData.DefaultID = "None"`：「開始アクションなし」を表す。
 
 ## 注意事項
 
-*   **`User` 是「執行者」不是「目標」**：每個 BattleSetting 內部會有自己的目標選擇；`m_User` 只是決定**動作從誰的視角發動**。
-*   **目標清單空時 fallback**：到 `RCG_BattleManager.PlayerBattleUnits[0]`；確保開場動作不會因 User 規則沒命中而失效。
-*   **`OnGUI` 已被整段註解**：目前只用 `Preview` 顯示資料，編輯時用預設 `OnGUI` 流程繪製。
+*   **`User` は「実行者」、「ターゲット」ではない**：各 BattleSetting 内部に独自のターゲット選択あり；`m_User` は**動作が誰の視点から発動するか**のみ決定。
+*   **ターゲット一覧空時の fallback**：`RCG_BattleManager.PlayerBattleUnits[0]`、User ルール命中失敗で開始アクションが失効しないことを保証。
+*   **`OnGUI` は丸ごとコメントアウト**：現状は `Preview` でデータ表示のみ、編集は基底 `OnGUI` フローで描画。
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## 付録：プログラマ参考 (Programmer Reference)
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_BattleStartActionData.cs`
-*   **繼承自**：`RCG_Asset<RCG_BattleStartActionData>`
+### A.1 クラス情報
+*   **ファイル**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_BattleStartActionData.cs`
+*   **継承**：`RCG_Asset<RCG_BattleStartActionData>`
 *   **AssetGroup**：`EditBattleSetting`
 
-### A.2 欄位對照
+### A.2 フィールドマッピング
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| コードフィールド | エディタ表示 | 型 | 備考 |
 |---|---|---|---|
-| `m_User` | User | `RCG_SelectTargetData` | 預設 `SelectTargetType.Range`，範圍 `Ally + All` |
-| `m_BattleStartActions` | BattleStartActions | `List<RCG_BattleSetting>` | 開場動作序列 |
+| `m_User` | User | `RCG_SelectTargetData` | デフォルト `SelectTargetType.Range`、範囲 `Ally + All` |
+| `m_BattleStartActions` | BattleStartActions | `List<RCG_BattleSetting>` | 開始アクション順序 |
 
-### A.3 重要 Method
+### A.3 主要メソッド
 
-*   **`AddAction(TriggerEffectData)`** — 主入口；計算 User → 設定 iData.User → 把所有 actions 加入佇列。
-*   **`DefaultAction`** (static) — `Util.GetData(RCG_BattleStartActionGenData.DefaultID)`，預設「None」。
+*   **`AddAction(TriggerEffectData)`** — 主入口；User 計算 → iData.User 設定 → 全 actions をキューに追加。
+*   **`DefaultAction`** (static) — `Util.GetData(RCG_BattleStartActionGenData.DefaultID)`、デフォルト「None」。
 
-### A.4 與其他系統的互動
+### A.4 他システムとの連携
 
-*   **`RCG_SelectTargetData`** — 執行者選擇規則。
-*   **`RCG_BattleSetting`** — 各動作節點。
-*   **`RCG_BattleManager.PlayerBattleUnits`** — 目標 fallback 來源。
-*   **`AddActionMode.PushBack`** — 動作佇列加入方式。
+*   **`RCG_SelectTargetData`** — 実行者選択ルール。
+*   **`RCG_BattleSetting`** — 各アクションノード。
+*   **`RCG_BattleManager.PlayerBattleUnits`** — ターゲット fallback ソース。
+*   **`AddActionMode.PushBack`** — アクションキュー追加方式。
 
-### A.5 已知議題
+### A.5 既知の問題
 
-*   `OnGUI` 完整實作已註解；改用基底類預設繪製。
+*   `OnGUI` の完全な実装はコメントアウト済；基底クラスのデフォルト描画使用。

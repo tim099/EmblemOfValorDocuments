@@ -1,93 +1,87 @@
 ---
-title: 戰鬥預設組合 (RCG_BattlePresetData) 說明
-description: 用來快速啟動測試戰鬥的「全套配置」：怪物 + 玩家角色 + 牌組 + 裝備 + 難度，一鍵 StartBattle
+title: 戦闘プリセット (RCG_BattlePresetData)
+description: テスト戦闘起動用の「フル設定」：モンスター + プレイヤーキャラ + デッキ + 装備 + 難易度、ワンクリック StartBattle
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-ja
 ---
 
-> [!WARNING]
-> 翻訳待機中 — このファイルは日本語翻訳が必要です。
-参考用に zh-Hant 原文を以下に掲載しています。
+# 戦闘プリセット
 
-
-# 戰鬥預設組合
-
-> 程式類別名稱：`RCG_BattlePresetData`
+> クラス名：`RCG_BattlePresetData`
 
 ## 用途
 
-**測試戰鬥用的快速配置**。把一整套「怪物 + 玩家角色 + 牌組 + 裝備 + 技能 + 難度」打包成一個 Asset，按下 Editor 內的 `StartBattle` 按鈕即可立刻進入戰鬥（跳過大地圖、角色選擇等流程）。**不是正式遊戲流程使用**，純粹是 QA / 設計師調整數值的調試工具。
+**テスト戦闘用のクイック設定**。「モンスター + プレイヤーキャラ + デッキ + 装備 + スキル + 難易度」の一式を1つの Asset にパッケージ、Editor 内の `StartBattle` ボタン押下で即座に戦闘突入（大マップ、キャラ選択等のフロースキップ）。**正規ゲームフロー使用ではない**、純粋に QA / デザイナーが数値調整するためのデバッグツール。
 
-繼承自 `RCG_Asset<RCG_BattlePresetData>`。
+`RCG_Asset<RCG_BattlePresetData>` を継承。
 
-## 編輯器中的樣貌
+## エディタ上の見た目
 
 ```
 RCG_BattlePresetData: <ID>
-    BattleSetGenData   ← 引用的戰鬥組合
-    Players            ← 出戰角色清單
-    ExtraCards         ← 起始額外卡（除了 Deck 之外）
-    Items              ← 起始道具
-    Deck               ← 起始牌組（替換預設）
-    Equipments         ← 各角色穿戴的裝備（dictionary）
-    UnitSkills         ← 各角色已學的技能（dictionary）
-    AllEquipments      ← 沒裝備到身上的裝備（背包）
-    EnemyType          ← 敵人類型（普通 / 精英 / Boss）
-    DifficultyData     ← 全局難度資料
-    Difficulty         ← 動態難度值
-    [按鈕] StartBattle ← Editor playing 時可一鍵開戰
+    BattleSetGenData   ← 参照戦闘構成
+    Players            ← 出戦キャラ一覧
+    ExtraCards         ← 開始追加カード（Deck 以外）
+    Items              ← 開始アイテム
+    Deck               ← 開始デッキ（デフォルト置換）
+    Equipments         ← 各キャラ装備（dictionary）
+    UnitSkills         ← 各キャラ習得スキル（dictionary）
+    AllEquipments      ← 装備していない装備（バックパック）
+    EnemyType          ← 敵タイプ（通常 / 精鋭 / ボス）
+    DifficultyData     ← グローバル難易度データ
+    Difficulty         ← 動的難易度値
+    [ボタン] StartBattle ← Editor playing 時にワンクリック開戦
 ```
 
-## 主要欄位
+## 主要フィールド
 
-| 編輯器顯示 | 必填 | 說明 |
+| エディタ表示 | 必須 | 説明 |
 |---|---|---|
-| **BattleSetGenData** | 是 | 引用的 `RCG_BattleSet`（怪物配置） |
-| **Players** | 是 | 出戰角色清單 |
-| **ExtraCards** | 否 | 額外塞進牌組的卡（用於測試特定卡組合） |
-| **Items** | 否 | 起始道具（藥水、捲軸） |
-| **Deck** | 否 | 起始牌組；非 `Default` 時會覆蓋玩家牌組 |
-| **Equipments** | 否 | 角色 → 裝備清單的 dictionary（哪個角色穿哪些裝備） |
-| **UnitSkills** | 否 | 角色 → 技能清單的 dictionary |
-| **AllEquipments** | 否 | 不裝備到身上、放背包的裝備 |
-| **EnemyType** | 否 | 敵人類型 |
-| **DifficultyData** | 否 | 全局難度設定（HP / Atk 倍率、敵人技能等級） |
-| **Difficulty** | 否 | 動態難度值（疊加在大地圖難度之上） |
+| **BattleSetGenData** | はい | 参照する `RCG_BattleSet`（モンスター配置） |
+| **Players** | はい | 出戦キャラ一覧 |
+| **ExtraCards** | いいえ | デッキに追加するカード（特定カード組合せテスト用） |
+| **Items** | いいえ | 開始アイテム（ポーション、巻物） |
+| **Deck** | いいえ | 開始デッキ；非 `Default` 時にプレイヤーデッキ上書き |
+| **Equipments** | いいえ | キャラ → 装備一覧の dictionary |
+| **UnitSkills** | いいえ | キャラ → スキル一覧の dictionary |
+| **AllEquipments** | いいえ | 装備せずバックパックに置く装備 |
+| **EnemyType** | いいえ | 敵タイプ |
+| **DifficultyData** | いいえ | グローバル難易度設定（HP / Atk 倍率、敵スキルレベル） |
+| **Difficulty** | いいえ | 動的難易度値（大マップ難易度の上に重ね） |
 
-## 行為說明
+## 動作説明
 
 ### `StartBattleAsync`
-按 `StartBattle` 按鈕（僅 Editor playing 時顯示）會：
-1. 建立 BigMapManager 並進入大地圖。
-2. 進入 Quest（包成 EnterQuestSetting）。
-3. 套用 `m_DifficultyData` 與 `m_Difficulty` 到 `RCG_DataService`。
-4. 替換玩家牌組（如果 `m_Deck.ID != Default`）。
-5. 加入 ExtraCards / Items / Equipments / UnitSkills 等。
-6. 進入戰鬥場景。
+`StartBattle` ボタン押下（Editor playing 時のみ表示）で：
+1. BigMapManager 構築し大マップ突入。
+2. Quest 突入（EnterQuestSetting でラップ）。
+3. `m_DifficultyData` と `m_Difficulty` を `RCG_DataService` に適用。
+4. プレイヤーデッキ置換（`m_Deck.ID != Default` の場合）。
+5. ExtraCards / Items / Equipments / UnitSkills 等を追加。
+6. 戦闘シーン突入。
 
-### 預覽
-顯示底層 BattleSet 的 Preview，並提供 StartBattle 按鈕。
+### プレビュー
+基底 BattleSet の Preview を表示し、StartBattle ボタン提供。
 
 ## 注意事項
 
-*   **僅供測試**：正式遊戲不從這裡進入戰鬥；不要依賴此資料設計正式關卡。
-*   **`m_Deck.ID == DefaultID` 時不替換牌組**，會用玩家當前牌組 — 確認此 Asset 的 `m_Deck` 有指定才會生效。
-*   **InitActivePowers 邏輯已註解**：原本會套用角色初始主動能力，目前由 UnitSkill 系統取代，註解掉了。
-*   **Editor not playing 時無法看到 StartBattle 按鈕**——必須在 Play Mode 下開 Developer 頁面才能用。
+*   **テスト専用**：正規ゲームはここから戦闘突入しない；正規関卡設計に依存しないこと。
+*   **`m_Deck.ID == DefaultID` 時はデッキ置換しない**、プレイヤー現デッキ使用 — この Asset の `m_Deck` 指定確認後に有効。
+*   **InitActivePowers ロジックはコメントアウト済**：元は当初キャラの初期主動能力を適用、現在は UnitSkill システムで置換、コメントアウトされた。
+*   **Editor not playing 時は StartBattle ボタンが見えない** — Play Mode で Developer ページを開く必要あり。
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## 付録：プログラマ参考 (Programmer Reference)
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattlePresetData.cs`
-*   **繼承自**：`RCG_Asset<RCG_BattlePresetData>`
+### A.1 クラス情報
+*   **ファイル**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattlePresetData.cs`
+*   **継承**：`RCG_Asset<RCG_BattlePresetData>`
 *   **AssetGroup**：`EditBattleSetting`
 
-### A.2 欄位對照
+### A.2 フィールドマッピング
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| コードフィールド | エディタ表示 | 型 | 備考 |
 |---|---|---|---|
 | `m_BattleSetGenData` | BattleSet | `RCG_BattleSetGenData` | |
 | `m_Players` | Players | `List<RCG_CharacterGenData>` | |
@@ -96,23 +90,23 @@ RCG_BattlePresetData: <ID>
 | `m_Deck` | Deck | `RCG_DeckGenData` | |
 | `m_Equipments` | Equipments | `Dictionary<RCG_CharacterGenData, List<RCG_EquipmentGenData>>` | |
 | `m_UnitSkills` | UnitSkills | `Dictionary<RCG_CharacterGenData, List<RCG_UnitSkillGenData>>` | |
-| `m_AllEquipments` | AllEquipments | `List<RCG_EquipmentGenData>` | 背包 |
+| `m_AllEquipments` | AllEquipments | `List<RCG_EquipmentGenData>` | バックパック |
 | `m_EnemyType` | EnemyType | `RCG_EnemyTypeTagGenData` | |
 | `m_DifficultyData` | DifficultyData | `RCG_DifficultyData` | |
 | `m_Difficulty` | Difficulty | `int` | |
 
-### A.3 重要 Method 摘要
+### A.3 主要メソッド
 
-*   **`StartBattleAsync(BigMap, Quest, CancellationToken)`** — 主入口；建大地圖 → 進 Quest → 套難度 → 替換 Deck → 加 Cards/Items/Equipments/UnitSkills。
-*   **`Preview`** — 編輯器內顯示 BattleSet preview + StartBattle 按鈕。
+*   **`StartBattleAsync(BigMap, Quest, CancellationToken)`** — 主入口；大マップ構築 → Quest 突入 → 難易度適用 → Deck 置換 → Cards/Items/Equipments/UnitSkills 追加。
+*   **`Preview`** — エディタ内に BattleSet preview + StartBattle ボタン表示。
 
-### A.4 與其他系統的互動
+### A.4 他システムとの連携
 
-*   **`RCG_BigMapManager`** / **`RCG_MapManager`** — 進入流程的核心。
-*   **`RCG_DataService.Ins.m_DifficultyData / Difficulty`** — 套用難度。
-*   **`RCG_DataService.Ins.m_DeckData`** — 替換牌組目標。
-*   **`RCG_MapEventManager.Reset`** — 進入新戰鬥前清除事件佇列。
+*   **`RCG_BigMapManager`** / **`RCG_MapManager`** — 突入フローのコア。
+*   **`RCG_DataService.Ins.m_DifficultyData / Difficulty`** — 難易度適用。
+*   **`RCG_DataService.Ins.m_DeckData`** — デッキ置換ターゲット。
+*   **`RCG_MapEventManager.Reset`** — 新戦闘突入前にイベントキューをクリア。
 
-### A.5 已知議題
+### A.5 既知の問題
 
-*   `// 初始角色能力` 一段已被註解，舊版透過 ActivePower 系統灌入初始能力的邏輯廢棄。
+*   `// 初始角色能力` セクションはコメントアウト、旧版 ActivePower システム経由の初期能力適用ロジック廃止。

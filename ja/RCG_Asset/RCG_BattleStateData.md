@@ -1,100 +1,94 @@
 ---
-title: 戰鬥狀態資料 (RCG_BattleStateData) 說明
-description: 戰鬥的「階段」(state) 定義：進入此狀態時觸發哪些行為、下一個狀態是什麼
+title: 戦闘状態データ (RCG_BattleStateData)
+description: 戦闘の「フェーズ」(state) 定義：当該状態突入時に発動する行動、次の状態
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-ja
 ---
 
-> [!WARNING]
-> 翻訳待機中 — このファイルは日本語翻訳が必要です。
-参考用に zh-Hant 原文を以下に掲載しています。
+# 戦闘状態データ
 
-
-# 戰鬥狀態資料
-
-> 程式類別名稱：`RCG_BattleStateData`
+> クラス名：`RCG_BattleStateData`
 
 ## 用途
 
-**戰鬥的「階段 (state)」定義**——例如「玩家回合」「敵方回合」「傷害結算」「回合結束」。每個 state 進入時會跑一段固定的行為（抽牌、處理 buff 結算、觸發回合事件等）。整個戰鬥就是在這些 state 之間流轉。
+**戦闘の「フェーズ (state)」定義** — 例：「プレイヤーターン」「敵ターン」「ダメージ集計」「ターン終了」。各 state 突入時に固定の動作を実行（カードドロー、buff 集計、ターンイベント発動等）。戦闘全体はこれらの state 間を遷移する。
 
-繼承自 `RCG_Asset<RCG_BattleStateData>`。
+`RCG_Asset<RCG_BattleStateData>` を継承。
 
-## 編輯器中的樣貌
+## エディタ上の見た目
 
 ```
 RCG_BattleStateData: <ID>
-    Name                ← 顯示名（多語系）
-    NextState           ← 下一個 state 的 ID
-    EnterStateActions   ← 進入此 state 時要跑的 BattleSetting 序列
-    StateData           ← state 自己的 runtime 資料
-    BattleState         ← 對應的 BattleManager.BattleState 列舉值
+    Name                ← 表示名（多言語）
+    NextState           ← 次の state の ID
+    EnterStateActions   ← この state 突入時に実行する BattleSetting 順序
+    StateData           ← state 自身の runtime データ
+    BattleState         ← 対応する BattleManager.BattleState 列挙値
 ```
 
-## 主要欄位
+## 主要フィールド
 
-| 編輯器顯示 | 必填 | 說明 |
+| エディタ表示 | 必須 | 説明 |
 |---|---|---|
-| **Name** | 否 | 顯示名（多語系）；空白時 fallback 到 ID |
-| **NextState** | 是 | 此 state 結束後切到哪個 state；構成狀態機骨架 |
-| **EnterStateActions** | 否 | 進入此 state 時依序觸發的 `RCG_BattleSetting` 序列 |
-| **StateData** | — | state 內部的 `RCG_RuntimeData`（變數儲存） |
-| **BattleState** | — | 對應的 `RCG_BattleManager.BattleState` enum 值（None / PlayerTurn / EnemyTurn 等） |
+| **Name** | いいえ | 表示名（多言語）；空白時は ID にフォールバック |
+| **NextState** | はい | 当該 state 終了後に切り替わる state；ステートマシンの骨格 |
+| **EnterStateActions** | いいえ | 当該 state 突入時に順次発動する `RCG_BattleSetting` 順序 |
+| **StateData** | — | state 内部の `RCG_RuntimeData`（変数保存） |
+| **BattleState** | — | 対応する `RCG_BattleManager.BattleState` enum 値（None / PlayerTurn / EnemyTurn 等） |
 
-## 行為說明
+## 動作説明
 
-### 狀態機流程
-1. 進入此 state → 呼叫 `OnEnterState(data)`，依序套用 `EnterStateActions`（過濾掉 `Enable=false` 的）。
-2. State 持續期間 → 由外部驅動 `StateUpdate()`（目前為空）。
-3. 結束時 → `ExitState()`（目前為空）。
-4. 切到 `m_NextState`。
+### ステートマシンフロー
+1. 当該 state 突入 → `OnEnterState(data)` 呼出、`EnterStateActions` を順次適用（`Enable=false` を除外）。
+2. State 持続期間 → 外部から `StateUpdate()` を駆動（現状空）。
+3. 終了時 → `ExitState()`（現状空）。
+4. `m_NextState` に切替。
 
-### State 與 BattleState 的對應
-`State` (property) 從 `m_BattleState.DefaultValue` 字串轉成 `RCG_BattleManager.BattleState` enum；缺漏時回 `None`。**這個映射讓資料驅動的 state 能對應到程式內部的 enum 邏輯**。
+### State と BattleState の対応
+`State` (property) が `m_BattleState.DefaultValue` 文字列を `RCG_BattleManager.BattleState` enum に変換；欠落時は `None` を返す。**このマッピングでデータ駆動 state がプログラム内部 enum ロジックに対応可**。
 
 ## 注意事項
 
-*   **`StateUpdate` / `ExitState` 是空實作**：目前狀態機由外部驅動，這兩個 hook 留作未來擴充。
-*   **`m_StateActions` 已棄用**：被 `m_EnterStateActions` 取代；舊資料反序列化時會走 base 流程，**不會自動遷移**（程式內 `m_EnterStateActions = m_StateActions.Clone();` 已註解）。
-*   **`m_State` enum 欄位已棄用**：改用 `m_BattleState`（`RCG_RuntimeDataConst`）；舊欄位仍存在於 base class 內，但不再寫入。
-*   **`EnterStateActions` 過濾**：會過濾掉 `Enable=false` 的 setting，動態啟停可在編輯時調整。
+*   **`StateUpdate` / `ExitState` は空実装**：現状ステートマシンは外部駆動、これら2つの hook は将来拡張用に予約。
+*   **`m_StateActions` 廃止**：`m_EnterStateActions` で置換；旧データのデシリアライズは base フローを通る、**自動移行されない**（プログラム内 `m_EnterStateActions = m_StateActions.Clone();` はコメントアウト済）。
+*   **`m_State` enum フィールド廃止**：`m_BattleState`（`RCG_RuntimeDataConst`）で置換；旧フィールドは base class に存在するが、書き込まれない。
+*   **`EnterStateActions` フィルタ**：`Enable=false` の setting を除外、編集時に動的有効化/無効化可能。
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## 付録：プログラマ参考 (Programmer Reference)
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_BattleStateData.cs`
-*   **繼承自**：`RCG_Asset<RCG_BattleStateData>`
+### A.1 クラス情報
+*   **ファイル**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_BattleStateData.cs`
+*   **継承**：`RCG_Asset<RCG_BattleStateData>`
 *   **AssetGroup**：`EditBattleSetting`
 
-### A.2 欄位對照
+### A.2 フィールドマッピング
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| コードフィールド | エディタ表示 | 型 | 備考 |
 |---|---|---|---|
 | `m_Name` | Name | `RCG_LocalizeData` | |
 | `m_NextState` | NextState | `RCG_BattleStateGenData` | |
 | `m_EnterStateActions` | EnterStateActions | `List<RCG_BattleSetting>` | |
 | `m_StateData` | StateData | `RCG_RuntimeData` | |
-| `m_BattleState` | BattleState | `RCG_RuntimeDataConst` | 預設 `BattleState` 類型 |
+| `m_BattleState` | BattleState | `RCG_RuntimeDataConst` | デフォルト `BattleState` 型 |
 
-### A.3 重要 Method 摘要
+### A.3 主要メソッド
 
-*   **`OnEnterState(TriggerEffectData, AddActionMode)`** — 進入 state；套用所有 `EnterStateActions`。
-*   **`StateUpdate()`** — 空殼，外部驅動。
-*   **`ExitState()`** — 空殼。
-*   **`State` (property)** — 從 `m_BattleState.DefaultValue` 取 enum 值。
+*   **`OnEnterState(TriggerEffectData, AddActionMode)`** — state 突入；全 `EnterStateActions` 適用。
+*   **`StateUpdate()`** — 空殻、外部駆動。
+*   **`ExitState()`** — 空殻。
+*   **`State` (property)** — `m_BattleState.DefaultValue` から enum 値取得。
 *   **`LocalizeName`** — `m_Name.HasLocalize ? m_Name.Name : ID`。
-*   **`EnterStateActions` (property)** — 過濾 `Enable=true` 的 action 清單。
+*   **`EnterStateActions` (property)** — `Enable=true` の action リストをフィルタ。
 
-### A.4 與其他系統的互動
+### A.4 他システムとの連携
 
-*   **`RCG_BattleManager.BattleState` (enum)** — 對應的程式內部狀態。
-*   **`RCG_BattleStateGenData`** — Asset Entry 包裝。
-*   **`RCG_BattleSetting`** — `EnterStateActions` 的元素。
-*   **`RCG_RuntimeData / RCG_RuntimeDataConst`** — 自帶資料容器。
+*   **`RCG_BattleManager.BattleState` (enum)** — 対応するプログラム内部状態。
+*   **`RCG_BattleStateGenData`** — Asset Entry ラッパー。
+*   **`RCG_BattleSetting`** — `EnterStateActions` の要素。
+*   **`RCG_RuntimeData / RCG_RuntimeDataConst`** — 自帯データコンテナ。
 
-### A.5 已知議題
+### A.5 既知の問題
 
-*   `m_StateActions` 與 `m_State` enum 已棄用，反序列化沒有遷移路徑。
+*   `m_StateActions` と `m_State` enum 廃止、デシリアライズに移行パスなし。

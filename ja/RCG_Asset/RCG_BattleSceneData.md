@@ -1,97 +1,91 @@
 ---
-title: 戰鬥場景設定 (RCG_BattleSceneData) 說明
-description: 戰鬥背景：2D 圖 / 3D 場景 / Prefab、是否有地面、附帶的場地效果池
+title: 戦闘シーン設定 (RCG_BattleSceneData)
+description: 戦闘背景：2D 画像 / 3D シーン / Prefab、地面有無、付随するフィールド効果池
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-ja
 ---
 
-> [!WARNING]
-> 翻訳待機中 — このファイルは日本語翻訳が必要です。
-参考用に zh-Hant 原文を以下に掲載しています。
+# 戦闘シーン設定
 
-
-# 戰鬥場景設定
-
-> 程式類別名稱：`RCG_BattleSceneData`
+> クラス名：`RCG_BattleSceneData`
 
 ## 用途
 
-**戰鬥場景的背景與場地效果**。決定戰鬥畫面看起來是什麼樣子（2D 背景圖 / 3D 渲染 / Prefab）以及戰鬥開始時可能套用哪些場地效果。每個 `RCG_QuestData` / `RCG_BattleSet` 引用一個 `RCG_BattleSceneData` 作為視覺背景。
+**戦闘シーンの背景とフィールド効果**。戦闘画面の見た目（2D 背景 / 3D 描画 / Prefab）と戦闘開始時に適用される可能性のあるフィールド効果を決定。各 `RCG_QuestData` / `RCG_BattleSet` が `RCG_BattleSceneData` を視覚背景として参照。
 
-繼承自 `RCG_Asset<RCG_BattleSceneData>`。
+`RCG_Asset<RCG_BattleSceneData>` を継承。
 
-## 編輯器中的樣貌
+## エディタ上の見た目
 
 ```
 RCG_BattleSceneData: <ID>
     SceneType         ← Scene2D / Scene3D / ScenePrefab
-    Image             ← 2D 背景圖（所有模式都會用作 fallback）
-    3DScene           ← 3D 場景 prefab（SceneType=Scene3D 時顯示）
-    FieldEffectDrops  ← 附帶的場地效果掉落池
-    HasGround         ← 是否有地面
+    Image             ← 2D 背景画像（全モードで fallback として使用）
+    3DScene           ← 3D シーン prefab（SceneType=Scene3D 時表示）
+    FieldEffectDrops  ← 付随するフィールド効果ドロップ池
+    HasGround         ← 地面の有無
 ```
 
-## 主要欄位
+## 主要フィールド
 
-| 編輯器顯示 | 必填 | 說明 |
+| エディタ表示 | 必須 | 説明 |
 |---|---|---|
-| **SceneType** | 是 | `Scene2D`（純背景圖）/ `Scene3D`（3D 渲染作背景）/ `ScenePrefab`（自訂 Prefab） |
-| **Image** | 是 | 背景圖（`RCG_SpriteData`），預設 `BattleBackGrounds_Forest3.png` |
-| **3DScene** | SceneType=Scene3D | 3D 場景 prefab；從 `Utility/3dBattleScenes` 載入 |
-| **FieldEffectDrops** | 否 | 進場時抽取的場地效果池（引用 `RCG_FieldEffectDropPool`） |
-| **HasGround** | — | 是否有地面（影響站位顯示與粒子效果） |
+| **SceneType** | はい | `Scene2D`（純背景画像）/ `Scene3D`（3D 描画背景）/ `ScenePrefab`（カスタム Prefab） |
+| **Image** | はい | 背景画像（`RCG_SpriteData`）、デフォルト `BattleBackGrounds_Forest3.png` |
+| **3DScene** | SceneType=Scene3D 時 | 3D シーン prefab；`Utility/3dBattleScenes` から読込 |
+| **FieldEffectDrops** | いいえ | 突入時に抽選するフィールド効果池（`RCG_FieldEffectDropPool` 参照） |
+| **HasGround** | — | 地面の有無（位置表示とパーティクル効果に影響） |
 
-## 行為說明
+## 動作説明
 
 ### `SetBackGround(Image, RawImage, 3DSceneRoot)`
-依 `m_SceneType` 把對應的視覺塞到 UI：
-*   **Scene2D**：載 sprite 到 `iImage`，啟動 Image，關 RawImage。
-*   **Scene3D**：建立 3D scene 到 `i3DSceneRoot`，關 Image / RawImage。
-*   **ScenePrefab**：未實作（`switch` 沒有對應 case）。
+`m_SceneType` に応じて対応視覚を UI に挿入：
+*   **Scene2D**：sprite を `iImage` に読込、Image 起動、RawImage 無効化。
+*   **Scene3D**：3D scene を `i3DSceneRoot` に構築、Image / RawImage 無効化。
+*   **ScenePrefab**：未実装（`switch` に対応 case なし）。
 
-### 場地效果觸發
-`OnTriggerEffect` 是空實作；實際觸發邏輯**已搬到 `BattleManager.TriggerFieldEffect`**。
+### フィールド効果発動
+`OnTriggerEffect` は空実装；実発動ロジックは**`BattleManager.TriggerFieldEffect` に移動済み**。
 
 ## 注意事項
 
-*   **ScenePrefab 模式未完成**：`SetBackGround` 沒處理此 case，選了會什麼都不顯示。
-*   **`OnTriggerEffect` 是空殼**：場地效果的實際觸發在 BattleManager，這裡只是介面留位。
-*   **`FieldEffects` / `Effects` 兩欄已註解**（標 TODO）：曾經考慮過直接列場地效果，目前統一走 DropPool。
+*   **ScenePrefab モードは未完成**：`SetBackGround` がこの case を処理しない、選択時は何も表示されない。
+*   **`OnTriggerEffect` は空殻**：フィールド効果の実発動は BattleManager 側、ここはインターフェース placeholder のみ。
+*   **`FieldEffects` / `Effects` の2フィールドはコメントアウト**（TODO マーク）：直接列挙を考慮していたが、現在は DropPool に統一。
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## 付録：プログラマ参考 (Programmer Reference)
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_BattleSceneData.cs`
-*   **繼承自**：`RCG_Asset<RCG_BattleSceneData>`
+### A.1 クラス情報
+*   **ファイル**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_BattleSceneData.cs`
+*   **継承**：`RCG_Asset<RCG_BattleSceneData>`
 *   **AssetGroup**：`EditBattleSetting`
-*   **常數**：`BattleScenePath = "Utility/3dBattleScenes"`
+*   **定数**：`BattleScenePath = "Utility/3dBattleScenes"`
 
-### A.2 欄位對照
+### A.2 フィールドマッピング
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| コードフィールド | エディタ表示 | 型 | 備考 |
 |---|---|---|---|
 | `m_SceneType` | SceneType | `SceneType` enum | `Scene2D` / `Scene3D` / `ScenePrefab` |
-| `m_Image` | Image | `RCG_SpriteData` | 預設 Forest 背景 |
+| `m_Image` | Image | `RCG_SpriteData` | デフォルト Forest 背景 |
 | `m_3DScene` | 3DScene | `RCG_PrefabResData` | `Conditional(Scene3D)` |
 | `m_FieldEffectDrops` | FieldEffectDrops | `RCG_FieldEffectDropPoolGenData` | |
-| `m_HasGround` | HasGround | `bool` | 預設 `true` |
+| `m_HasGround` | HasGround | `bool` | デフォルト `true` |
 
-### A.3 重要 Method 摘要
+### A.3 主要メソッド
 
 *   **`Sprite` (property)** — `m_Image.Sprite`。
-*   **`SetBackGround(token, Image, RawImage, 3DRoot)`** — 依 SceneType 設置背景。
-*   **`OnTriggerEffect(triggerOn, data)`** — 空殼，實際在 BattleManager。
+*   **`SetBackGround(token, Image, RawImage, 3DRoot)`** — SceneType に応じて背景設定。
+*   **`OnTriggerEffect(triggerOn, data)`** — 空殻、実装は BattleManager。
 
-### A.4 與其他系統的互動
+### A.4 他システムとの連携
 
-*   **`RCG_FieldEffectDropPool`** — 場地效果隨機池。
-*   **`RCG_3dRenderScene`** — 3D 場景容器。
-*   **`RCG_BattleManager.TriggerFieldEffect`** — 真正執行場地效果的地方。
+*   **`RCG_FieldEffectDropPool`** — フィールド効果ランダム池。
+*   **`RCG_3dRenderScene`** — 3D シーンコンテナ。
+*   **`RCG_BattleManager.TriggerFieldEffect`** — フィールド効果の真の実行場所。
 
-### A.5 已知議題
+### A.5 既知の問題
 
-*   `ScenePrefab` 模式未實作 `SetBackGround` 對應 case。
-*   `m_Effects` / `m_FieldEffects` 已註解，標示「使用 DropPool 後移除」。
+*   `ScenePrefab` モードの `SetBackGround` 対応 case 未実装。
+*   `m_Effects` / `m_FieldEffects` コメントアウト済、「DropPool 使用後に削除」マーク。
