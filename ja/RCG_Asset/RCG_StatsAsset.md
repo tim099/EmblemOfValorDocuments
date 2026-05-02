@@ -1,77 +1,71 @@
 ---
-title: 統計資料資產 (RCG_StatsAsset) 說明
-description: 對應「遊戲內統計值」與 Steam 統計的橋樑：擊殺數、傷害總量等可累加數值
+title: 統計データ資産 (RCG_StatsAsset)
+description: 「ゲーム内統計値」と Steam 統計のブリッジ：撃殺数、ダメージ総量等、累積可能な数値
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-ja
 ---
 
-> [!WARNING]
-> 翻訳待機中 — このファイルは日本語翻訳が必要です。
-参考用に zh-Hant 原文を以下に掲載しています。
+# 統計データ資産
 
-
-# 統計資料資產
-
-> 程式類別名稱：`RCG_StatsAsset`
+> クラス名：`RCG_StatsAsset`
 
 ## 用途
 
-**遊戲內統計值的定義**。例如「累計擊殺數」「累計打出卡牌數」「累計通關次數」這種**可累加的歷史數值**，用 `RCG_StatsAsset` 定義；可選擇是否串接 Steam Stats 自動上報。
+**ゲーム内統計値の定義**。例：「累計撃殺数」「累計使用カード数」「累計クリア回数」のような**累積可能な歴史的数値**を、`RCG_StatsAsset` で定義；オプションで Steam Stats と連携して自動報告可。
 
-繼承自 `RCG_Asset<RCG_StatsAsset>`。
+`RCG_Asset<RCG_StatsAsset>` を継承。
 
-## 編輯器中的樣貌
+## エディタ上の見た目
 
 ```
 RCG_StatsAsset: <ID>
-    HasSteamStat         ← 是否串接 Steam 統計
-    SteamUserStat        (HasSteamStat=true) ← 對應的 Steam 統計 ID
-    GameStatsType        ← 對應的遊戲內統計枚舉值（None / KillCount / ... 等）
+    HasSteamStat         ← Steam 統計と連携するか
+    SteamUserStat        (HasSteamStat=true 時) ← 対応する Steam 統計 ID
+    GameStatsType        ← 対応するゲーム内統計列挙値（None / KillCount / ... 等）
 ```
 
-## 主要欄位
+## 主要フィールド
 
-| 編輯器顯示 | 必填 | 說明 |
+| エディタ表示 | 必須 | 説明 |
 |---|---|---|
-| **HasSteamStat** | — | 是否串接 Steam 統計 |
-| **SteamUserStat** | HasSteamStat=true | 對應的 Steam 統計 entry |
-| **GameStatsType** | 是 | 遊戲內統計類型（`GameStatsType` enum） |
+| **HasSteamStat** | — | Steam 統計と連携するか |
+| **SteamUserStat** | HasSteamStat=true 時 | 対応する Steam 統計 entry |
+| **GameStatsType** | はい | ゲーム内統計タイプ（`GameStatsType` enum） |
 
-## 行為說明
+## 動作説明
 
-### Editor 內 `Create BuiltIn Stats` 工具
-編輯器頁面上方有按鈕：對 `GameStatsType` 列舉內所有非 `None` 值，自動建立缺漏的 Asset（ID 用 enum 字串名）並把 `m_GameStatsType` 設好。**便於同步程式端 enum 與 Asset 端**。
+### Editor 内 `Create BuiltIn Stats` ツール
+エディタページ上方にボタン：`GameStatsType` 列挙内の全非 `None` 値に対し、欠落 Asset を自動構築（ID は enum 文字列名）し `m_GameStatsType` を設定。**プログラム端 enum と Asset 端の同期に便利**。
 
 ## 注意事項
 
-*   **`GameStatsType` enum 是程式控制**：新增統計類型要先改 enum，再用編輯器工具補 Asset。
-*   **預設 ID `None`**（`RCG_StatsEntry.DefaultID`）：表示「無統計」；不要拿來作為實際統計的 ID。
+*   **`GameStatsType` enum はプログラム制御**：新統計タイプ追加には先に enum 改修、その後エディタツールで Asset 補完。
+*   **デフォルト ID `None`**（`RCG_StatsEntry.DefaultID`）：「統計なし」を意味；実統計の ID として使わない。
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## 付録：プログラマ参考 (Programmer Reference)
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_StatsAsset.cs`
-*   **繼承自**：`RCG_Asset<RCG_StatsAsset>`
+### A.1 クラス情報
+*   **ファイル**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_StatsAsset.cs`
+*   **継承**：`RCG_Asset<RCG_StatsAsset>`
 *   **AssetGroup**：`EditGameSetting`
 
-### A.2 欄位對照
+### A.2 フィールドマッピング
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| コードフィールド | エディタ表示 | 型 | 備考 |
 |---|---|---|---|
 | `m_HasSteamStat` | HasSteamStat | `bool` | |
 | `m_SteamUserStat` | SteamUserStat | `UCL_SteamUserStatAssetEntry` | `Conditional(HasSteamStat)` |
 | `m_GameStatsType` | GameStatsType | `GameStatsType` enum | |
 
-### A.3 重要 Method / 工具
+### A.3 主要メソッド / ツール
 
-*   **`CreateSelectAssetPage`** — `RCG_StatsAssetEditorPage.Create()`，編輯器分頁。
-*   **`Create BuiltIn Stats`**（Editor only） — 自動補齊缺漏的 stats Asset。
+*   **`CreateSelectAssetPage`** — `RCG_StatsAssetEditorPage.Create()`、エディタページ。
+*   **`Create BuiltIn Stats`**（Editor only） — 欠落 stats Asset 自動補完。
 
-### A.4 與其他系統的互動
+### A.4 他システムとの連携
 
-*   **`UCL_SteamUserStatAssetEntry`** — Steam SDK 串接。
-*   **`GameStatsType` (enum)** — 程式端統計類型枚舉。
-*   **`RCG_StatsEntry`** — Asset Entry；預設 `None`。
+*   **`UCL_SteamUserStatAssetEntry`** — Steam SDK 連携。
+*   **`GameStatsType` (enum)** — プログラム端統計タイプ列挙。
+*   **`RCG_StatsEntry`** — Asset Entry；デフォルト `None`。

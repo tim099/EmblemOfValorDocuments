@@ -1,82 +1,76 @@
 ---
-title: 本地化檔資料 (RCG_LocalizeFileData) 說明
-description: 把多語系文字檔（每語一份）打包成 Asset，依當前語系自動取對應檔
+title: ローカライズファイルデータ (RCG_LocalizeFileData)
+description: 多言語テキストファイル（言語ごとに1ファイル）を Asset にパッケージ、現言語に応じて対応ファイルを自動取得
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-ja
 ---
 
-> [!WARNING]
-> 翻訳待機中 — このファイルは日本語翻訳が必要です。
-参考用に zh-Hant 原文を以下に掲載しています。
+# ローカライズファイルデータ
 
-
-# 本地化檔資料
-
-> 程式類別名稱：`RCG_LocalizeFileData`
+> クラス名：`RCG_LocalizeFileData`
 
 ## 用途
 
-**多語系文字檔的打包 Asset**。當需要長段落的本地化文字（例如劇本、教學說明、功勳簿條目）時，每語系一份 `.txt` / `.json`，本 Asset 把它們綁在一起，依當前語系自動取對應檔。
+**多言語テキストファイルのパッケージ Asset**。長段落のローカライズテキストが必要な時（如劇本、チュートリアル説明、図鑑エントリ）、言語ごとに1つの `.txt` / `.json` を用意、本 Asset がそれらをまとめ、現言語に応じて対応ファイルを自動取得。
 
-繼承自 `RCG_Asset<RCG_LocalizeFileData>`。
+`RCG_Asset<RCG_LocalizeFileData>` を継承。
 
-## 編輯器中的樣貌
+## エディタ上の見た目
 
 ```
 RCG_LocalizeFileData: <ID>
-    DefaultLang        ← 預設語系（fallback 用）
-    LocalizeFile       ← 語系 → TextAsset 字典
+    DefaultLang        ← デフォルト言語（fallback 用）
+    LocalizeFile       ← 言語 → TextAsset 辞書
 ```
 
-## 主要欄位
+## 主要フィールド
 
-| 編輯器顯示 | 必填 | 說明 |
+| エディタ表示 | 必須 | 説明 |
 |---|---|---|
-| **DefaultLang** | 是 | 預設語系（當前語系沒對應檔時 fallback） |
-| **LocalizeFile** | 是 | `Dictionary<UCL_LanguageCodeEntry, UCL_TextAssetEntry>`：每個語系對一份文字檔 |
+| **DefaultLang** | はい | デフォルト言語（現言語に対応ファイルがない時の fallback） |
+| **LocalizeFile** | はい | `Dictionary<UCL_LanguageCodeEntry, UCL_TextAssetEntry>`：各言語に対し1つのテキストファイル |
 
-## 行為說明
+## 動作説明
 
-### `GetTextData()` 取檔順序
-1. `m_LocalizeFile` 有當前語系 → 用它。
-2. 否則有 `DefaultLang` → fallback 到預設。
-3. 否則 → 取 `LocalizeFile.Values.FirstElementInCollection()`（第一個 entry）。
-4. 完全空 → null。
+### `GetTextData()` 取得順序
+1. `m_LocalizeFile` に現言語あり → 使用。
+2. それ以外で `DefaultLang` あり → デフォルトに fallback。
+3. それ以外 → `LocalizeFile.Values.FirstElementInCollection()`（最初の entry） 取得。
+4. 完全に空 → null。
 
 ### `GetText()`
-取文字內容；無資料回空字串。
+テキスト内容取得；データなしで空文字列返却。
 
 ## 注意事項
 
-*   **`UCL_LanguageCodeEntry` 是字典 key**：不同語系用不同 entry，編輯時注意 key 不要重複。
-*   **缺漏語系時 fallback 順序**：當前 → 預設 → 第一個。即使全缺也不會 NRE，會回空字串。
-*   **與 i18n 短字串系統的差異**：短字串走 `UCL_LocalizeManager`（key-value），本檔適用於**長段落 / 整段內容**。
+*   **`UCL_LanguageCodeEntry` は辞書 key**：異なる言語に異なる entry 使用、編集時に key 重複に注意。
+*   **欠落言語時の fallback 順序**：現在 → デフォルト → 最初。全欠落でも NRE せず、空文字列返却。
+*   **i18n 短文字列システムとの違い**：短文字列は `UCL_LocalizeManager` 経由（key-value）、本ファイルは**長段落 / 内容全体**向け。
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## 付録：プログラマ参考 (Programmer Reference)
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_LocalizeFileData.cs`
-*   **繼承自**：`RCG_Asset<RCG_LocalizeFileData>`
+### A.1 クラス情報
+*   **ファイル**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_LocalizeFileData.cs`
+*   **継承**：`RCG_Asset<RCG_LocalizeFileData>`
 *   **AssetGroup**：`EditLocalizeSetting`
 
-### A.2 欄位對照
+### A.2 フィールドマッピング
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| コードフィールド | エディタ表示 | 型 | 備考 |
 |---|---|---|---|
 | `m_DefaultLang` | DefaultLang | `UCL_LanguageCodeEntry` | |
 | `m_LocalizeFile` | LocalizeFile | `Dictionary<UCL_LanguageCodeEntry, UCL_TextAssetEntry>` | |
 
-### A.3 重要 Method
+### A.3 主要メソッド
 
-*   **`GetTextData()`** — 含當前語 → DefaultLang → 第一個 entry 的 fallback 鏈。
-*   **`GetText()`** — 取字串內容；無資料回空字串。
+*   **`GetTextData()`** — 現言語 → DefaultLang → 最初の entry の fallback chain。
+*   **`GetText()`** — 文字列内容；データなしで空文字列。
 
-### A.4 與其他系統的互動
+### A.4 他システムとの連携
 
-*   **`UCL_LanguageCodeEntry`** — 語系系統。
-*   **`UCL_TextAssetEntry`** — 文字檔資源包裝。
-*   **`RCG_GameManager.CurLanguageCode`** — 當前語系來源。
-*   **`RCG_LocalizeFileGenData`** — Asset Entry 包裝。
+*   **`UCL_LanguageCodeEntry`** — 言語システム。
+*   **`UCL_TextAssetEntry`** — テキストファイルリソースラッパー。
+*   **`RCG_GameManager.CurLanguageCode`** — 現言語ソース。
+*   **`RCG_LocalizeFileGenData`** — Asset Entry ラッパー。

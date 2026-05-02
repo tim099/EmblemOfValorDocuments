@@ -1,94 +1,88 @@
 ---
-title: 執行時資料 (RCG_RuntimeData) 說明
-description: 通用 runtime 變數容器：依 RuntimeStructData 定義動態結構（Int/Bool/Struct/List/Dic/Enum 等）
+title: 実行時データ (RCG_RuntimeData)
+description: 汎用 runtime 変数コンテナ：RuntimeStructData で定義された動的構造（Int/Bool/Struct/List/Dic/Enum 等）
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-ja
 ---
 
-> [!WARNING]
-> 翻訳待機中 — このファイルは日本語翻訳が必要です。
-参考用に zh-Hant 原文を以下に掲載しています。
+# 実行時データ
 
-
-# 執行時資料
-
-> 程式類別名稱：`RCG_RuntimeData`
+> クラス名：`RCG_RuntimeData`
 
 ## 用途
 
-**通用的 runtime 變數容器**。系統內各處需要「動態結構的儲存格」就用這個——例如戰鬥階段狀態、卡牌觸發時機計數、各種臨時 flag。實際結構由 `RCG_RuntimeStructData`（型別表）定義；`RCG_RuntimeData` 只是**這個結構的一個實例**，含初始值。
+**汎用 runtime 変数コンテナ**。システム内各所で「動的構造の保存スロット」が必要な場合に使用 — 例：戦闘段階状態、カード発動タイミングカウンター、各種一時 flag。実構造は `RCG_RuntimeStructData`（型表）で定義；`RCG_RuntimeData` は**この構造の1インスタンス**で、初期値を含む。
 
-繼承自 `RCG_Asset<RCG_RuntimeData>`，實作介面：`UCLI_FieldOnGUI`。
+`RCG_Asset<RCG_RuntimeData>` を継承。実装：`UCLI_FieldOnGUI`。
 
-## 編輯器中的樣貌
+## エディタ上の見た目
 
 ```
 RCG_RuntimeData: <ID>
-    StructType   ← 引用的 RCG_RuntimeStructData ID（型別定義）
-    DefaultValue ← 此實例的初始值（依 StructType 動態繪製欄位）
+    StructType   ← 参照する RCG_RuntimeStructData ID（型定義）
+    DefaultValue ← このインスタンスの初期値（StructType に応じて動的描画）
 ```
 
-## 主要欄位
+## 主要フィールド
 
-| 編輯器顯示 | 必填 | 說明 |
+| エディタ表示 | 必須 | 説明 |
 |---|---|---|
-| **StructType** | 是 | 引用的 `RCG_RuntimeStructData` ID（決定本實例的資料形狀） |
-| **DefaultValue** | 是 | 此實例的初始值；型別變動時會自動重建 |
+| **StructType** | はい | 参照する `RCG_RuntimeStructData` ID（このインスタンスのデータ形を決定） |
+| **DefaultValue** | はい | このインスタンスの初期値；型変動時に自動再構築 |
 
-## 行為說明
+## 動作説明
 
-### Type 變更時自動重建
-`DefaultValue` 的 getter 比對 `m_DefaultValue.ID` 與 `m_StructType.ID`，不一致 → null 並重建。**避免舊型別資料殘留**。
+### 型変更時の自動再構築
+`DefaultValue` の getter が `m_DefaultValue.ID` と `m_StructType.ID` を比較、不一致 → null し再構築。**旧型データが残らないことを保証**。
 
-### 序列化
-`SerializeToJson` 會把 base + `DefaultValue` 一起輸出（key = `DefaultValueKey = "DefaultValue"`）；反序列化時若有此 key 才覆寫 DefaultValue。
+### シリアライズ
+`SerializeToJson` が base + `DefaultValue` を一緒に出力（key = `DefaultValueKey = "DefaultValue"`）；デシリアライズ時に該 key があれば DefaultValue を上書き。
 
-### 預設取得 (`InGameData`)
-`RCG_RuntimeData.InGameData` 取 `RCG_RuntimeGenData.InGameDataID` 對應的 Asset，作為「全局 In-Game 變數儲存」。
+### デフォルト取得 (`InGameData`)
+`RCG_RuntimeData.InGameData` が `RCG_RuntimeGenData.InGameDataID` 対応の Asset を取得、「グローバル In-Game 変数保存」として使用。
 
-### `RCG_RuntimeDataConst`（檔內子類）
-跳過 m_StructType 編輯，直接顯示 DefaultValue。標 `[UCL_IgnoreAsset]` 不會作為獨立 Asset 出現。
+### `RCG_RuntimeDataConst`（同ファイルサブクラス）
+m_StructType 編集をスキップ、直接 DefaultValue 表示。`[UCL_IgnoreAsset]` マーク済で独立 Asset として出現しない。
 
 ## 注意事項
 
-*   **`StructType` 必須先存在**：要先建好對應的 `RCG_RuntimeStructData` 才能在這裡引用。
-*   **改 StructType 會清空現有 DefaultValue**：型別不一致直接重建，舊資料會失。
-*   **`DefaultType` enum 列舉常用 ID**：`BattleState` / `CardTriggerTiming` 是內建常用 struct type 的快捷方式。
+*   **`StructType` は先に存在必須**：対応 `RCG_RuntimeStructData` を先に作成してからここで参照。
+*   **StructType 変更で既存 DefaultValue クリア**：型不一致で直接再構築、旧データ消失。
+*   **`DefaultType` enum がよく使う ID を列挙**：`BattleState` / `CardTriggerTiming` は内蔵共通 struct type のショートカット方式。
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## 付録：プログラマ参考 (Programmer Reference)
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RuntimeData/RCG_RuntimeData.cs`
-*   **繼承自**：`RCG_Asset<RCG_RuntimeData>`
-*   **實作介面**：`UCLI_FieldOnGUI`
+### A.1 クラス情報
+*   **ファイル**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RuntimeData/RCG_RuntimeData.cs`
+*   **継承**：`RCG_Asset<RCG_RuntimeData>`
+*   **実装**：`UCLI_FieldOnGUI`
 *   **AssetGroup**：`Runtime`
 
-### A.2 欄位對照
+### A.2 フィールドマッピング
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| コードフィールド | エディタ表示 | 型 | 備考 |
 |---|---|---|---|
-| `m_StructType` | StructType | `RCG_RuntimeStructGenData` | 型別表引用 |
-| `m_DefaultValue` (private) | DefaultValue | `RCG_RuntimeObject` | 透過 property 動態建立 |
+| `m_StructType` | StructType | `RCG_RuntimeStructGenData` | 型表参照 |
+| `m_DefaultValue` (private) | DefaultValue | `RCG_RuntimeObject` | property 経由で動的構築 |
 
-### A.3 重要 Method 摘要
+### A.3 主要メソッド
 
-*   **`InGameData` (static)** — `Util.GetData(InGameDataID)`，全局 in-game 變數儲存。
-*   **`DefaultValue` (property)** — 含 type-mismatch 自動重建邏輯。
-*   **`SerializeToJson / DeserializeFromJson`** — 含 DefaultValue 子物件序列化。
-*   **`GetEnumIDs()`** — 對 Enum 型別取所有 enum 字串值。
-*   **`OnGUIDefaultValue(field, dataDic)`** — 繪製 DefaultValue 編輯欄。
-*   **`OnGUI(field, dataDic, params)`** — `UCLI_FieldOnGUI` 介面實作。
+*   **`InGameData` (static)** — `Util.GetData(InGameDataID)`、グローバル in-game 変数保存。
+*   **`DefaultValue` (property)** — 型不一致自動再構築ロジック含む。
+*   **`SerializeToJson / DeserializeFromJson`** — DefaultValue サブオブジェクトシリアライズ含む。
+*   **`GetEnumIDs()`** — Enum 型の全 enum 文字列値を取得。
+*   **`OnGUIDefaultValue(field, dataDic)`** — DefaultValue 編集欄描画。
+*   **`OnGUI(field, dataDic, params)`** — `UCLI_FieldOnGUI` 介面実装。
 
-### A.4 與其他系統的互動
+### A.4 他システムとの連携
 
-*   **`RCG_RuntimeStructData`** — 型別定義來源。
-*   **`RCG_RuntimeObject`** — 動態值的容器類別。
+*   **`RCG_RuntimeStructData`** — 型定義ソース。
+*   **`RCG_RuntimeObject`** — 動的値のコンテナクラス。
 *   **`RCG_RuntimeGenData`** — Asset Entry。
-*   **`RCG_RuntimeDataConst`**（同檔）— 不可獨立存在的常數變體。
+*   **`RCG_RuntimeDataConst`**（同ファイル）— 独立存在不可な定数バリアント。
 
-### A.5 已知議題
+### A.5 既知の問題
 
-*   `RCG_RuntimeDataConst` 標 `[UCL_IgnoreAsset]` 但仍能被引用，使用時要避免誤建 Asset。
+*   `RCG_RuntimeDataConst` は `[UCL_IgnoreAsset]` だが参照可能、誤って Asset 作成しないよう注意。

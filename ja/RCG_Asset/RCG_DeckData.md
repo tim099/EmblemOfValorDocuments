@@ -1,98 +1,92 @@
 ---
-title: 牌組資料 (RCG_DeckData) 說明
-description: 一份完整牌組的定義（卡牌清單與配置）；角色起始牌組、加入牌組、玩家牌組底層
+title: デッキデータ (RCG_DeckData)
+description: 1つの完全なデッキの定義（カード一覧と配置）；キャラ初期デッキ、加入デッキ、プレイヤーデッキの基盤
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-ja
 ---
 
-> [!WARNING]
-> 翻訳待機中 — このファイルは日本語翻訳が必要です。
-参考用に zh-Hant 原文を以下に掲載しています。
+# デッキデータ
 
-
-# 牌組資料
-
-> 程式類別名稱：`RCG_DeckData`
+> クラス名：`RCG_DeckData`
 
 ## 用途
 
-**一份完整牌組的定義**。每張卡牌 + 數量 = 牌組。應用情境：
-*   角色 `RCG_CharacterData.m_Deck`（起始牌組）
-*   角色 `m_JoinDeck`（中途加入時帶來的牌組）
-*   `RCG_BattlePresetData.m_Deck`（測試戰鬥用牌組）
-*   特殊事件給予的整套牌
+**1つの完全なデッキの定義**。各カード + 数量 = デッキ。応用シナリオ：
+*   キャラ `RCG_CharacterData.m_Deck`（初期デッキ）
+*   キャラ `m_JoinDeck`（中途加入時に持参するデッキ）
+*   `RCG_BattlePresetData.m_Deck`（テスト戦闘用デッキ）
+*   特殊イベント付与のデッキ一式
 
-繼承自 `RCG_Asset<RCG_DeckData>`，實作介面：`RCGI_Unloackable`（可解鎖）。
+`RCG_Asset<RCG_DeckData>` を継承。実装：`RCGI_Unloackable`（解放可）。
 
-## 編輯器中的樣貌
+## エディタ上の見た目
 
 ```
 RCG_DeckData: <ID>
-    Name           ← 牌組顯示名（多語系）
-    Deck           ← 卡牌清單（SpawnDeckData，含每張卡 + 數量）
-    Unlock         ← 解鎖條件
+    Name           ← デッキ表示名（多言語）
+    Deck           ← カード一覧（SpawnDeckData、各カード + 数量含む）
+    Unlock         ← 解放条件
 ```
 
-## 主要欄位
+## 主要フィールド
 
-| 編輯器顯示 | 必填 | 說明 |
+| エディタ表示 | 必須 | 説明 |
 |---|---|---|
-| **Name** | 否 | 顯示名（多語系）；空白時 fallback 到 ID |
-| **Deck** | 是 | 卡牌清單與數量（`SpawnDeckData`） |
-| **Unlock** | 否 | 解鎖條件 |
+| **Name** | いいえ | 表示名（多言語）；空白時は ID にフォールバック |
+| **Deck** | はい | カード一覧と数量（`SpawnDeckData`） |
+| **Unlock** | いいえ | 解放条件 |
 
-## 行為說明
+## 動作説明
 
 ### `SelectCard(setting)`
-按 `SelectCardSetting` 從牌組裡**順序**篩出第一張符合的卡（**非隨機**）；命中則 clone 成 `RCG_CardBattleData` 回傳。
+`SelectCardSetting` に従ってデッキから**順次**最初の適合カードを選別（**非ランダム**）；命中で `RCG_CardBattleData` に clone し返却。
 
 ### `SelectCards(count, setting)`
-TODO：尚未實作（程式內 `// ToDo` 直接 return null）。
+TODO：未実装（プログラム内 `// ToDo` で直接 return null）。
 
 ### `GetAllCards()`
-回傳整副牌組的 `RCG_CardGenData` 清單。
+デッキ全体の `RCG_CardGenData` リストを返却。
 
 ### Tooltip Infos
-`Infos = m_Deck.Infos`：聚合所有卡上的狀態效果說明（例：「出血」、「燃燒」狀態解說）。
+`Infos = m_Deck.Infos`：全カード上の状態効果説明を集約（例：「出血」「燃焼」状態解説）。
 
 ## 注意事項
 
-*   **`SelectCards` 還沒實作**：要批量隨機抽卡，目前不能用此入口；需自己實作或走別的 utility。
-*   **預設 ID `Default` / `BackUp`**：`RCG_DeckGenData.DefaultID = "Default"`、`BackUpID = "BackUp"`——常作為「初始牌組」與「備用牌組」的命名約定。
+*   **`SelectCards` は未実装**：バッチランダム抽選には現状この入口は使えない；自前実装または別の utility を経由する必要。
+*   **デフォルト ID `Default` / `BackUp`**：`RCG_DeckGenData.DefaultID = "Default"`、`BackUpID = "BackUp"` — 「初期デッキ」と「予備デッキ」の慣習的命名。
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## 付録：プログラマ参考 (Programmer Reference)
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_DeckData.cs`
-*   **繼承自**：`RCG_Asset<RCG_DeckData>`
-*   **實作介面**：`RCGI_Unloackable`
+### A.1 クラス情報
+*   **ファイル**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_DeckData.cs`
+*   **継承**：`RCG_Asset<RCG_DeckData>`
+*   **実装**：`RCGI_Unloackable`
 *   **AssetGroup**：`EditItems`
 
-### A.2 欄位對照
+### A.2 フィールドマッピング
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| コードフィールド | エディタ表示 | 型 | 備考 |
 |---|---|---|---|
 | `m_Name` | Name | `RCG_LocalizeData` | |
-| `m_Deck` | Deck | `SpawnDeckData` | 卡牌清單 + 配置 |
+| `m_Deck` | Deck | `SpawnDeckData` | カード一覧 + 配置 |
 | `m_Unlock` | Unlock | `RCG_UnlockEntry` | |
 
-### A.3 重要 Method
+### A.3 主要メソッド
 
-*   **`SelectCard(setting)`** — 按條件順序選一張，clone 成 `RCG_CardBattleData`。
-*   **`SelectCards(count, setting)`** — **未實作**（return null + TODO）。
-*   **`GetAllCards()`** — 全副牌列表。
-*   **`AllCardsName / Infos / LocalizedName`** — 顯示用屬性。
+*   **`SelectCard(setting)`** — 条件で順次1枚選別、`RCG_CardBattleData` に clone。
+*   **`SelectCards(count, setting)`** — **未実装**（return null + TODO）。
+*   **`GetAllCards()`** — デッキ全体リスト。
+*   **`AllCardsName / Infos / LocalizedName`** — 表示用プロパティ。
 
-### A.4 與其他系統的互動
+### A.4 他システムとの連携
 
-*   **`SpawnDeckData`** — 實際牌組容器。
-*   **`RCG_CardBattleData`** — 戰鬥用卡片實例。
-*   **`SelectCardSetting`** — 卡牌選擇規則。
-*   **`RCG_DeckGenData`** — Asset Entry；`Default` / `BackUp` 兩個常數 ID。
+*   **`SpawnDeckData`** — 実デッキコンテナ。
+*   **`RCG_CardBattleData`** — 戦闘用カードインスタンス。
+*   **`SelectCardSetting`** — カード選択ルール。
+*   **`RCG_DeckGenData`** — Asset Entry；`Default` / `BackUp` の2つの定数 ID。
 
-### A.5 已知議題
+### A.5 既知の問題
 
-*   `SelectCards` 尚未實作（`// ToDo`）。
+*   `SelectCards` は未実装（`// ToDo`）。
