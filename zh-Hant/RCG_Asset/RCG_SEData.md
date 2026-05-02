@@ -1,72 +1,85 @@
 ---
-title: RCG_SEData 說明
-description: <!-- TODO: 一句話功能摘要 -->
+title: 音效資料 (RCG_SEData) 說明
+description: 單一音效的設定：音檔、音量、AudioType、可同步等待結束
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
 ---
 
-# RCG_SEData
+# 音效資料
 
 > 程式類別名稱：`RCG_SEData`
 
 ## 用途
 
-<!-- TODO: 描述這個 Asset 在遊戲裡負責什麼、什麼情境會用、舉 1-2 個範例。 -->
+**單一音效（SE）的設定**。例如「卡牌打出音」「命中音」「按鈕點擊音」「勝利音樂」等。每個 `RCG_SEData` 是一份音檔 + 音量 + 類型，可以同步播放或等待播完。
 
 繼承自 `RCG_Asset<RCG_SEData>`。
 
 ## 編輯器中的樣貌
 
 ```
-<!-- TODO: 描繪此 Asset 在編輯器內的版面 -->
+RCG_SEData: <ID>
+    SE          ← 音檔（RCG_AudioData）
+    Volume      ← 音量（0~1，slider）
+    AudioType   ← 音效類型（SE / UI 等）
+    Note        ← 備註
 ```
 
 ## 主要欄位
 
 | 編輯器顯示 | 必填 | 說明 |
 |---|---|---|
-| **SE** | — | <!-- TODO: 說明欄位用途 --> |
-| **Volume** | — | <!-- TODO: 說明欄位用途 --> |
-| **AudioType** | — | <!-- TODO: 說明欄位用途 --> |
-| **Note** | — | <!-- TODO: 說明欄位用途 --> |
+| **SE** | 是 | 音檔（`RCG_AudioData`），預設走 `ModResource` 載入 |
+| **Volume** | 是 | 音量 0~1（slider），預設 1.0 |
+| **AudioType** | 是 | 音效類型（`UCL.Core.Game.AudioType`），預設 `SE` |
+| **Note** | 否 | 備註（編輯時自用） |
 
 ## 行為說明
 
-<!-- TODO: 戰鬥 / 載入 / 解鎖時的觸發時機與順序。 -->
+### `PlaySE()`
+非阻塞播放——`PlaySEAsync().Forget()` 立刻返回，不等待音檔結束。
+
+### `PlaySEAsync()` (UniTask)
+async 取 clip → `UCL_GameAudioService.Ins.Play(clip, audioType, volume)`，回傳 `AudioPlayer`。
+
+### `PlaySEUntilEnd(token)`
+取 player 後設定 `EndAct` 旗標 → `WaitUntil` 結束；可用在「過場 SE 結束才能繼續」的情境。
+
+### 預設 ID
+`RCG_SEGenData.DefaultID = "Null"`：表示「無音效」；`s_Victory = "SoundEffect_Victory"` 是內建的勝利音效。
 
 ## 注意事項
 
-<!-- TODO: 常見的設計反模式 / 容易踩到的坑。 -->
+*   **`m_SE.IsEmpty` 時不會 LogError**：靜默 return null；要確認音效有播要主動檢查。
+*   **`PlaySE()` 是非阻塞**：要等音效播完用 `PlaySEUntilEnd(token)`。
+*   **AudioType 影響混音器分組**：UI / SE / BGM 各有獨立音量控制，挑錯類型會被誤調。
 
 ---
 
 ## 附錄：程式人員參考 (Programmer Reference)
 
-> 此段以下使用程式內部術語，受眾轉為程式人員與 AI agent。前半段內容請優先採信。
-
 ### A.1 類別資訊
-
 *   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_SEData.cs`
 *   **繼承自**：`RCG_Asset<RCG_SEData>`
-*   **實作介面**：（無）
+*   **AssetGroup**：`EditGameSetting`
 
-### A.2 欄位對照（自動產生，需人工複核）
+### A.2 欄位對照
 
-| 程式欄位 | 編輯器顯示 | 型別 | Localize Key | 備註 |
-|---|---|---|---|---|
-| `m_SE` | SE | `RCG_AudioData` | `SE` | |
-| `m_Volume` | Volume | `float` | `Volume` | UCL.Core.PA.UCL_Slider(0f, 1f) |
-| `m_AudioType` | AudioType | `UCL.Core.Game.AudioType` | `AudioType` | |
-| `m_Note` | Note | `string` | `Note` | |
+| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+|---|---|---|---|
+| `m_SE` | SE | `RCG_AudioData` | 預設 `ModResource + GroupSoundEffect` |
+| `m_Volume` | Volume | `float` | `[UCL_Slider(0, 1)]`，預設 1.0 |
+| `m_AudioType` | AudioType | `UCL.Core.Game.AudioType` | 預設 `SE` |
+| `m_Note` | Note | `string` | |
 
-### A.3 重要 Method 摘要
+### A.3 重要 Method
 
-<!-- TODO: 補上影響行為的關鍵 method（OnGUI / Preview / 序列化覆寫等）。 -->
+*   **`PlaySE()`** — fire-and-forget。
+*   **`PlaySEAsync()`** — 取 clip 並播放，回 `AudioPlayer`。
+*   **`PlaySEUntilEnd(token)`** — 等播完再回。
 
 ### A.4 與其他系統的互動
 
-<!-- TODO: 列出依賴 / 被依賴的類別與系統。 -->
-
-### A.5 已知議題（選填）
-
-<!-- TODO: TODO/FIXME 摘錄、待重構點。 -->
+*   **`UCL.Core.Game.UCL_GameAudioService`** — 實際播放服務。
+*   **`RCG_AudioData`** — 音檔資源封裝。
+*   **`RCG_SEGenData`** — Asset Entry；預設 ID `Null`，`s_Victory` 內建。

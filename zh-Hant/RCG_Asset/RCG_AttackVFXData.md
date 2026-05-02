@@ -1,86 +1,95 @@
 ---
-title: RCG_AttackVFXData 說明
-description: <!-- TODO: 一句話功能摘要 -->
+title: 攻擊特效 (RCG_AttackVFXData) 說明
+description: 卡牌攻擊時的特效設定：發射 VFX、命中 VFX、是否衝向敵人；含 preload 機制
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
 ---
 
-# RCG_AttackVFXData
+# 攻擊特效
 
 > 程式類別名稱：`RCG_AttackVFXData`
 
 ## 用途
 
-<!-- TODO: 描述這個 Asset 在遊戲裡負責什麼、什麼情境會用、舉 1-2 個範例。 -->
+**卡牌攻擊時的特效模板**。一張攻擊卡可指定：
+*   **發射 VFX**（`m_VFX`）：攻擊瞬間在使用者位置播放
+*   **命中 VFX**（`m_HitVFX`）：傷害結算時在敵人位置播放
+*   **是否衝向敵人** + 動畫時間配置（衝向時的延遲、移動時間、停留、退回）
 
 繼承自 `RCG_Asset<RCG_AttackVFXData>`。
 
 ## 編輯器中的樣貌
 
 ```
-<!-- TODO: 描繪此 Asset 在編輯器內的版面 -->
+RCG_AttackVFXData: <ID>
+    AttackVFXSetting (m_AttackVFXSetting)
+        VFX                       ← 發射特效
+        HitVFX                    ← 命中特效
+        MoveTowardEnemy           ← 是否衝向敵人
+        MoveTowardEnemySetting    (true 時) ← 動畫時間配置
+    Note                          ← 備註
 ```
 
 ## 主要欄位
 
 | 編輯器顯示 | 必填 | 說明 |
 |---|---|---|
-| **VFX** | — | <!-- TODO: 說明欄位用途 --> |
-| **HitVFX** | — | <!-- TODO: 說明欄位用途 --> |
-| **MoveTowardEnemy** | — | <!-- TODO: 說明欄位用途 --> |
-| **MoveTowardEnemySetting** | — | <!-- TODO: 說明欄位用途 --> |
-| **AttackAnimDelay** | — | <!-- TODO: 說明欄位用途 --> |
-| **MoveTime** | — | <!-- TODO: 說明欄位用途 --> |
-| **WaitTime** | — | <!-- TODO: 說明欄位用途 --> |
-| **MoveBackTime** | — | <!-- TODO: 說明欄位用途 --> |
-| **OffsetX** | — | <!-- TODO: 說明欄位用途 --> |
-| **AttackVFXSetting** | — | <!-- TODO: 說明欄位用途 --> |
-| **Note** | — | <!-- TODO: 說明欄位用途 --> |
+| **VFX** | 是 | 發射 VFX；預設 Addressable `AttackVFXs/VFX_AttackEffect` |
+| **HitVFX** | 否 | 命中 VFX |
+| **MoveTowardEnemy** | — | 攻擊時是否移動到敵人身旁 |
+| **MoveTowardEnemySetting** | MoveTowardEnemy=true | 動畫時間：`AttackAnimDelay` / `MoveTime` (0.5) / `WaitTime` (0.8) / `MoveBackTime` (0.25) / `OffsetX` |
+| **Note** | 否 | 備註（編輯時自用，runtime 不顯示） |
 
 ## 行為說明
 
-<!-- TODO: 戰鬥 / 載入 / 解鎖時的觸發時機與順序。 -->
+### Preload (`PreloadData`)
+卡牌資料載入時呼叫 `AttackVFXSetting.PreloadData(token)`：把 `m_VFX` 與 `m_HitVFX` 提前載入記憶體，避免戰鬥中第一次播放時卡頓。
+
+### 衝向敵人
+`m_MoveTowardEnemy = true` 時：
+1. 套 `m_AttackAnimDelay` 等待。
+2. 移到敵人身旁（`m_MoveTime`）。
+3. 在敵人位置停留（`m_WaitTime`）— 期間播 VFX、結算傷害。
+4. 退回原位（`m_MoveBackTime`）。
+5. `m_OffsetX` 控制停留位置的水平偏移（敵我相反——玩家攻擊敵人時 +X，敵人反過來就是 -X）。
 
 ## 注意事項
 
-<!-- TODO: 常見的設計反模式 / 容易踩到的坑。 -->
+*   **預設 ID `AttackEffectPlain`**（`RCG_AttackVFXGenData.DefaultID`）：是內建「平凡攻擊」特效。
+*   **`HitVFX` 路徑常數**：`PathConst.HitVFXs`，預設為空（很多攻擊不需要單獨命中特效）。
+*   **`Note` 欄位是純備註**：無實際作用，給設計師自己看的。
+*   **Preload 後仍可能在戰鬥首發卡頓**：如果用 Resource 路徑而非 Addressable，預載效果有限。
 
 ---
 
 ## 附錄：程式人員參考 (Programmer Reference)
 
-> 此段以下使用程式內部術語，受眾轉為程式人員與 AI agent。前半段內容請優先採信。
-
 ### A.1 類別資訊
-
 *   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_AttackVFXData.cs`
 *   **繼承自**：`RCG_Asset<RCG_AttackVFXData>`
-*   **實作介面**：（無）
+*   **AssetGroup**：`EditVFX`
 
-### A.2 欄位對照（自動產生，需人工複核）
+### A.2 欄位對照
 
-| 程式欄位 | 編輯器顯示 | 型別 | Localize Key | 備註 |
-|---|---|---|---|---|
-| `m_VFX` | VFX | `RCG_VFXResData` | `VFX` | |
-| `m_HitVFX` | HitVFX | `RCG_VFXResData` | `HitVFX` | |
-| `m_MoveTowardEnemy` | MoveTowardEnemy | `bool` | `MoveTowardEnemy` | |
-| `m_MoveTowardEnemySetting` | MoveTowardEnemySetting | `MoveTowardEnemySetting` | `MoveTowardEnemySetting` | UCL.Core.PA.Conditional(nameof(m_MoveTowardEnemy), false, true) |
-| `m_AttackAnimDelay` | AttackAnimDelay | `float` | `AttackAnimDelay` | |
-| `m_MoveTime` | MoveTime | `float` | `MoveTime` | |
-| `m_WaitTime` | WaitTime | `float` | `WaitTime` | |
-| `m_MoveBackTime` | MoveBackTime | `float` | `MoveBackTime` | |
-| `m_OffsetX` | OffsetX | `float` | `OffsetX` | |
-| `m_AttackVFXSetting` | AttackVFXSetting | `AttackVFXSetting` | `AttackVFXSetting` | |
-| `m_Note` | Note | `string` | `Note` | |
+| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+|---|---|---|---|
+| `m_AttackVFXSetting` | AttackVFXSetting | `AttackVFXSetting`（巢狀） | 主資料 |
+| `m_Note` | Note | `string` | |
 
-### A.3 重要 Method 摘要
+`AttackVFXSetting` 內含 `m_VFX` / `m_HitVFX` / `m_MoveTowardEnemy` / `m_MoveTowardEnemySetting`。
+`MoveTowardEnemySetting` 內含 `m_AttackAnimDelay` / `m_MoveTime` / `m_WaitTime` / `m_MoveBackTime` / `m_OffsetX`。
 
-<!-- TODO: 補上影響行為的關鍵 method（OnGUI / Preview / 序列化覆寫等）。 -->
+### A.3 重要 Method
+
+*   **`AttackVFXSetting.PreloadData(token)`** — 預載 m_VFX + m_HitVFX。
 
 ### A.4 與其他系統的互動
 
-<!-- TODO: 列出依賴 / 被依賴的類別與系統。 -->
+*   **`RCG_VFXResData`** — VFX 資源包裝。
+*   **`PathConst.AttackVFXs / HitVFXs`** — Addressable 路徑常數。
+*   **`RCG_AttackVFXGenData`** — Asset Entry；預設 `AttackEffectPlain`。
+*   **戰鬥動畫系統** — runtime 套用 `MoveTowardEnemySetting` 的時間參數。
 
-### A.5 已知議題（選填）
+### A.5 已知議題
 
-<!-- TODO: TODO/FIXME 摘錄、待重構點。 -->
+*   舊 ID 遷移邏輯（`m_ID == "AttackEffect"` → `DefaultID`）已註解。
