@@ -1,118 +1,112 @@
 ---
-title: 單位資料 (RCG_UnitData) 說明
-description: 戰場上所有單位（怪物、玩家角色、召喚物）的本體資料：HP、外觀、AI 行為、技能等全部定義在這
+title: ユニットデータ (RCG_UnitData)
+description: 戦場上の全ユニット（モンスター、プレイヤーキャラ、召喚獣）の本体データ。HP、外観、AI、スキル全てここで定義
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-ja
 ---
 
-> [!WARNING]
-> 翻訳待機中 — このファイルは日本語翻訳が必要です。
-参考用に zh-Hant 原文を以下に掲載しています。
+# ユニットデータ
 
-
-# 單位資料
-
-> 程式類別名稱：`RCG_UnitData`
+> クラス名：`RCG_UnitData`
 
 ## 用途
 
-**戰場上每一個單位的本體模板**——怪物、玩家角色、召喚物都是這個類別的實例。包含：HP / 戰鬥力、外觀（圖、Spine、龍骨、3D Prefab）、AI 行為（不同狀態下使用哪些技能）、初始動作、必要的單位設定等。取代舊的 `RCG_MonsterData`。
+**戦場上の各ユニットの本体テンプレート** — モンスター、プレイヤーキャラ、召喚獣はすべてこのクラスのインスタンス。含む内容：HP / 戦闘力、外観（画像、Spine、ドラゴンボーン、3D Prefab）、AI 行動（状態ごとに使用するスキル）、初期動作、必要なユニット設定など。旧 `RCG_MonsterData` を置き換え。
 
-繼承自 `RCG_Asset<RCG_UnitData>`。
+`RCG_Asset<RCG_UnitData>` を継承。
 
-## 編輯器中的樣貌
+## エディタ上の見た目
 
 ```
 RCG_UnitData: <ID>
-    UnitSetting (m_UnitSetting)        ← 主要設定：HP、標籤、初始動作、外觀、定位
-    MonsterStates (m_MonsterStates)    ← AI 狀態機：每個狀態下使用哪些 Action
-    Preview (右側)                      ← 即時呈現外觀、技能列表、HP
+    UnitSetting (m_UnitSetting)        ← 主要設定：HP、タグ、初期Action、外観、配置
+    MonsterStates (m_MonsterStates)    ← AIステートマシン：各状態で使用可能なAction
+    Preview (右側)                      ← 外観、スキル一覧、HPをリアルタイム表示
 ```
 
-## 主要欄位
+## 主要フィールド
 
-| 編輯器顯示 | 必填 | 說明 |
+| エディタ表示 | 必須 | 説明 |
 |---|---|---|
-| **UnitSetting** | 是 | 單位的核心設定（HP / 標籤 / 初始 Action / 外觀 / 定位等） |
-| **MonsterStates** | 是 | AI 狀態機：dictionary，key 是狀態 ID，value 是該狀態下可用的 `MonsterAction` 清單。**至少要有 `Default` 狀態**（系統會自動補上） |
+| **UnitSetting** | はい | ユニットのコア設定（HP / タグ / 初期 Action / 外観 / 配置など） |
+| **MonsterStates** | はい | AI ステートマシン：dictionary、key は状態 ID、value は当該状態下で使用可能な `MonsterAction` 一覧。**最低でも `Default` 状態が必要**（システムが自動補完） |
 
-`UnitSetting` 內部包括：
+`UnitSetting` の内訳：
 
-| 子欄位 | 說明 |
+| サブフィールド | 説明 |
 |---|---|
-| **Name** | 單位顯示名（多語系） |
-| **MaxHP** | 最大生命值 |
-| **CombatEffectiveness** | 戰鬥力指標；序列化時若為 0 會自動以 `MaxHP` 補上 |
-| **MonsterTags** | 怪物標籤（種族、屬性等），影響某些卡牌/裝備效果 |
-| **InitActions** | 進場時觸發的初始動作（buff / debuff / 召喚物） |
-| **DetailSetting** | 細節設定（攻擊次數、計數器⋯，視類型而定） |
-| **SummonSetting** | 被召喚時的設定 |
-| **UnitDisplayerType** | 顯示方式：Sprite / DragonBone / Spine / 3D Model / Prefab |
-| **SpriteDisplayData / DragonBoneDisplayData / ...** | 對應顯示器的資料（Conditional 顯示） |
-| **Pos / PosAt** | 站位偏移、座標 |
-| **BaseLevel / UnitGenData** | 基礎等級與單位 ID 包裝 |
-| **HasAI / Classes / UnitSkills** | AI 開關、職業（卡牌專精用）、攜帶的單位技能 |
+| **Name** | ユニット表示名（多言語） |
+| **MaxHP** | 最大生命値 |
+| **CombatEffectiveness** | 戦闘力指標；シリアライズ時に 0 なら自動的に `MaxHP` で補完 |
+| **MonsterTags** | モンスタータグ（種族、属性など）、特定のカード/装備効果に影響 |
+| **InitActions** | 出現時に発動する初期動作（バフ / デバフ / 召喚） |
+| **DetailSetting** | 詳細設定（攻撃回数、カウンター、種類により異なる） |
+| **SummonSetting** | 召喚時の設定 |
+| **UnitDisplayerType** | 表示方式：Sprite / DragonBone / Spine / 3D Model / Prefab |
+| **SpriteDisplayData / DragonBoneDisplayData / ...** | 各表示器対応データ（Conditional） |
+| **Pos / PosAt** | 配置オフセット、座標 |
+| **BaseLevel / UnitGenData** | 基礎レベルとユニット ID ラッパー |
+| **HasAI / Classes / UnitSkills** | AI スイッチ、職業（カード専門性用）、所持ユニットスキル |
 
-## 行為說明
+## 動作説明
 
-### AI 狀態機 (MonsterStates)
-每個怪物有多個「狀態」（例如 `Default`、`Berserk`、`Phase2`），每個狀態下有一組可用的 `MonsterAction`。實際戰鬥中由 `MonsterStateTransition` 決定何時切換狀態，由 Action 的選擇規則決定當回合用哪一招。
+### AI ステートマシン (MonsterStates)
+各モンスターは複数の「状態」（例：`Default`、`Berserk`、`Phase2`）を持ち、各状態に使用可能な `MonsterAction` セットがある。実戦闘時は `MonsterStateTransition` が状態切替を判定、Action 選択ルールが当該ターンの使用招式を決定。
 
-### 顯示方式
-*   **Sprite**：靜態圖（最簡單，適合 placeholder）。
-*   **DragonBone / Spine**：2D 骨架動畫。
-*   **Model3DDisplayer / Prebab**：3D 模型 / 自訂 Prefab。
-切換 `UnitDisplayerType` 後對應欄位才會顯示。
+### 表示方式
+*   **Sprite**：静止画（最も簡単、placeholder 向き）。
+*   **DragonBone / Spine**：2D 骨格アニメ。
+*   **Model3DDisplayer / Prebab**：3D モデル / カスタム Prefab。
+`UnitDisplayerType` を切り替えて初めて対応フィールドが表示される。
 
-### 初始動作 (InitActions)
-進場時自動套用一次的動作。常見用途：給予自身 buff、召喚從者、設定計數器初值。
+### 初期動作 (InitActions)
+出現時に一度だけ自動適用される動作。一般的用途：自身バフ付与、従者召喚、カウンター初期値設定。
 
-### 預覽（編輯器內）
-右側即時顯示：頭像、最大 HP、怪物標籤、初始動作描述、各狀態下的技能圖示與名稱。**Low RAM 模式**會跳過頭像繪製以省記憶體。
+### プレビュー（エディタ内）
+右側にリアルタイム表示：アバター、最大 HP、モンスタータグ、初期動作の説明、各状態下のスキルアイコンと名称。**Low RAM モード**ではアバター描画をスキップしメモリ節約。
 
 ## 注意事項
 
-*   **`Default` 狀態必須存在**：系統會在 `OnGUI` 自動補上，但保險起見先設好。
-*   **`CombatEffectiveness` 的 fallback**：`SerializeToJson` 時若該值為 0 會用 `MaxHP` 補；想保留 0 須特別處理。
-*   **`NullMonsterID = "Null"`、`DefaultUnitID = "Devil"`、`BattleSceneMonsterID = "BattleScene"`**：這些是系統保留 ID，不要拿來命名一般怪物。
-*   **編輯介面的 Skill / Action / SummonSetting** 各自從 `RCG_MonsterActionData` / `RCG_UnitSkillData` 等 Asset 引用，本檔只持有 ID 包裝。
+*   **`Default` 状態は必須**：`OnGUI` で自動補完されるが、保険のため事前設定推奨。
+*   **`CombatEffectiveness` の fallback**：`SerializeToJson` 時に該値が 0 なら `MaxHP` で補完；0 を保持したい場合は特殊処理が必要。
+*   **`NullMonsterID = "Null"`、`DefaultUnitID = "Devil"`、`BattleSceneMonsterID = "BattleScene"`**：これらはシステム予約 ID、一般モンスターの命名に使用しない。
+*   **編集画面の Skill / Action / SummonSetting** は各々 `RCG_MonsterActionData` / `RCG_UnitSkillData` 等の Asset から参照、本ファイルには ID ラッパーのみ保持。
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## 付録：プログラマ参考 (Programmer Reference)
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_Battles/RCG_Monsters/RCG_UnitData.cs`
-*   **繼承自**：`RCG_Asset<RCG_UnitData>`
-*   **AssetGroup**：`EditBattleSetting`，sort = `RCG_UnitData`
+### A.1 クラス情報
+*   **ファイル**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_Battles/RCG_Monsters/RCG_UnitData.cs`
+*   **継承**：`RCG_Asset<RCG_UnitData>`
+*   **AssetGroup**：`EditBattleSetting`、sort = `RCG_UnitData`
 
-### A.2 欄位對照（外層）
+### A.2 フィールドマッピング（外層）
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| コードフィールド | エディタ表示 | 型 | 備考 |
 |---|---|---|---|
-| `m_UnitSetting` | UnitSetting | `RCG_UnitSetting`（巢狀） | 主要核心資料 |
-| `m_MonsterStates` | MonsterStates | `Dictionary<string, MonsterState>` | AI 狀態機；key 是狀態 ID |
+| `m_UnitSetting` | UnitSetting | `RCG_UnitSetting`（入れ子） | 主要コアデータ |
+| `m_MonsterStates` | MonsterStates | `Dictionary<string, MonsterState>` | AI ステートマシン；key は状態 ID |
 
-`UnitSetting` 內含 `m_Name` / `m_MaxHP` / `m_CombatEffectiveness` / `m_MonsterTags` / `m_InitActions` / `m_DetailSetting` / `m_SummonSetting` / `m_UnitDisplayerType` + 對應 DisplayData / `m_Pos` / `m_PosAt` / `m_BaseLevel` / `m_UnitGenData` / `m_HasAI` / `m_Classes` / `m_UnitSkills`。
+`UnitSetting` 内に `m_Name` / `m_MaxHP` / `m_CombatEffectiveness` / `m_MonsterTags` / `m_InitActions` / `m_DetailSetting` / `m_SummonSetting` / `m_UnitDisplayerType` + 各 DisplayData / `m_Pos` / `m_PosAt` / `m_BaseLevel` / `m_UnitGenData` / `m_HasAI` / `m_Classes` / `m_UnitSkills`。
 
-### A.3 重要 Method 摘要
+### A.3 主要メソッド
 
-*   **`Preview` / `OnGUI`** — 編輯器渲染；OnGUI 會自動補 `Default` MonsterState。
-*   **`SerializeToJson`** — 補 `m_CombatEffectiveness == 0` 的 fallback。
-*   **`Avatar` / `GetAvatar(RCG_BattleUnit)`** — 顯示器圖像取得。
-*   **`CreateSelectAssetPage`** — 開 `RCG_UnitDataEditorPage`。
+*   **`Preview` / `OnGUI`** — エディタ描画；OnGUI が `Default` MonsterState を自動補完。
+*   **`SerializeToJson`** — `m_CombatEffectiveness == 0` の fallback を補う。
+*   **`Avatar` / `GetAvatar(RCG_BattleUnit)`** — 表示器画像取得。
+*   **`CreateSelectAssetPage`** — `RCG_UnitDataEditorPage` 起動。
 *   **`LocalizeName`** — `GetData().LocalizedName`。
 
-### A.4 與其他系統的互動
+### A.4 他システムとの連携
 
-*   **`RCG_BattleUnit`** — runtime 戰鬥單位實例。
-*   **`MonsterState` / `MonsterStateTransition`** — 狀態機的元件（含 `DefaultStateID`）。
-*   **`RCG_MonsterAction` / `RCG_MonsterActionData`** — 怪物可用招式定義。
-*   **`RCG_UnitSkillData`** — 單位被動 / 領袖技。
-*   **`RCG_UnitDataEditorPage`** — 編輯主畫面。
+*   **`RCG_BattleUnit`** — runtime 戦闘ユニットインスタンス。
+*   **`MonsterState` / `MonsterStateTransition`** — ステートマシン要素（`DefaultStateID` を含む）。
+*   **`RCG_MonsterAction` / `RCG_MonsterActionData`** — モンスター招式定義。
+*   **`RCG_UnitSkillData`** — ユニットパッシブ / リーダースキル。
+*   **`RCG_UnitDataEditorPage`** — メイン編集画面。
 
-### A.5 已知議題
+### A.5 既知の問題
 
-*   `DeserializeFromJson` 有被註解掉的 `m_UnitSetting = m_MonsterData` 容錯（舊版欄位遷移）。
-*   程式註解 `// 暫時用HP當作戰鬥力指標` 指 `m_CombatEffectiveness` 的 fallback 規則待重新設計。
+*   `DeserializeFromJson` にコメントアウトされた `m_UnitSetting = m_MonsterData` の互換シム（旧フィールド移行）あり。
+*   `// 暫時用HP當作戰鬥力指標` / 「暫定的に HP を戦闘力指標として使用」コメントは `m_CombatEffectiveness` の fallback ルールが再設計待ちであることを示す。

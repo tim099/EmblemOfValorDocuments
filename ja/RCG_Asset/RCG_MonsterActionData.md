@@ -1,107 +1,101 @@
 ---
-title: 怪物動作資料 (RCG_MonsterActionData) 說明
-description: 怪物可使用的單一招式 / 動作模板：選擇規則、效果、圖示、描述
+title: モンスター動作データ (RCG_MonsterActionData)
+description: モンスターが使用可能な単一招式 / 動作テンプレート。選択ルール、効果、アイコン、説明
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-ja
 ---
 
-> [!WARNING]
-> 翻訳待機中 — このファイルは日本語翻訳が必要です。
-参考用に zh-Hant 原文を以下に掲載しています。
+# モンスター動作データ
 
-
-# 怪物動作資料
-
-> 程式類別名稱：`RCG_MonsterActionData`
+> クラス名：`RCG_MonsterActionData`
 
 ## 用途
 
-**怪物可使用的單一招式 / 動作模板**。例如「揮砍」「召喚從者」「自爆」。每個 Action 內含：
-*   選目標規則（哪些單位可被選為目標）
-*   效果（傷害、buff、召喚⋯）
-*   圖示
-*   描述（自動 / 手動）
+**モンスターが使用可能な単一招式 / 動作テンプレート**。例：「斬撃」「従者召喚」「自爆」。各 Action の内訳：
+*   ターゲット選択ルール（どのユニットがターゲットになり得るか）
+*   効果（ダメージ、バフ、召喚など）
+*   アイコン
+*   説明（自動 / 手動）
 
-`RCG_UnitData` 的 `MonsterStates` 引用一組 `RCG_MonsterActionData` 作為該狀態下可用招式池。
+`RCG_UnitData` の `MonsterStates` が一連の `RCG_MonsterActionData` を参照、当該状態下で使用可能な招式プールとして使用。
 
-繼承自 `RCG_Asset<RCG_MonsterActionData>`。
+`RCG_Asset<RCG_MonsterActionData>` を継承。
 
-## 編輯器中的樣貌
+## エディタ上の見た目
 
 ```
 RCG_MonsterActionData: <ID>
     Action (m_Action)
-        SelectUnitRule         ← 選目標規則
-        Effect 結構            ← 實際效果
-        Icon                   ← 預覽圖示
-        OverrideDescription    ← 是否手動覆寫描述
-        UnitAction             ← 真正執行的動作
-        Infos                  ← Tooltip 列出的附加資訊
+        SelectUnitRule         ← ターゲット選択ルール
+        Effect 構造            ← 実際の効果
+        Icon                   ← プレビューアイコン
+        OverrideDescription    ← 説明を手動上書きするか
+        UnitAction             ← 真に実行する動作
+        Infos                  ← Tooltip 列挙の付加情報
 ```
 
-## 主要欄位
+## 主要フィールド
 
-| 編輯器顯示 | 必填 | 說明 |
+| エディタ表示 | 必須 | 説明 |
 |---|---|---|
-| **Action** | 是 | 內部 `RCG_MonsterAction`，包含此招式所有資料 |
+| **Action** | はい | 内部 `RCG_MonsterAction`、当該招式の全データを含む |
 
-`RCG_MonsterAction` 內部：
+`RCG_MonsterAction` の内部：
 
-| 子欄位 | 說明 |
+| サブフィールド | 説明 |
 |---|---|
-| **SelectUnitRule** | 選目標規則（`RandomEnemy` / `Friend` / 自身 / 站位 N 之類） |
-| **OverrideDescription** | 是否使用 `m_UnitAction` 的描述覆蓋自動描述 |
-| **UnitAction** | 招式真正執行的動作（傷害公式、效果序列） |
-| **Icon** | 預覽 / Tooltip 顯示用的圖示 |
-| **SkillLevel** | 招式等級（runtime 由 `RCG_MonsterLevelActionData.GetAction` 動態填入） |
+| **SelectUnitRule** | ターゲット選択ルール（`RandomEnemy` / `Friend` / 自身 / 位置 N など） |
+| **OverrideDescription** | `m_UnitAction` の説明を自動説明に上書き使用するか |
+| **UnitAction** | 招式が真に実行する動作（ダメージ式、効果順序） |
+| **Icon** | プレビュー / Tooltip 表示用アイコン |
+| **SkillLevel** | 招式レベル（runtime に `RCG_MonsterLevelActionData.GetAction` が動的に書込） |
 
-## 行為說明
+## 動作説明
 
-### 選目標 → 觸發 → 描述
-1. 戰鬥中怪物選定要使用此 Action 後，依 `SelectUnitRule` 找出目標。
-2. 套用 `m_UnitAction` 的效果到目標。
-3. UI Tooltip 上顯示 `Icon` + `GetDescription()` + `Infos` 補充標籤資訊。
+### ターゲット選択 → 発動 → 説明
+1. 戦闘中にモンスターが本 Action 使用を選定後、`SelectUnitRule` でターゲットを検索。
+2. `m_UnitAction` の効果をターゲットに適用。
+3. UI Tooltip に `Icon` + `GetDescription()` + `Infos` の補足タグ情報を表示。
 
-### 自動 vs 覆寫描述
-`OverrideDescription = true` 時，預覽會在主描述下面**額外**附加 `m_UnitAction.GetDescription()`（兩段都顯示）。
+### 自動 vs 上書き説明
+`OverrideDescription = true` 時、プレビューがメイン説明の下に**追加で** `m_UnitAction.GetDescription()` を表示（両段表示）。
 
-### 預設 ID
-透過 `RCG_MonsterActionGenData.IdleID` (`"Idle"`) 取得「無動作」的預設 Action；任何沒設動作的單位回合會跑這個。
+### デフォルト ID
+`RCG_MonsterActionGenData.IdleID` (`"Idle"`) は「無動作」のデフォルト Action；動作未設定のユニットターンはこれを実行。
 
 ## 注意事項
 
-*   **SkillLevel 由外部填入**：`RCG_MonsterLevelActionData.GetAction(level)` 會把等級寫到 `m_SkillLevel`，本資料只是模板，runtime 取的是 clone 後的副本。
-*   **OverrideDescription 雙顯示**：可能造成 Tooltip 過長，必要時關閉。
-*   **Idle 動作不要刪**：許多 fallback 路徑會回傳 `RCG_MonsterActionGenData.Idle.GetData()`，缺了這個 ID 會 NRE。
+*   **SkillLevel は外部から書込**：`RCG_MonsterLevelActionData.GetAction(level)` がレベルを `m_SkillLevel` に書込；本データはテンプレートのみ、runtime はクローン後の副本を取得。
+*   **OverrideDescription 二重表示**：Tooltip が長くなる可能性、必要なら無効化。
+*   **Idle 動作は削除厳禁**：多くの fallback パスが `RCG_MonsterActionGenData.Idle.GetData()` を返す、この ID 欠如で NRE。
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## 付録：プログラマ参考 (Programmer Reference)
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_MonsterActionData.cs`
-*   **繼承自**：`RCG_Asset<RCG_MonsterActionData>`
+### A.1 クラス情報
+*   **ファイル**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_MonsterActionData.cs`
+*   **継承**：`RCG_Asset<RCG_MonsterActionData>`
 *   **AssetGroup**：`EditBattleSetting`
 
-### A.2 欄位對照
+### A.2 フィールドマッピング
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| コードフィールド | エディタ表示 | 型 | 備考 |
 |---|---|---|---|
-| `m_Action` | Action | `RCG_MonsterAction` | 主要資料容器 |
+| `m_Action` | Action | `RCG_MonsterAction` | 主データコンテナ |
 
-### A.3 重要 Method 摘要
+### A.3 主要メソッド
 
-*   **`Preview`** — 編輯器渲染：圖示 + 選目標規則 + 描述 + Effects 描述（若 OverrideDescription）+ Infos。
-*   建構式預設 `ID = "New Action"`。
+*   **`Preview`** — エディタ描画：アイコン + ターゲット選択ルール + 説明 + Effects 説明（OverrideDescription 時）+ Infos。
+*   コンストラクタのデフォルト `ID = "New Action"`。
 
-### A.4 與其他系統的互動
+### A.4 他システムとの連携
 
-*   **`RCG_MonsterAction`** — 主要資料模型；含 `m_SelectUnitRule` / `m_UnitAction` / `m_Icon` / `m_SkillLevel`。
-*   **`RCG_MonsterActionGenData`**（檔內）— Asset Entry 包裝；`Idle` 為系統預設。
-*   **`RCG_MonsterLevelActionData`** — 對 Action 包裝以支援等級分級。
-*   **`RCG_UnitData.m_MonsterStates`** — 引用 Actions 的容器。
+*   **`RCG_MonsterAction`** — 主データモデル；`m_SelectUnitRule` / `m_UnitAction` / `m_Icon` / `m_SkillLevel` を含む。
+*   **`RCG_MonsterActionGenData`**（同ファイル）— Asset Entry ラッパー；`Idle` がシステムデフォルト。
+*   **`RCG_MonsterLevelActionData`** — Action をラップしレベル分けに対応。
+*   **`RCG_UnitData.m_MonsterStates`** — Actions を参照するコンテナ。
 
-### A.5 已知議題
+### A.5 既知の問題
 
-*   有被註解掉的 `DeserializeFromJson` 容錯邏輯（`m_ID == "AttackEffect"` → `DefaultID`），標示舊版 ID 遷移歷史。
+*   コメントアウトされた `DeserializeFromJson` 互換ロジック（`m_ID == "AttackEffect"` → `DefaultID`）あり、旧版 ID 移行履歴を示す。
