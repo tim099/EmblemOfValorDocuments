@@ -1,27 +1,21 @@
 ---
-title: 戰鬥組合掉落池 (RCG_BattleSetDropPool) 說明
-description: 定義「這個地圖節點會出現哪些戰鬥組合」的資料；地圖事件、章節遭遇底層的隨機池
+title: Battle Set Drop Pool (RCG_BattleSetDropPool)
+description: Defines "which battle setups appear at this map node" — random pool behind map events and chapter encounters
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-en
 ---
 
-> [!WARNING]
-> Translation pending — this file needs an English translation.
-The original zh-Hant content is included below for reference.
+# Battle Set Drop Pool
 
+> Class name: `RCG_BattleSetDropPool`
 
-# 戰鬥組合掉落池
+## Purpose
 
-> 程式類別名稱：`RCG_BattleSetDropPool`
+Defines **which battle setups can appear when stepping on a particular battle node**. For example, "normal encounter" / "elite encounter" / "boss fight" are different pools; each pool lists possible `RCG_BattleSet` (each BattleSet is a specific monster configuration) + weights.
 
-## 用途
+Inherits from `RCG_Asset<RCG_BattleSetDropPool>`. Implements: `UCL.Core.UCLI_ShortName`.
 
-定義「**踩到地圖上某種戰鬥節點時，會抽到哪幾種戰鬥組合**」。例如「普通遭遇」「精英遭遇」「Boss 戰」分別是不同池子；池內列出可能的 `RCG_BattleSet`（每個 BattleSet 是一場具體的怪物配置）+ 權重。
-
-繼承自 `RCG_Asset<RCG_BattleSetDropPool>`，實作介面：`UCL.Core.UCLI_ShortName`。
-
-## 編輯器中的樣貌
+## Editor Layout
 
 ```
 RCG_BattleSetDropPool: <ID>
@@ -29,68 +23,61 @@ RCG_BattleSetDropPool: <ID>
     ▼ DropPool / MixDropPools / FilterDropData
 ```
 
-## 主要欄位
+## Main Fields
 
-| 編輯器顯示 | 必填 | 說明 |
+| Editor Display | Required | Description |
 |---|---|---|
-| **DropType** | 是 | `DropPool` / `MixPool` / `FilterDrop` |
-| **DropPool** | DropType=DropPool | BattleSet 清單 + 權重 |
-| **MixDropPools** | DropType=MixPool | 引用其他池子並指定權重 |
-| **FilterDropData** | DropType=FilterDrop | 用內部 `DropFilter`（Tag / EnemyType / Operator）篩 |
+| **DropType** | yes | `DropPool` / `MixPool` / `FilterDrop` |
+| **DropPool** | when DropType=DropPool | BattleSet list + weights |
+| **MixDropPools** | when DropType=MixPool | References other pools with weights |
+| **FilterDropData** | when DropType=FilterDrop | Inner `DropFilter` (Tag / EnemyType / Operator) |
 
-## 行為說明
+## Behavior
 
-### 三種模式
-與其他 Drop Pool 同。FilterDrop 條件支援「BattleSet 標籤」與「敵人類型 (EnemyType)」兩種維度。
+### Three Modes
+Same as other Drop Pools. FilterDrop supports two dimensions: "BattleSet tag" and "Enemy type".
 
-### 隱性篩選
-本類別**沒有 unlock / skill 等 runtime 篩選**——直接以權重抽。
+### Implicit Filtering
+This class **has no unlock / skill runtime filtering** — picks straight by weight.
 
-### 預覽
-按 `ShowDetail` 看最終掉落率。
+## Caveats
 
-## 注意事項
-
-*   **enum 名稱叫 `EDropType` 不是 `DropType`**：類別內註解明示「取名 DropType 會導致 GoogleSheet 同步語言檔失敗，先改名」。設計時不要試圖改回。
-*   **DropPool 模式下** 反序列化時會自動移除不存在的 BattleSet ID。
-*   **MixPool 循環**會被截斷成空（`iLayer > 10`）；池子掉空先檢查混合鏈。
-*   **無 Name 欄位**：本類別沒有額外顯示名稱，`GetShortName()` 直接取第一個 drop 的名稱。
+*   **The enum is `EDropType`, not `DropType`**: a class-level comment notes "naming it DropType breaks GoogleSheet language file sync, renamed". Don't try to rename it back.
+*   **DropPool mode** auto-removes invalid BattleSet IDs on deserialize.
+*   **MixPool cycles** are cut off as empty (`iLayer > 10`).
+*   **No Name field**; `GetShortName()` returns the first drop's name directly.
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## Appendix: Programmer Reference
 
-> 此段以下使用程式內部術語，受眾轉為程式人員與 AI agent。前半段內容請優先採信。
+### A.1 Class Info
+*   **File**: `CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_DropSettings/RCG_BattleSetDropPool.cs`
+*   **Inherits**: `RCG_Asset<RCG_BattleSetDropPool>`
+*   **AssetGroup**: `EditBattleSetting` (note: differs from other DropPools which are in `EditDropSetting`)
 
-### A.1 類別資訊
+### A.2 Field Mapping
 
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_DropSettings/RCG_BattleSetDropPool.cs`
-*   **繼承自**：`RCG_Asset<RCG_BattleSetDropPool>`
-*   **實作介面**：`UCL.Core.UCLI_ShortName`
-*   **AssetGroup**：`EditBattleSetting`（注意：與其他 DropPool 不同，這個歸在 BattleSetting）
+| Code Field | Editor Display | Type | Notes |
+|---|---|---|---|
+| `m_DropPool` | Drop pool | `RCG_CommonDropSetting<RCG_BattleSetGenData>` | `Conditional(DropPool)` |
+| `m_MixDropPools` | Mix pools | `List<MixDropPoolData>` | `Conditional(MixPool)` |
+| `m_FilterDropData` | Filter | `FilterDropDataBase<RCG_BattleSetGenData, RCG_BattleSet, DropFilter>` | `Conditional(FilterDrop)` |
+| `m_DropType` | DropType | `EDropType` enum | Default `DropPool` |
 
-### A.2 欄位對照
+### A.3 Key Methods
 
-| 程式欄位 | 編輯器顯示 | 型別 | Localize Key | 備註 |
-|---|---|---|---|---|
-| `m_DropPool` | 掉落池 | `RCG_CommonDropSetting<RCG_BattleSetGenData>` | — | `Conditional(DropPool)` |
-| `m_MixDropPools` | 混合池 | `List<MixDropPoolData>` | — | `Conditional(MixPool)` |
-| `m_FilterDropData` | 條件式 | `FilterDropData` = `FilterDropDataBase<RCG_BattleSetGenData, RCG_BattleSet, DropFilter>` | — | `Conditional(FilterDrop)` |
-| `m_DropType` | DropType | `EDropType` enum | `DropType` | 預設 `DropPool` |
+*   **`GetBattleSets(int)`** — main entry; no built-in filter, draws N directly.
+*   **`GetBattleSetsWithFilterFunc(int, Func)`** — custom filter version.
+*   **`GetDropRate(CheckDropConditionData, int)`** — default filter is `_ => true`.
 
-### A.3 重要 Method 摘要
+### A.4 System Interactions
 
-*   **`GetBattleSets(int)`** → 主要入口；無內建篩選，直接抽 N 個。
-*   **`GetBattleSetsWithFilterFunc(int, Func)`** → 外部自訂篩選版。
-*   **`GetDropRate(CheckDropConditionData, int)`** → 預設 filter 是 `_ => true`。
+*   **`RCG_BattleSet`** — drop target type.
+*   **`RCG_BattleSetGenData`** / **`RCG_BattleSetDropPoolGenData`** — Asset Entry wrappers; latter has `DefaultID = "NormalBattle"`.
+*   **`RCG_BattleSetTagGenData`** / **`RCG_EnemyTypeTagGenData`** — tag types for FilterDrop.
 
-### A.4 與其他系統的互動
+### A.5 Known Issues
 
-*   **`RCG_BattleSet`** — 池子掉的目標型別。
-*   **`RCG_BattleSetGenData`** / **`RCG_BattleSetDropPoolGenData`** — Asset Entry 包裝；後者預設 ID = `"NormalBattle"`。
-*   **`RCG_BattleSetTagGenData`** / **`RCG_EnemyTypeTagGenData`** — FilterDrop 用的標籤型別。
-
-### A.5 已知議題
-
-*   類別名 `enum EDropType`（前綴 E）是為了避開 GoogleSheet 同步衝突的歷史包袱。
-*   遞迴上限 10 層。
+*   The `enum EDropType` (E prefix) is a historical workaround for GoogleSheet sync conflicts.
+*   Recursion cap at 10 layers.

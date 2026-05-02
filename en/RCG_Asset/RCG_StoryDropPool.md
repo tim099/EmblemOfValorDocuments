@@ -1,27 +1,21 @@
 ---
-title: 故事掉落池 (RCG_StoryDropPool) 說明
-description: 定義「在某情境下會抽到哪些故事 (RCG_StoryData)」的資料；劇情段落、隨機故事插入點來源
+title: Story Drop Pool (RCG_StoryDropPool)
+description: Defines "which stories drop in this context" — source for narrative segments and random story insertion points
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-en
 ---
 
-> [!WARNING]
-> Translation pending — this file needs an English translation.
-The original zh-Hant content is included below for reference.
+# Story Drop Pool
 
+> Class name: `RCG_StoryDropPool`
 
-# 故事掉落池
+## Purpose
 
-> 程式類別名稱：`RCG_StoryDropPool`
+Defines **which story segments can drop in this context**. Unlike `RCG_QuestDropPool`, this drops `RCG_StoryData` (pure narrative, dialogue, cutscenes), without battles or choices. Examples: "intro played when entering a new chapter", "tale told during nighttime rest".
 
-## 用途
+Inherits from `RCG_Asset<RCG_StoryDropPool>`. Implements: `UCL.Core.UCLI_ShortName`.
 
-定義「**這個情境下可能抽到哪些故事段落**」。與 `RCG_QuestDropPool` 不同，這裡掉的是 `RCG_StoryData`（純劇情、對話、過場），不含戰鬥或選擇。例如「進入新章節時播放的開場白」「夜晚休息時的旅途見聞」。
-
-繼承自 `RCG_Asset<RCG_StoryDropPool>`，實作介面：`UCL.Core.UCLI_ShortName`。
-
-## 編輯器中的樣貌
+## Editor Layout
 
 ```
 RCG_StoryDropPool: <ID>
@@ -29,48 +23,47 @@ RCG_StoryDropPool: <ID>
     ▼ DropPool / MixDropPools / FilterDropData
 ```
 
-## 主要欄位
+## Main Fields
 
-| 編輯器顯示 | 必填 | 說明 |
+| Editor Display | Required | Description |
 |---|---|---|
-| **DropType** | 是 | `DropPool` / `MixPool` / `FilterDrop` |
-| **DropPool** | DropType=DropPool | 故事清單 + 權重 |
-| **MixDropPools** | DropType=MixPool | 引用其他池子並指定權重 |
-| **FilterDropData** | DropType=FilterDrop | 用內部 `DropFilter` 篩 |
+| **DropType** | yes | `DropPool` / `MixPool` / `FilterDrop` |
+| **DropPool** | when DropType=DropPool | Story list + weights |
+| **MixDropPools** | when DropType=MixPool | References other pools |
+| **FilterDropData** | when DropType=FilterDrop | Inner `DropFilter` |
 
-## 行為說明
+## Behavior
 
-與其他 Drop Pool 同骨架；無 unlock / skill 等 runtime 篩選。
+Same skeleton as other Drop Pools; no unlock / skill runtime filtering.
 
-## 注意事項
+## Caveats
 
-*   結構與 `RCG_QuestDropPool` 幾乎相同，差異只在掉落目標型別與篩選 tag 種類。
-*   **DropPool 模式下**反序列化會自動清理失效 ID（依 `iData.Exist()`）。
+*   Structurally nearly identical to `RCG_QuestDropPool`, differing only in drop target type and tag types.
+*   **DropPool mode** auto-cleans invalid IDs on deserialize.
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## Appendix: Programmer Reference
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_DropSettings/RCG_StoryDropPool.cs`
-*   **繼承自**：`RCG_Asset<RCG_StoryDropPool>`
-*   **AssetGroup**：`EditDropSetting`
+### A.1 Class Info
+*   **File**: `CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_DropSettings/RCG_StoryDropPool.cs`
+*   **Inherits**: `RCG_Asset<RCG_StoryDropPool>`
+*   **AssetGroup**: `EditDropSetting`
 
-### A.2 欄位對照
+### A.2 Field Mapping
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| Code Field | Editor Display | Type | Notes |
 |---|---|---|---|
-| `m_DropPool` | 掉落池 | `RCG_CommonDropSetting<RCG_StoryGenData>` | `Conditional(DropPool)` |
-| `m_MixDropPools` | 混合池 | `List<MixDropPoolData>` | `Conditional(MixPool)` |
-| `m_FilterDropData` | 條件式 | `FilterDropData` | `Conditional(FilterDrop)` |
-| `m_DropType` | DropType | `EDropType` enum | 預設 `DropPool` |
+| `m_DropPool` | Drop pool | `RCG_CommonDropSetting<RCG_StoryGenData>` | `Conditional(DropPool)` |
+| `m_MixDropPools` | Mix pools | `List<MixDropPoolData>` | `Conditional(MixPool)` |
+| `m_FilterDropData` | Filter | `FilterDropData` | `Conditional(FilterDrop)` |
+| `m_DropType` | DropType | `EDropType` enum | Default `DropPool` |
 
-### A.3 重要 Method
+### A.3 Key Methods
 
-*   **`GetDrops(int)`** / **`GetDropsWithFilterFunc(int, Func)`** — 抽 N 個故事。
-*   **`GetDropRate(...)`** — 標準化權重表。
+*   **`GetDrops(int)`** / **`GetDropsWithFilterFunc(int, Func)`** — draw N stories.
 
-### A.4 與其他系統的互動
+### A.4 System Interactions
 
-*   **`RCG_StoryData`** — 掉落目標。
-*   **`RCG_StoryGenData`** / **`RCG_StoryDropPoolGenData`** — Asset Entry 包裝。
+*   **`RCG_StoryData`** — drop target.
+*   **`RCG_StoryGenData`** / **`RCG_StoryDropPoolGenData`** — Asset Entry wrappers.
