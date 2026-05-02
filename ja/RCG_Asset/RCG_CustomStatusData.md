@@ -1,27 +1,21 @@
 ---
-title: 自定義狀態 (RCG_CustomStatusData) 說明
-description: 戰鬥中可加在單位身上的狀態（buff / debuff / DoT 等）：層數變化、抵銷、免疫、抗性、攻防 buff
+title: カスタム状態 (RCG_CustomStatusData)
+description: 戦闘中にユニットに付与可能な状態（buff / debuff / DoT 等）：層数変化、相殺、免疫、抵抗、攻防 buff
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-ja
 ---
 
-> [!WARNING]
-> 翻訳待機中 — このファイルは日本語翻訳が必要です。
-参考用に zh-Hant 原文を以下に掲載しています。
+# カスタム状態
 
-
-# 自定義狀態
-
-> 程式類別名稱：`RCG_CustomStatusData`
+> クラス名：`RCG_CustomStatusData`
 
 ## 用途
 
-**戰鬥中可加在單位身上的狀態（buff / debuff）模板**。例如「中毒：每回合扣 5 血」「力量+2」「免疫負面狀態」「閃避：層數 ≥ 攻擊力時免傷」。本類別把所有狀態相關屬性集中一處：層數變化規則、抵銷關係、免疫 / 抗性、攻防 buff 加成、單位特殊狀態（暈眩、詠唱⋯）。
+**戦闘中にユニットに付与可能な状態（buff / debuff）テンプレート**。例：「中毒：毎ターン 5 血削り」「力 +2」「負面状態免疫」「回避：層数 ≥ 攻撃力時に攻撃回避」。本クラスが状態関連属性を一箇所に集中：層数変化ルール、相殺関係、免疫 / 抵抗、攻防 buff 加成、ユニット特殊状態（スタン、詠唱…）。
 
-繼承自 `RCG_Asset<RCG_CustomStatusData>`，實作介面：`RCGI_Status`。
+`RCG_Asset<RCG_CustomStatusData>` を継承。実装：`RCGI_Status`。
 
-## 編輯器中的樣貌
+## エディタ上の見た目
 
 ```
 RCG_CustomStatusData: <ID>
@@ -29,80 +23,80 @@ RCG_CustomStatusData: <ID>
     AtkBuff / DefBuff           ← 攻防加成設定
     IconSprite / Tags
     LayerIncreaseVFX / StatusPersistantVFX
-    StatusOffsets / OffsetTags  ← 互相抵銷的狀態
-    StatusAlterOn               ← 哪些 trigger 上層數會變
-    Effects                     ← 觸發效果
-    UnitStates                  ← 對應的特殊狀態（暈眩、閃避⋯）
-    StopDecayStatus             ← 使目標狀態不衰減
-    ImmuneStatus                ← 免疫狀態（不再獲得）
-    Resistance                  ← 抗性（每層 1% 機率使狀態無效）
+    StatusOffsets / OffsetTags  ← 相殺する状態
+    StatusAlterOn               ← どの trigger で層数が変わるか
+    Effects                     ← 発動効果
+    UnitStates                  ← 対応する特殊状態（スタン、回避…）
+    StopDecayStatus             ← ターゲット状態を減衰させない
+    ImmuneStatus                ← 免疫状態（取得不可）
+    Resistance                  ← 抵抗（毎層 1% 確率でターゲット状態を無効化）
 ```
 
-## 主要欄位
+## 主要フィールド
 
-| 編輯器顯示 | 必填 | 說明 |
+| エディタ表示 | 必須 | 説明 |
 |---|---|---|
-| **Name** | 是 | 狀態名（多語系） |
-| **StatusEffectType** | 是 | `Buff` / `Debuff` / 其他類型；影響顯示色與抵銷判斷 |
-| **StatusClass** | — | `Normal` / `AtkBuff` / `DefBuff` / `Immune`（免疫所有負面） |
-| **AtkBuff / DefBuff** | 否 | 多個 atk / def buff 設定（傷害倍率、護甲加成⋯） |
-| **IconSprite** | 是 | 狀態圖示（`RCG_IconSprite` 引用） |
-| **Tags** | 否 | 狀態分類標籤（Buff / Debuff / DoT / Feature⋯） |
-| **LayerIncreaseVFX** | — | 層數增加時的特效 |
-| **StatusPersistantVFX** | — | 常駐單位特效（持有此狀態時恆顯示） |
-| **StatusOffsets** | 否 | 互相抵銷的具體狀態（例：力量 ↔ 虛弱） |
-| **OffsetTags** | 否 | 與哪些**標籤類型**抵銷（例：所有 Debuff 都被某 buff 抵銷） |
-| **StatusAlterOn** | 否 | 哪些 trigger 上層數變化（dictionary：`trigger → DecreaseType`） |
-| **Effects** | 否 | 各 trigger 觸發的效果 |
-| **UnitStates** | 否 | 對應的單位特殊狀態列舉值（`Stun` / `Guard` / `Dodge`⋯） |
-| **StopDecayStatus** | 否 | 使目標狀態不衰減的清單 |
-| **ImmuneStatus** | 否 | 免疫的狀態（不再獲得） |
-| **Resistance** | 否 | 每層 1% 機率使目標狀態無效 |
+| **Name** | はい | 状態名（多言語） |
+| **StatusEffectType** | はい | `Buff` / `Debuff` / その他、表示色と相殺判定に影響 |
+| **StatusClass** | — | `Normal` / `AtkBuff` / `DefBuff` / `Immune`（全負面免疫） |
+| **AtkBuff / DefBuff** | いいえ | 複数の atk / def buff 設定（ダメージ倍率、防御加成） |
+| **IconSprite** | はい | 状態アイコン（`RCG_IconSprite` 参照） |
+| **Tags** | いいえ | 状態分類タグ（Buff / Debuff / DoT / Feature 等） |
+| **LayerIncreaseVFX** | — | 層数増加時のエフェクト |
+| **StatusPersistantVFX** | — | 常駐ユニットエフェクト（保持中常時表示） |
+| **StatusOffsets** | いいえ | 相殺する具体的状態（例：力 ↔ 弱体） |
+| **OffsetTags** | いいえ | どの**タグタイプ**と相殺するか（例：あるバフが全 Debuff を相殺） |
+| **StatusAlterOn** | いいえ | どの trigger で層数変化（dictionary：`trigger → DecreaseType`） |
+| **Effects** | いいえ | 各 trigger での発動効果 |
+| **UnitStates** | いいえ | 対応するユニット特殊状態列挙値（`Stun` / `Guard` / `Dodge` 等） |
+| **StopDecayStatus** | いいえ | ターゲット状態を減衰させない一覧 |
+| **ImmuneStatus** | いいえ | 免疫状態（取得不可） |
+| **Resistance** | いいえ | 毎層 1% 確率でターゲット状態を無効化 |
 
-## 行為說明
+## 動作説明
 
-### 層數變化 (`GetDecreaseType`)
-查 `m_StatusAlterOn` 表，依 trigger 取得對應的 `eStatusDecreaseType`：
-*   `None` 不變 / `DecreaseOneLayer` -1 / `Clear` 全清 / `DecreaseHalf` 減半
-*   `AddOneLayer` +1 / `ClearImmediately` 立刻清 / `Eliminate` 消除（不觸發結束效果）
+### 層数変化 (`GetDecreaseType`)
+`m_StatusAlterOn` テーブルを引き、trigger に応じて `eStatusDecreaseType` を取得：
+*   `None` 不変 / `DecreaseOneLayer` -1 / `Clear` 全クリア / `DecreaseHalf` 半減
+*   `AddOneLayer` +1 / `ClearImmediately` 即時クリア / `Eliminate` 消去（終了効果発動なし）
 
-### 抵銷判斷 (`CheckIsOffset`)
-*   `StatusClass = Immune` → 所有 Tag 含 `StatusDebuff` 的狀態都會被抵銷。
-*   `OffsetTags` 命中對方 Tag → 抵銷。
-*   `StatusOffsets` 含對方 ID → 抵銷。
+### 相殺判定 (`CheckIsOffset`)
+*   `StatusClass = Immune` → Tag に `StatusDebuff` を含む全状態が相殺。
+*   `OffsetTags` が相手 Tag に命中 → 相殺。
+*   `StatusOffsets` が相手 ID を含む → 相殺。
 
-### 描述生成
-分兩段（中間空行）：
-1. **抵銷段**：列出此狀態會抵銷的對象。
-2. **效果段**：UnitStates 描述 / Atk-DefBuff 描述 / StopDecay / Immune / Resistance / Effects 觸發描述。
+### 説明生成
+2段に分割（中間に空行）：
+1. **相殺段**：この状態が相殺する対象を列挙。
+2. **効果段**：UnitStates 説明 / Atk-DefBuff 説明 / StopDecay / Immune / Resistance / Effects 発動説明。
 
 ### IconTMPKey
-`RCG_BattleSetting.IsShowOnUI = true` 時回傳 IconSprite 的 TMPKey（給 TextMeshPro 圖示用）；否則回 LocalizedName。
+`RCG_BattleSetting.IsShowOnUI = true` 時は IconSprite の TMPKey を返す（TextMeshPro アイコン用）；それ以外は LocalizedName 返却。
 
-### 觸發效果 (`OnTriggerEffect`)
-從 `m_Effects` 取對應 trigger 並依序觸發。
+### 発動効果 (`OnTriggerEffect`)
+`m_Effects` から該 trigger を取得し順次発動。
 
 ## 注意事項
 
-*   **`Immune` 類型自動抵銷所有 Debuff**：不需手動列 `OffsetTags = StatusDebuff`，邏輯內建。
-*   **`m_AtkBuff / m_DefBuff` 是 list**：可疊多個（不同條件下不同加成）；舊版 `m_AtkBuffData / m_DefBuffData` 已被取代並註解。
-*   **`UnitStates` 直接對應 enum**：暈眩、閃避、格擋等是寫死在 enum 內的 13 種特殊狀態；無法新增（要改程式）。
-*   **Resistance 是機率制**：每層 1%，10 層 = 10% 抗性，效果不疊到 100%。
-*   **StatusFeature Tag**：含此 tag 的狀態名稱前面會加「特性: 」前綴。
+*   **`Immune` タイプは全 Debuff を自動相殺**：手動で `OffsetTags = StatusDebuff` を列挙する必要なし、ロジック内蔵。
+*   **`m_AtkBuff / m_DefBuff` はリスト**：複数積層可（条件下で異なる加成）；旧版 `m_AtkBuffData / m_DefBuffData` は置換されコメントアウト。
+*   **`UnitStates` は enum に直接対応**：スタン、回避、ガード等の13種特殊状態が enum にハードコード；追加不可（プログラム改修必須）。
+*   **Resistance は確率制**：1層 1%、10 層 = 10% 抵抗、効果は 100% に積層しない。
+*   **StatusFeature Tag**：このタグを含む状態の名前前に「特性: 」プレフィックス追加。
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## 付録：プログラマ参考 (Programmer Reference)
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_CustomStatusData.cs`
-*   **繼承自**：`RCG_Asset<RCG_CustomStatusData>`
-*   **實作介面**：`RCGI_Status`
+### A.1 クラス情報
+*   **ファイル**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_CustomStatusData.cs`
+*   **継承**：`RCG_Asset<RCG_CustomStatusData>`
+*   **実装**：`RCGI_Status`
 *   **AssetGroup**：`EditCharacter`
 
-### A.2 欄位對照（節選）
+### A.2 フィールドマッピング（抜粋）
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| コードフィールド | エディタ表示 | 型 | 備考 |
 |---|---|---|---|
 | `m_Name` | Name | `RCG_LocalizeData` | |
 | `m_StatusEffectType` | StatusEffectType | `StatusEffectType` enum | `Buff` / `Debuff` |
@@ -111,7 +105,7 @@ RCG_CustomStatusData: <ID>
 | `m_DefBuff` | DefBuff | `List<RCG_DefBuffData>` | |
 | `m_IconSprite` | IconSprite | `RCG_IconSpriteGenData` | |
 | `m_Tags` | Tags | `List<RCG_StatusTagGenData>` | |
-| `m_LayerIncreaseVFX` | LayerIncreaseVFX | `RCG_CommonVFXGenData` | 預設 `VFX_StatusLayerID` |
+| `m_LayerIncreaseVFX` | LayerIncreaseVFX | `RCG_CommonVFXGenData` | デフォルト `VFX_StatusLayerID` |
 | `m_StatusPersistantVFX` | StatusPersistantVFX | `RCG_CommonVFXGenData` | |
 | `m_StatusOffsets` | StatusOffsets | `List<RCG_CustomStatusGenData>` | |
 | `m_OffsetTags` | OffsetTags | `List<RCG_StatusTagGenData>` | |
@@ -122,25 +116,25 @@ RCG_CustomStatusData: <ID>
 | `m_ImmuneStatus` | ImmuneStatus | `List<RCG_CustomStatusGenData>` | |
 | `m_Resistance` | Resistance | `List<RCG_CustomStatusGenData>` | |
 
-### A.3 重要 Method 摘要
+### A.3 主要メソッド
 
-*   **`GetDecreaseType(triggerOn)`** — 查 m_StatusAlterOn 表。
-*   **`CheckIsOffset(targetStatus)`** — 三層判斷：Immune class / OffsetTags / StatusOffsets。
-*   **`OnTriggerEffect(triggerOn, data)`** — 觸發效果。
-*   **`TriggerOnUnitState(triggerOn)`** — 是否會在此 trigger 變化或觸發效果（quick check）。
-*   **`Description` (property)** — 大型 StringBuilder 組合：Offsets + UnitStates + AtkBuff + DefBuff + StopDecay + Immune + Resistance + Effects。
-*   **`IconTMPKey`** — UI 模式下回 TMPKey，否則回 LocalizedName。
-*   **`CreateLayerIncreaseVFX / CreateStatusPersistantVFX`** — async VFX 建立。
+*   **`GetDecreaseType(triggerOn)`** — m_StatusAlterOn テーブルを引く。
+*   **`CheckIsOffset(targetStatus)`** — 三層判定：Immune class / OffsetTags / StatusOffsets。
+*   **`OnTriggerEffect(triggerOn, data)`** — 効果発動。
+*   **`TriggerOnUnitState(triggerOn)`** — この trigger で変化または発動するか（quick check）。
+*   **`Description` (property)** — 大型 StringBuilder 構成：Offsets + UnitStates + AtkBuff + DefBuff + StopDecay + Immune + Resistance + Effects。
+*   **`IconTMPKey`** — UI モードで TMPKey、それ以外で LocalizedName。
+*   **`CreateLayerIncreaseVFX / CreateStatusPersistantVFX`** — async VFX 構築。
 
-### A.4 與其他系統的互動
+### A.4 他システムとの連携
 
-*   **`RCG_StatusGenData`** — Asset Entry 包裝；`Status` (property) 回 `new RCG_StatusGenData(ID)`。
-*   **`RCG_CustomStatusGenData`** — 直接引用此資料的型別；含 `s_Default` / `s_ChargeUp` 預設實例。
-*   **`RCG_AtkBuffData` / `RCG_DefBuffData`** — 攻防 buff 子資料。
-*   **`UnitState` (enum)** — 13 種寫死的特殊狀態。
-*   **`RCG_VFXManager`** — 特效建立。
+*   **`RCG_StatusGenData`** — Asset Entry ラッパー；`Status` (property) が `new RCG_StatusGenData(ID)` を返す。
+*   **`RCG_CustomStatusGenData`** — このデータを直接参照する型；`s_Default` / `s_ChargeUp` プリセットインスタンス含む。
+*   **`RCG_AtkBuffData` / `RCG_DefBuffData`** — 攻防 buff サブデータ。
+*   **`UnitState` (enum)** — 13種ハードコード特殊状態。
+*   **`RCG_VFXManager`** — エフェクト構築。
 
-### A.5 已知議題
+### A.5 既知の問題
 
-*   舊版 `m_AtkBuffData` / `m_DefBuffData` 單一欄位已被 list 取代，反序列化遷移邏輯已註解。
-*   `Init()` 是空殼，預留進入大地圖時的初始化 hook。
+*   旧版 `m_AtkBuffData` / `m_DefBuffData` 単一フィールドはリストに置換、デシリアライズ移行ロジックはコメントアウト済。
+*   `Init()` は空殻、大マップ突入時の初期化 hook 予約。
