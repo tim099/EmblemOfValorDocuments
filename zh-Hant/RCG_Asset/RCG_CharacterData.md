@@ -1,124 +1,106 @@
 ---
-title: RCG_CharacterData 說明
-description: <!-- TODO: 一句話功能摘要 -->
+title: 玩家角色資料 (RCG_CharacterData) 說明
+description: 玩家可選擇 / 加入隊伍的角色模板：HP、初始牌組、初始技能、解鎖條件、加入特典
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
 ---
 
-# RCG_CharacterData
+# 玩家角色資料
 
 > 程式類別名稱：`RCG_CharacterData`
 
 ## 用途
 
-<!-- TODO: 描述這個 Asset 在遊戲裡負責什麼、什麼情境會用、舉 1-2 個範例。 -->
+**玩家可選擇或在劇情中加入隊伍的角色模板**。每個英雄、夥伴、可招募 NPC 都是一個 `RCG_CharacterData`。內含：基本資訊、初始 HP、初始牌組、初始技能/專精、解鎖條件、加入隊伍時的「加入牌組 (JoinDeck)」等。
 
-繼承自 `RCG_Asset<RCG_CharacterData>`，實作介面：`UCLI_ShortName`, `RCGI_Unloackable`
+繼承自 `RCG_Asset<RCG_CharacterData>`，實作介面：`UCLI_ShortName` / `RCGI_Unloackable`（解鎖系統）。
 
 ## 編輯器中的樣貌
 
 ```
-<!-- TODO: 描繪此 Asset 在編輯器內的版面 -->
+RCG_CharacterData: <ID>
+    Data (UnitData)            ← 編輯時真正修改的設定（HP / Deck / Skills / Order / Unlock）
+    RuntimeData                ← 遊戲執行時才變動的資料（裝備、當前技能等）
+    Preview (右側)              ← 頭像 / 名稱 / 最大 HP / 技能 / 牌組
 ```
 
-## 主要欄位
+## 主要欄位（Data 內部）
 
 | 編輯器顯示 | 必填 | 說明 |
 |---|---|---|
-| **Name** | — | <!-- TODO: 說明欄位用途 --> |
-| **CharacterIntro** | — | <!-- TODO: 說明欄位用途 --> |
-| **PortraitAnim** | — | <!-- TODO: 說明欄位用途 --> |
-| **Portrait** | — | <!-- TODO: 說明欄位用途 --> |
-| **Avatar** | — | <!-- TODO: 說明欄位用途 --> |
-| **Illustrator** | — | <!-- TODO: 說明欄位用途 --> |
-| **MaxHp** | — | <!-- TODO: 說明欄位用途 --> |
-| **TutorialDeck** | — | <!-- TODO: 說明欄位用途 --> |
-| **Deck** | — | <!-- TODO: 說明欄位用途 --> |
-| **JoinDeck** | — | <!-- TODO: 說明欄位用途 --> |
-| **UnitGenData** | — | <!-- TODO: 說明欄位用途 --> |
-| **SkillTags** | — | <!-- TODO: 說明欄位用途 --> |
-| **InitActivePowers** | — | <!-- TODO: 說明欄位用途 --> |
-| **UnitSkillDatas** | — | <!-- TODO: 說明欄位用途 --> |
-| **UnitSkillPool** | — | <!-- TODO: 說明欄位用途 --> |
-| **InitItems** | — | <!-- TODO: 說明欄位用途 --> |
-| **AdditionalDecks** | — | <!-- TODO: 說明欄位用途 --> |
-| **AdditionalJoinDecks** | — | <!-- TODO: 說明欄位用途 --> |
-| **Unlock** | — | <!-- TODO: 說明欄位用途 --> |
-| **Order** | — | <!-- TODO: 說明欄位用途 --> |
-| **Index** | — | <!-- TODO: 說明欄位用途 --> |
-| **Hp** | — | <!-- TODO: 說明欄位用途 --> |
-| **IsMainCharacter** | — | <!-- TODO: 說明欄位用途 --> |
-| **SkillTags** | — | <!-- TODO: 說明欄位用途 --> |
-| **UnitSkillEntities** | — | <!-- TODO: 說明欄位用途 --> |
-| **Equipments** | — | <!-- TODO: 說明欄位用途 --> |
-| **Data** | — | <!-- TODO: 說明欄位用途 --> |
-| **RuntimeData** | — | <!-- TODO: 說明欄位用途 --> |
-| **PortraitAnim** | — | <!-- TODO: 說明欄位用途 --> |
-| **Equipments** | — | <!-- TODO: 說明欄位用途 --> |
+| **Name** | 是 | 角色顯示名（多語系） |
+| **MaxHp** | 是 | 最大生命值 |
+| **Avatar** | 是 | 頭像 / 立繪 sprite |
+| **Intro** | 否 | 角色介紹文字（選角畫面用） |
+| **Order** | 是 | 選角畫面排序索引 |
+| **Deck** | 是 | 起始牌組（`RCG_DeckData`） |
+| **JoinDeck** | 否 | 中途加入隊伍時帶來的牌組（與 Deck 不同的進度） |
+| **UnitSkillDatas** | 否 | 起始已學會的單位技能 |
+| **SkillTags** | 是 | 角色擁有的專精（戰士 / 法師 / 牧師…），用於卡牌專精檢查 |
+| **Unlock** | 否 | 解鎖條件（`RCG_UnlockEntry`）。`UnlockType.Tutorial` 表示教學解鎖；商店解鎖則需另在 GameRecord 紀錄購買 |
 
 ## 行為說明
 
-<!-- TODO: 戰鬥 / 載入 / 解鎖時的觸發時機與順序。 -->
+### 選角分類
+程式提供四個 static 入口取得不同角色清單（皆按 `m_Order` 排序）：
+*   `GetAllTutorialCharacters()` — 教學解鎖的角色
+*   `GetAllUnlockedCharacters()` — 已解鎖
+*   `GetAllLockedCharacters()` — 未解鎖
+*   `GetAllJoinCharacters()` — 教學 + 已解鎖（可加入隊伍的）
+
+### 解鎖判斷 (`Unlocked`)
+*   `UnlockEntry.Unlocked == true`：已過解鎖條件 → 商店類還要看 `RCG_GameRecord.UnlockedCharacters` 是否含 ID。
+*   `UnlockType.None`：永遠解鎖。
+*   `UnlockType.Tutorial`：要 GameRecord 內登記過完成教學。
+
+### 編輯器分頁
+*   **OnGUI** 顯示左側完整 Data 編輯欄 + 右側預覽。
+*   **TestDropSkills** 按鈕（內建測試工具）可預覽掉落 / 抽卡組合。
 
 ## 注意事項
 
-<!-- TODO: 常見的設計反模式 / 容易踩到的坑。 -->
+*   **`Order` 影響選角畫面排序**：未填會堆在最前。
+*   **`JoinDeck` 與 `Deck` 是兩份**：開局選的角色用 `Deck`；劇情途中招募的角色用 `JoinDeck`（通常較精簡，避免破壞牌組平衡）。
+*   **解鎖條件的兩層判斷**：`UnlockEntry` + 商店購買記錄；改動解鎖邏輯時兩邊都要檢查。
+*   **`m_RuntimeData`** 是執行時才變的東西（裝備、當前技能），編輯器不要動它。
 
 ---
 
 ## 附錄：程式人員參考 (Programmer Reference)
 
-> 此段以下使用程式內部術語，受眾轉為程式人員與 AI agent。前半段內容請優先採信。
-
 ### A.1 類別資訊
-
 *   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_CharacterData.cs`
-*   **繼承自**：`RCG_Asset<RCG_CharacterData>, UCLI_ShortName, RCGI_Unloackable`
-*   **實作介面**：`UCLI_ShortName`, `RCGI_Unloackable`
+*   **繼承自**：`RCG_Asset<RCG_CharacterData>`
+*   **實作介面**：`UCLI_ShortName` / `RCGI_Unloackable`
+*   **AssetGroup**：`EditCharacter`
 
-### A.2 欄位對照（自動產生，需人工複核）
+### A.2 欄位對照（外層）
 
-| 程式欄位 | 編輯器顯示 | 型別 | Localize Key | 備註 |
-|---|---|---|---|---|
-| `m_Name` | Name | `RCG_LocalizeData` | `Name` | |
-| `m_CharacterIntro` | CharacterIntro | `RCG_LocalizeData` | `CharacterIntro` | |
-| `m_PortraitAnim` | PortraitAnim | `RCG_PrefabResData` | `PortraitAnim` | |
-| `m_Portrait` | Portrait | `RCG_SpriteData` | `Portrait` | |
-| `m_Avatar` | Avatar | `RCG_SpriteData` | `Avatar` | |
-| `m_Illustrator` | Illustrator | `string` | `Illustrator` | |
-| `m_MaxHp` | MaxHp | `int` | `MaxHp` | |
-| `m_TutorialDeck` | TutorialDeck | `RCG_DeckGenData` | `TutorialDeck` | |
-| `m_Deck` | Deck | `RCG_DeckGenData` | `Deck` | |
-| `m_JoinDeck` | JoinDeck | `RCG_DeckGenData` | `JoinDeck` | |
-| `m_UnitGenData` | UnitGenData | `RCG_UnitGenDataWithPosition` | `UnitGenData` | |
-| `m_SkillTags` | SkillTags | `List<RCG_SkillTagGenData>` | `SkillTags` | |
-| `m_InitActivePowers` | InitActivePowers | `List<RCG_ActivePowerGenData>` | `InitActivePowers` | |
-| `m_UnitSkillDatas` | UnitSkillDatas | `List<RCG_UnitSkillGenData>` | `UnitSkillDatas` | |
-| `m_UnitSkillPool` | UnitSkillPool | `RCG_UnitSkillDropSetting` | `UnitSkillPool` | |
-| `m_InitItems` | InitItems | `List<RCG_ItemGenData>` | `InitItems` | |
-| `m_AdditionalDecks` | AdditionalDecks | `List<RCG_DeckGenData>` | `AdditionalDecks` | |
-| `m_AdditionalJoinDecks` | AdditionalJoinDecks | `List<RCG_DeckGenData>` | `AdditionalJoinDecks` | |
-| `m_Unlock` | Unlock | `RCG_UnlockEntry` | `Unlock` | |
-| `m_Order` | Order | `int` | `Order` | |
-| `m_Index` | Index | `int` | `Index` | |
-| `m_Hp` | Hp | `int` | `Hp` | |
-| `m_IsMainCharacter` | IsMainCharacter | `bool` | `IsMainCharacter` | |
-| `m_SkillTags` | SkillTags | `List<RCG_SkillTagGenData>` | `SkillTags` | |
-| `m_UnitSkillEntities` | UnitSkillEntities | `List<RCG_UnitSkillPointer>` | `UnitSkillEntities` | |
-| `m_Equipments` | Equipments | `Dictionary<EquipmentType, RCG_EquipmentPointer>` | `Equipments` | |
-| `m_Data` | Data | `UnitData` | `Data` | |
-| `m_RuntimeData` | RuntimeData | `UnitRuntimData` | `RuntimeData` | |
-| `m_PortraitAnim` | PortraitAnim | `GameObject` | `PortraitAnim` | |
-| `m_Equipments` | Equipments | `Dictionary<EquipmentType, RCG_EquipmentPointer>` | `Equipments` | |
+| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+|---|---|---|---|
+| `m_Data` | Data | `UnitData`（巢狀） | 編輯期資料 |
+| `m_RuntimeData` | RuntimeData | `UnitRuntimData` | 執行期資料（裝備等） |
+
+`UnitData` 內含 `m_LocalizeName` / `m_Avatar` / `m_Intro` / `m_MaxHp` / `m_Deck` / `m_JoinDeck` / `m_UnitSkillDatas` / `m_SkillTags` / `m_Unlock` / `m_Order` 等。
 
 ### A.3 重要 Method 摘要
 
-<!-- TODO: 補上影響行為的關鍵 method（OnGUI / Preview / 序列化覆寫等）。 -->
+*   **`Unlocked` (property)** — 兩階段解鎖判斷（UnlockEntry → GameRecord）。
+*   **`GetAllTutorialCharacters` / `GetAllUnlockedCharacters` / `GetAllLockedCharacters` / `GetAllJoinCharacters`** (static) — 選角畫面用。
+*   **`Preview` / `OnGUI`** — 編輯器繪製。
+*   **`Data.TestDropSkills(...)`** — 內建掉落測試工具。
+*   **`Init(string ID)` / `Init(CharacterID)`** — 多型建構入口。
 
 ### A.4 與其他系統的互動
 
-<!-- TODO: 列出依賴 / 被依賴的類別與系統。 -->
+*   **`RCG_DeckData`** — `m_Deck` / `m_JoinDeck` 引用的牌組。
+*   **`RCG_UnitSkillData`** — `m_UnitSkillDatas` 引用的初始技能。
+*   **`RCG_SkillTagGenData`** — 專精系統。
+*   **`RCG_GameRecord.UnlockedCharacters`** — 商店 / 教學解鎖記錄。
+*   **`RCG_UnlockEntry`** — 解鎖條件。
+*   **`UnitRuntimData`** — 執行期角色狀態（HP、裝備）。
 
-### A.5 已知議題（選填）
+### A.5 已知議題
 
-<!-- TODO: TODO/FIXME 摘錄、待重構點。 -->
+*   `Unlocked` 的 `UnlockType.Tutorial` 路徑有 `// QWQ23!!` 註解，標示舊版邏輯異動。
+*   `m_ActivePowers` 已被註解，表示曾規劃過「主動能力」欄位，目前由 `UnitSkillData` 系統取代。
