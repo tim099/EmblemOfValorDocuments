@@ -1,107 +1,101 @@
 ---
-title: 怪物動作資料 (RCG_MonsterActionData) 說明
-description: 怪物可使用的單一招式 / 動作模板：選擇規則、效果、圖示、描述
-last_updated: 2026-05-02
+title: Monster Action Data (RCG_MonsterActionData)
+description: Template for a single monster action / move — target selection, effects, icon, description
+last_invoked: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-en
 ---
 
-> [!WARNING]
-> Translation pending — this file needs an English translation.
-The original zh-Hant content is included below for reference.
+# Monster Action Data
 
+> Class name: `RCG_MonsterActionData`
 
-# 怪物動作資料
+## Purpose
 
-> 程式類別名稱：`RCG_MonsterActionData`
+**Template for a single monster action / move**. Examples: "Slash", "Summon Followers", "Self-destruct". Each Action contains:
+*   Target selection rule (which units can be selected as targets)
+*   Effects (damage, buff, summon, etc.)
+*   Icon
+*   Description (auto / manual)
 
-## 用途
+`RCG_UnitData.MonsterStates` references a set of `RCG_MonsterActionData` as the action pool usable in that state.
 
-**怪物可使用的單一招式 / 動作模板**。例如「揮砍」「召喚從者」「自爆」。每個 Action 內含：
-*   選目標規則（哪些單位可被選為目標）
-*   效果（傷害、buff、召喚⋯）
-*   圖示
-*   描述（自動 / 手動）
+Inherits from `RCG_Asset<RCG_MonsterActionData>`.
 
-`RCG_UnitData` 的 `MonsterStates` 引用一組 `RCG_MonsterActionData` 作為該狀態下可用招式池。
-
-繼承自 `RCG_Asset<RCG_MonsterActionData>`。
-
-## 編輯器中的樣貌
+## Editor Layout
 
 ```
 RCG_MonsterActionData: <ID>
     Action (m_Action)
-        SelectUnitRule         ← 選目標規則
-        Effect 結構            ← 實際效果
-        Icon                   ← 預覽圖示
-        OverrideDescription    ← 是否手動覆寫描述
-        UnitAction             ← 真正執行的動作
-        Infos                  ← Tooltip 列出的附加資訊
+        SelectUnitRule         ← target selection rule
+        Effect structure       ← actual effects
+        Icon                   ← preview icon
+        OverrideDescription    ← manually override the auto description
+        UnitAction             ← actual action to execute
+        Infos                  ← additional info shown in tooltip
 ```
 
-## 主要欄位
+## Main Fields
 
-| 編輯器顯示 | 必填 | 說明 |
+| Editor Display | Required | Description |
 |---|---|---|
-| **Action** | 是 | 內部 `RCG_MonsterAction`，包含此招式所有資料 |
+| **Action** | yes | Inner `RCG_MonsterAction`, contains all data for this action |
 
-`RCG_MonsterAction` 內部：
+`RCG_MonsterAction` contains:
 
-| 子欄位 | 說明 |
+| Sub-field | Description |
 |---|---|
-| **SelectUnitRule** | 選目標規則（`RandomEnemy` / `Friend` / 自身 / 站位 N 之類） |
-| **OverrideDescription** | 是否使用 `m_UnitAction` 的描述覆蓋自動描述 |
-| **UnitAction** | 招式真正執行的動作（傷害公式、效果序列） |
-| **Icon** | 預覽 / Tooltip 顯示用的圖示 |
-| **SkillLevel** | 招式等級（runtime 由 `RCG_MonsterLevelActionData.GetAction` 動態填入） |
+| **SelectUnitRule** | Target selection rule (`RandomEnemy` / `Friend` / self / position N, etc.) |
+| **OverrideDescription** | Whether to use `m_UnitAction`'s description on top of auto |
+| **UnitAction** | The actual action (damage formula, effect sequence) |
+| **Icon** | Preview / tooltip icon |
+| **SkillLevel** | Action level (set at runtime by `RCG_MonsterLevelActionData.GetAction`) |
 
-## 行為說明
+## Behavior
 
-### 選目標 → 觸發 → 描述
-1. 戰鬥中怪物選定要使用此 Action 後，依 `SelectUnitRule` 找出目標。
-2. 套用 `m_UnitAction` 的效果到目標。
-3. UI Tooltip 上顯示 `Icon` + `GetDescription()` + `Infos` 補充標籤資訊。
+### Target Selection → Trigger → Description
+1. After the monster picks this Action in battle, find targets via `SelectUnitRule`.
+2. Apply `m_UnitAction` effects to targets.
+3. UI tooltip shows `Icon` + `GetDescription()` + `Infos` for additional tag info.
 
-### 自動 vs 覆寫描述
-`OverrideDescription = true` 時，預覽會在主描述下面**額外**附加 `m_UnitAction.GetDescription()`（兩段都顯示）。
+### Auto vs Override Description
+When `OverrideDescription = true`, preview shows the main description **plus** the appended `m_UnitAction.GetDescription()` (both segments displayed).
 
-### 預設 ID
-透過 `RCG_MonsterActionGenData.IdleID` (`"Idle"`) 取得「無動作」的預設 Action；任何沒設動作的單位回合會跑這個。
+### Default ID
+`RCG_MonsterActionGenData.IdleID` (`"Idle"`) is the "no action" default; any unit without an action defined will use this.
 
-## 注意事項
+## Caveats
 
-*   **SkillLevel 由外部填入**：`RCG_MonsterLevelActionData.GetAction(level)` 會把等級寫到 `m_SkillLevel`，本資料只是模板，runtime 取的是 clone 後的副本。
-*   **OverrideDescription 雙顯示**：可能造成 Tooltip 過長，必要時關閉。
-*   **Idle 動作不要刪**：許多 fallback 路徑會回傳 `RCG_MonsterActionGenData.Idle.GetData()`，缺了這個 ID 會 NRE。
+*   **SkillLevel set externally**: `RCG_MonsterLevelActionData.GetAction(level)` writes the level to `m_SkillLevel`; this data is just a template — runtime uses a clone.
+*   **OverrideDescription dual display**: may make tooltips overly long; disable when not needed.
+*   **Don't delete the Idle action**: many fallback paths return `RCG_MonsterActionGenData.Idle.GetData()`; missing this ID causes NREs.
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## Appendix: Programmer Reference
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_MonsterActionData.cs`
-*   **繼承自**：`RCG_Asset<RCG_MonsterActionData>`
-*   **AssetGroup**：`EditBattleSetting`
+### A.1 Class Info
+*   **File**: `CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_MonsterActionData.cs`
+*   **Inherits**: `RCG_Asset<RCG_MonsterActionData>`
+*   **AssetGroup**: `EditBattleSetting`
 
-### A.2 欄位對照
+### A.2 Field Mapping
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| Code Field | Editor Display | Type | Notes |
 |---|---|---|---|
-| `m_Action` | Action | `RCG_MonsterAction` | 主要資料容器 |
+| `m_Action` | Action | `RCG_MonsterAction` | Main data container |
 
-### A.3 重要 Method 摘要
+### A.3 Key Methods
 
-*   **`Preview`** — 編輯器渲染：圖示 + 選目標規則 + 描述 + Effects 描述（若 OverrideDescription）+ Infos。
-*   建構式預設 `ID = "New Action"`。
+*   **`Preview`** — editor rendering: icon + selection rule + description + Effects description (if OverrideDescription) + Infos.
+*   Constructor defaults to `ID = "New Action"`.
 
-### A.4 與其他系統的互動
+### A.4 System Interactions
 
-*   **`RCG_MonsterAction`** — 主要資料模型；含 `m_SelectUnitRule` / `m_UnitAction` / `m_Icon` / `m_SkillLevel`。
-*   **`RCG_MonsterActionGenData`**（檔內）— Asset Entry 包裝；`Idle` 為系統預設。
-*   **`RCG_MonsterLevelActionData`** — 對 Action 包裝以支援等級分級。
-*   **`RCG_UnitData.m_MonsterStates`** — 引用 Actions 的容器。
+*   **`RCG_MonsterAction`** — main data model; contains `m_SelectUnitRule` / `m_UnitAction` / `m_Icon` / `m_SkillLevel`.
+*   **`RCG_MonsterActionGenData`** (in-file) — Asset Entry; `Idle` is the system default.
+*   **`RCG_MonsterLevelActionData`** — wraps Actions with level-tier support.
+*   **`RCG_UnitData.m_MonsterStates`** — container that references Actions.
 
-### A.5 已知議題
+### A.5 Known Issues
 
-*   有被註解掉的 `DeserializeFromJson` 容錯邏輯（`m_ID == "AttackEffect"` → `DefaultID`），標示舊版 ID 遷移歷史。
+*   Commented-out `DeserializeFromJson` migration shim (`m_ID == "AttackEffect"` → `DefaultID`) shows legacy ID migration history.

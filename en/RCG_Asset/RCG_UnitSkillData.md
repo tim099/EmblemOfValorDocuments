@@ -1,101 +1,95 @@
 ---
-title: 單位技能資料 (RCG_UnitSkillData) 說明
-description: 角色學會的「技能」——類似裝備但不佔裝備槽；提供被動效果、領袖技、學習特典
+title: Unit Skill Data (RCG_UnitSkillData)
+description: A "skill" learned by a character — like equipment but doesn't take a slot; provides passive effects, leader skills, and on-acquire bonuses
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-en
 ---
 
-> [!WARNING]
-> Translation pending — this file needs an English translation.
-The original zh-Hant content is included below for reference.
+# Unit Skill Data
 
+> Class name: `RCG_UnitSkillData`
 
-# 單位技能資料
+## Purpose
 
-> 程式類別名稱：`RCG_UnitSkillData`
+**Template for a skill learned by a character**. Like equipment but doesn't take an equipment slot. Each skill can:
+*   Provide passive effects (triggered on various battle triggers)
+*   Be marked as a **leader skill** (only effective when the character is in the lead position)
+*   Trigger one-time events on learn (e.g., permanent +1 HP, unlock extra draw slot)
 
-## 用途
+Inherits from `RCG_Asset<RCG_UnitSkillData>`. Implements: `RCGI_Status` (battle status system) / `RCGI_Unloackable` (unlock).
 
-**角色學會的技能模板**。類似裝備，但不佔裝備槽。每個技能可以：
-*   提供被動效果（戰鬥中各種 trigger 觸發）
-*   標記為「**領袖技**」（只在角色站第一位時生效）
-*   學習時觸發一次性事件（例：永久 +1 HP、解鎖額外抽卡格）
-
-繼承自 `RCG_Asset<RCG_UnitSkillData>`，實作介面：`RCGI_Status`（戰鬥狀態系統）/ `RCGI_Unloackable`（解鎖）。
-
-## 編輯器中的樣貌
+## Editor Layout
 
 ```
 RCG_UnitSkillData: <ID>
-    Name(多國語言)
-    Icon                          ← 技能圖
-    Effects                       ← 戰鬥中觸發的效果（OnPlay / OnTurnStart / ...）
-    AcquireSkillEvents            ← 學會時觸發的一次性事件
-    SkillTags                     ← 需要的專精（角色須符合才能學）
-    Tags                          ← 一般標籤
-    UnitSkillDescription / Template ← 描述方式（Auto / Manually）
+    Name(localized)
+    Icon                          ← skill icon
+    Effects                       ← effects triggered in battle (OnPlay / OnTurnStart / ...)
+    AcquireSkillEvents            ← one-time events triggered on learn
+    SkillTags                     ← required classes (character must match to learn)
+    Tags                          ← general tags
+    UnitSkillDescription / Template ← description mode (Auto / Manually)
 ```
 
-## 主要欄位
+## Main Fields
 
-| 編輯器顯示 | 必填 | 說明 |
+| Editor Display | Required | Description |
 |---|---|---|
-| **Name** | 是 | 技能顯示名（多語系） |
-| **Icon** | 是 | 技能圖示 |
-| **Effects** | 否 | 戰鬥中各種 trigger 上要跑的效果（OnPlay / OnTurnStart / OnAttack…） |
-| **AcquireSkillEvents** | 否 | 學會技能時觸發的事件（例：擴充手牌數、永久強化） |
-| **SkillTags** | 否 | 必要專精——角色擁有的專精須**全包含**這裡列的才能學（AND 關係） |
-| **Tags** | 否 | 一般物品/技能標籤（用於分類、條件判斷） |
-| **CanLearnRepeatedly** | — | 是否可重複學習（疊加效果） |
-| **HideThisSkill** | — | 學會後**不顯示在技能欄**（適合「只觸發學習特典」這種隱藏增益） |
-| **IsLeaderSkill** | — | 是否為**領袖技**：只在角色站第一位時觸發 Effects |
-| **CanDrop** | — | 是否能從掉落池抽到（false = 只能透過特定途徑取得） |
-| **InitCounters** | 否 | 起始計數器值（給 Effects 中的計數器類效果使用） |
-| **Unlock** | 否 | 解鎖條件 |
-| **UnitSkillDescriptionType** | 是 | `Auto`（自動由 Effects 合成）或 `Manually`（手動撰寫） |
-| **UnitSkillDescription** | Manually 時 | 手動描述（多語系） |
-| **DescriptionTemplate** | Manually 時 | 含 `{(OnPlay.0)}` 等佔位符的範本字串 |
+| **Name** | yes | Skill display name (localized) |
+| **Icon** | yes | Skill icon |
+| **Effects** | no | Effects to run on various triggers (OnPlay / OnTurnStart / OnAttack...) |
+| **AcquireSkillEvents** | no | Events triggered on learning the skill (e.g., expand hand size, permanent enhancement) |
+| **SkillTags** | no | Required classes — character's classes must **fully include** these to learn (AND relation) |
+| **Tags** | no | General item/skill tags (for categorization, conditional checks) |
+| **CanLearnRepeatedly** | — | Can be learned repeatedly (stacking effects) |
+| **HideThisSkill** | — | After learning, **doesn't appear in skill panel** (suitable for "trigger acquire bonus only" hidden boosts) |
+| **IsLeaderSkill** | — | Whether it's a **leader skill**: only triggers Effects when the character is in the lead position |
+| **CanDrop** | — | Whether it can be obtained from drop pools (false = obtainable only via specific paths) |
+| **InitCounters** | no | Initial values for counter-type effects |
+| **Unlock** | no | Unlock conditions |
+| **UnitSkillDescriptionType** | yes | `Auto` (auto-composed from Effects) or `Manually` (hand-written) |
+| **UnitSkillDescription** | when Manually | Hand-written description (localized) |
+| **DescriptionTemplate** | when Manually | Template string with placeholders like `{(OnPlay.0)}` |
 
-## 行為說明
+## Behavior
 
-### 觸發判定
-`OnUnitState(triggerOn, data)` 在每個 trigger 上：
-1. 從 `Effects` 取出該 trigger 的所有效果。
-2. 若 `IsLeaderSkill = true` 且擁有者**不是隊伍第一位**（與 `RCG_BattleField.LeadUnit` 比對 ID），跳過。
-3. 否則逐一觸發。
+### Trigger Logic
+`OnUnitState(triggerOn, data)` for each trigger:
+1. Pulls effects from `Effects` for that trigger.
+2. If `IsLeaderSkill = true` and the owner **is not** the party leader (compared to `RCG_BattleField.LeadUnit` ID), skips.
+3. Otherwise, fires effects in order.
 
-### 學會時 (`OnAquireSkill`)
-所有 `AcquireSkillEvents` 加入 `RCG_MapEventManager`，套到該角色身上（會立刻或在合適時機 fire）。
+### On Acquire (`OnAquireSkill`)
+All `AcquireSkillEvents` are added to `RCG_MapEventManager`, applied to that character (fires immediately or at appropriate timing).
 
-### 描述生成
-*   **Auto**：依「領袖技標籤 → AcquireEvents 描述 → Effects 描述」順序自動串接。
-*   **Manually**：以 `UnitSkillDescription` 為本體，透過 `GetDescriptionParams()` 替換 `(OnPlay.0)` 之類的佔位符；可按 `Generate Description Template` 按鈕從現有 Effects 自動產出範本。
+### Description Generation
+*   **Auto**: chains "leader skill tag → AcquireEvents description → Effects description".
+*   **Manually**: uses `UnitSkillDescription` as base; replaces placeholders like `(OnPlay.0)` via `GetDescriptionParams()`. The `Generate Description Template` button auto-produces a template from current Effects.
 
 ### Tooltip Infos
-`Infos` 屬性聚合所有 effect 的 `CardInfoData`；領袖技會在最前插入 `BattleTag_LeadAbility` 的解說。
+The `Infos` property aggregates all effect `CardInfoData`; leader skills also prepend the `BattleTag_LeadAbility` tag explanation.
 
-## 注意事項
+## Caveats
 
-*   **`SkillTags` 是 AND 關係**：列了多個專精表示「全部都要有」才能學；要做「擇一」需開兩個技能。
-*   **`HideThisSkill = true`** 適合純粹做「學會時加 max HP」這類**永久效果而無被動**的技能；玩家看不到 buff icon 但效果已生效。
-*   **`IsLeaderSkill`** 與隊伍切換領袖機制綁定；領袖切換時不會自動重觸發 Effects（`OnPlay` 不會重 fire）。
-*   **`CanDrop = false`** 的技能不會被 DropPool 抽到，常用於劇情解鎖技能。
+*   **`SkillTags` is AND**: listing multiple classes means "must have all of them" to learn; for "any of these", use multiple skills.
+*   **`HideThisSkill = true`** suits skills that grant **permanent effect on learn** without runtime passives; players don't see a buff icon but the effect is in place.
+*   **`IsLeaderSkill`** ties to the leader switching mechanic; switching leaders does NOT auto re-trigger Effects (`OnPlay` won't fire again).
+*   **`CanDrop = false`** skills won't be picked by DropPool, often used for story-unlocked skills.
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## Appendix: Programmer Reference
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_UnitSkillData.cs`
-*   **繼承自**：`RCG_Asset<RCG_UnitSkillData>`
-*   **實作介面**：`RCGI_Status` / `RCGI_Unloackable`
-*   **AssetGroup**：`EditCharacter`
-*   **預設 Icon 路徑**：`RCG_SpriteData.SpriteFolder + "/UnitSkills"`
+### A.1 Class Info
+*   **File**: `CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_UnitSkillData.cs`
+*   **Inherits**: `RCG_Asset<RCG_UnitSkillData>`
+*   **Implements**: `RCGI_Status` / `RCGI_Unloackable`
+*   **AssetGroup**: `EditCharacter`
+*   **Default Icon path**: `RCG_SpriteData.SpriteFolder + "/UnitSkills"`
 
-### A.2 欄位對照
+### A.2 Field Mapping
 
-| 程式欄位 | 編輯器顯示 | 型別 | Localize Key |
+| Code Field | Editor Display | Type | Localize Key |
 |---|---|---|---|
 | `m_Name` | Name | `RCG_LocalizeData` | `Name` |
 | `m_Icon` | Icon | `RCG_SpriteData` | `Icon` |
@@ -113,19 +107,19 @@ RCG_UnitSkillData: <ID>
 | `m_UnitSkillDescription` | Description | `RCG_LocalizeData` | `Conditional(Manually)` |
 | `m_DescriptionTemplate` | Template | `string` | `Conditional(Manually)` |
 
-### A.3 重要 Method 摘要
+### A.3 Key Methods
 
-*   **`OnUnitState(RCG_EffectTriggerOn, TriggerEffectData)`** — 主要觸發入口；含領袖技判斷。
-*   **`TriggerOnUnitState(RCG_EffectTriggerOn)`** — 是否在此 trigger 有 effect（給 trigger 系統做 quick check）。
-*   **`OnAquireSkill(RCG_CharacterData)`** — 學會時把 `AcquireSkillEvents` 加入 `RCG_MapEventManager`。
-*   **`CheckRequireSkill(HashSet<RCG_SkillTagGenData>)`** — 角色當前 skills 是否包含全部 `m_SkillTags`。
-*   **`Description` (property)** — Auto / Manually 的描述邏輯。
-*   **`GetDescriptionTemplate / GetDescriptionParams`** — Manually 模式下的範本生成 / 參數抽取。
-*   **`Status` (property)** — 回 `new RCG_StatusGenData(StatusType.UnitSkill, ID)`，作為 RCGI_Status 介面實作。
+*   **`OnUnitState(RCG_EffectTriggerOn, TriggerEffectData)`** — main trigger entry; includes leader check.
+*   **`TriggerOnUnitState(RCG_EffectTriggerOn)`** — quick check for trigger system.
+*   **`OnAquireSkill(RCG_CharacterData)`** — adds `AcquireSkillEvents` to `RCG_MapEventManager`.
+*   **`CheckRequireSkill(HashSet<RCG_SkillTagGenData>)`** — whether character's current skills include all `m_SkillTags`.
+*   **`Description` (property)** — Auto / Manually description logic.
+*   **`GetDescriptionTemplate / GetDescriptionParams`** — template generation / parameter extraction for Manually mode.
+*   **`Status` (property)** — returns `new RCG_StatusGenData(StatusType.UnitSkill, ID)`, implementing `RCGI_Status`.
 
-### A.4 與其他系統的互動
+### A.4 System Interactions
 
-*   **`RCG_CommonEffect`** — 觸發效果單位。
-*   **`RCG_MapEvent` / `RCG_MapEventManager`** — 學習特典事件系統。
-*   **`RCG_BattleField.LeadUnit`** — 領袖技判斷。
-*   **`RCG_BattleTag.Util.GetData("BattleTag_LeadAbility")`** — 領袖技標籤。
+*   **`RCG_CommonEffect`** — trigger effect unit.
+*   **`RCG_MapEvent` / `RCG_MapEventManager`** — acquire bonus events system.
+*   **`RCG_BattleField.LeadUnit`** — leader skill check.
+*   **`RCG_BattleTag.Util.GetData("BattleTag_LeadAbility")`** — leader skill tag.
