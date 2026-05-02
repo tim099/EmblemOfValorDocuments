@@ -1,112 +1,106 @@
 ---
-title: 卡牌掉落池 (RCG_CardDropPool) 說明
-description: 定義一組「會掉哪些卡、各自的權重」的資料；獎勵畫面、商店、強化分支底層都靠它抽卡
+title: カードドロップ池 (RCG_CardDropPool)
+description: 「どのカードがドロップし、それぞれの重みは」を定義するデータ。報酬画面、ショップ、強化分岐の基盤
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-ja
 ---
 
-> [!WARNING]
-> 翻訳待機中 — このファイルは日本語翻訳が必要です。
-参考用に zh-Hant 原文を以下に掲載しています。
+# カードドロップ池
 
-
-# 卡牌掉落池
-
-> 程式類別名稱：`RCG_CardDropPool`
+> クラス名：`RCG_CardDropPool`
 
 ## 用途
 
-定義「**這個池子會掉哪些卡牌、各張的權重各是多少**」。戰鬥獎勵、商店補貨、商人特賣、活動掉落都從某個 `RCG_CardDropPool` 隨機抽卡。同樣的池子可被多個來源引用，改一次到處生效。
+「**この池がドロップするカードと各々の重み**」を定義する。戦闘報酬、ショップ補充、商人特売、イベントドロップなど、いずれかの `RCG_CardDropPool` からランダムにカードを抽選する。同じ池を複数の場所から参照可能 — 一度の変更で全ての参照先に適用される。
 
-繼承自 `RCG_Asset<RCG_CardDropPool>`，實作介面：`UCL.Core.UCLI_ShortName`。
+`RCG_Asset<RCG_CardDropPool>` を継承。実装インターフェース：`UCL.Core.UCLI_ShortName`。
 
-## 編輯器中的樣貌
+## エディタ上の見た目
 
 ```
 RCG_CardDropPool: <ID>
     DropType  ▾ DropPool / MixPool / FilterDrop
-    ▼ 顯示名稱
-        Name(多國語言)
-    ▼ DropPool / MixDropPools / FilterDropData  ← 視 DropType 顯示對應區塊
+    ▼ 表示名
+        Name(多言語)
+    ▼ DropPool / MixDropPools / FilterDropData  ← DropTypeに応じて表示
 ```
 
-## 主要欄位
+## 主要フィールド
 
-| 編輯器顯示 | 必填 | 說明 |
+| エディタ表示 | 必須 | 説明 |
 |---|---|---|
-| **DropType** | 是 | `DropPool`（直接列卡 + 權重）/ `MixPool`（混合別的池子）/ `FilterDrop`（用標籤條件篩） |
-| **Name** | 否 | 顯示名稱（多語系）。空白時 `GetShortName()` fallback 到第一個 drop 的名稱、再 fallback 到 ID |
-| **DropPool** | DropType=DropPool | 卡片清單 + 各自權重（`RCG_CommonDropSetting<RCG_CardGenData>`） |
-| **MixDropPools** | DropType=MixPool | 引用其他掉落池並各自指定權重；最終結果是合併後的加權平均 |
-| **FilterDropData** | DropType=FilterDrop | 用 `CardDropFilter` 條件式（標籤、稀有度、等等）動態篩出符合的卡，無條件 = 全部卡 |
+| **DropType** | はい | `DropPool`（カード+重み直接列挙）/ `MixPool`（他の池を混合）/ `FilterDrop`（タグ条件で動的選別） |
+| **Name** | いいえ | 表示名（多言語）。空白時は `GetShortName()` が最初のドロップ名 → ID へとフォールバック |
+| **DropPool** | DropType=DropPool 時 | カード一覧 + 各重み（`RCG_CommonDropSetting<RCG_CardGenData>`） |
+| **MixDropPools** | DropType=MixPool 時 | 他のドロップ池を参照し各重みを指定。最終結果は加重平均 |
+| **FilterDropData** | DropType=FilterDrop 時 | `CardDropFilter` 条件式（タグ、レアリティ等）で該当するカードを動的に選別。条件なし = 全カード対象 |
 
-## 行為說明
+## 動作説明
 
-### 三種模式
-*   **DropPool（直接列）**：手動列出每張卡 + 權重；最直觀，適合精選池。
-*   **MixPool（混合）**：把多個既有池子按權重合併，避免重複維護同一份名單。權重會層層加權（外層 weight × 內層 weight）。最多遞迴 10 層，避免循環。
-*   **FilterDrop（標籤篩）**：用條件式從**全卡庫**篩出符合的卡，所有命中卡權重均等。條件支援 AND / OR / NOT 巢狀。
+### 三つのモード
+*   **DropPool（直接列挙）**：各カードと重みを手動列挙。最も明示的、厳選池に向く。
+*   **MixPool（混合）**：複数の既存池を重み付けで合成。同一名簿の重複保守を回避。重みは階層的に乗算される（外側 weight × 内側 weight）。最大10階層まで再帰、循環防止。
+*   **FilterDrop（タグ選別）**：条件式で**全カードプール**から該当カードを選別、ヒット全カードの重みは均等。条件は AND / OR / NOT のネスト対応。
 
-### 隱性篩選（runtime 戰鬥中自動套用）
-即使你寫了權重 0.5 的卡，runtime 也可能把它從池子裡剔除：
-*   **未解鎖** (`UnlockData.CheckCardLocked`)：跳過。
-*   **隊伍無人能用** (`CheckRequireSkill`)：卡有指定專精且隊伍中無任何角色擁有對應專精，跳過。
-*   **主選單與非戰鬥環境**：不做技能檢查（避免 UI 預覽空轉）。
-被剔除後剩餘卡片會**重新標準化權重**（總和回到 1）。
+### 暗黙のフィルタ（runtime 戦闘で自動適用）
+重み 0.5 と書いても runtime に池から除外される可能性がある：
+*   **未解放** (`UnlockData.CheckCardLocked`)：スキップ。
+*   **パーティに使用可能者なし** (`CheckRequireSkill`)：カードに専門性指定があり、パーティ内に該当する専門性を持つ者がいない場合スキップ。
+*   **メインメニューや非戦闘環境**：スキル判定はスキップ（UI プレビューの空転回避）。
+除外後の残カードは**重みを再正規化**（合計1）する。
 
-### 預覽
-編輯器右側按 `ShowDetail` 可即時看到當前條件下的最終掉落率清單。
+### プレビュー
+エディタ右側の `ShowDetail` を押すと、現条件下での最終ドロップ率一覧をリアルタイムで確認できる。
 
 ## 注意事項
 
-*   **DropPool 模式下** 反序列化時會**自動移除不存在的卡 ID**（例如 ID 改名 / 被刪）；MixPool 模式類似（移除不存在的子池）。看 console 有 `Remove Invalid DropPool` 的 LogError 表示這個池子曾經引用了壞 ID。
-*   **FilterDrop 條件全空** = 全卡庫均等掉落。除非你真的想要這個效果，否則記得加條件。
-*   **MixPool 的循環**會被 `iLayer > 10` 截斷成空清單；發現某個池子掉空時先檢查混合鏈是否成環。
-*   **RCG_CardFilter cache**：FilterDrop 的查詢走 `RCG_CardFilter.GetCards`，有快取；新增卡牌後若預覽不對，可從 `RCG_CardData.OnLoadModule` 觸發 cache 清除。
+*   **DropPool モード時** デシリアライズで**存在しないカード ID を自動削除**（ID 改名 / 削除など）。MixPool モードも同様（不存在の子池を削除）。コンソールに `Remove Invalid DropPool` LogError があれば、不正 ID を参照していた証拠。
+*   **FilterDrop の条件が空** = 全カード均等ドロップ。意図的でなければ条件設定を忘れずに。
+*   **MixPool の循環**は `iLayer > 10` で空リスト返却で打ち切り。池が空になった時はチェーンに循環がないか確認。
+*   **RCG_CardFilter cache**：FilterDrop のクエリは `RCG_CardFilter.GetCards` 経由のキャッシュ付き。新規カード追加後にプレビューがおかしい場合、`RCG_CardData.OnLoadModule` でキャッシュ削除をトリガー可。
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## 付録：プログラマ参考 (Programmer Reference)
 
-> 此段以下使用程式內部術語，受眾轉為程式人員與 AI agent。前半段內容請優先採信。
+> 以下はプログラム内部用語を使用、対象はプログラマと AI agent。前半部分の内容を優先。
 
-### A.1 類別資訊
+### A.1 クラス情報
 
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_DropSettings/RCG_CardDropPool.cs`
-*   **繼承自**：`RCG_Asset<RCG_CardDropPool>`
-*   **實作介面**：`UCL.Core.UCLI_ShortName`
+*   **ファイル**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_DropSettings/RCG_CardDropPool.cs`
+*   **継承**：`RCG_Asset<RCG_CardDropPool>`
+*   **実装**：`UCL.Core.UCLI_ShortName`
 *   **AssetGroup**：`EditDropSetting`
 
-### A.2 欄位對照
+### A.2 フィールドマッピング
 
-| 程式欄位 | 編輯器顯示 | 型別 | Localize Key | 備註 |
+| コードフィールド | エディタ表示 | 型 | Localize Key | 備考 |
 |---|---|---|---|---|
-| `m_Name` | 顯示名稱 | `RCG_LocalizeData` | `Name` | `[SerializeField] protected` |
-| `m_DropPool` | 掉落池 | `RCG_CommonDropSetting<RCG_CardGenData>` | — | `Conditional(m_DropType == DropPool)` |
-| `m_MixDropPools` | 混合池清單 | `List<MixDropPoolData>` | — | `Conditional(m_DropType == MixPool)` |
-| `m_FilterDropData` | 條件式 | `FilterDropData`（內部巢狀） | — | `Conditional(m_DropType == FilterDrop)` |
-| `m_DropType` | DropType | `EDropType` enum | `DropType` | 預設 `DropPool` |
+| `m_Name` | 表示名 | `RCG_LocalizeData` | `Name` | `[SerializeField] protected` |
+| `m_DropPool` | ドロップ池 | `RCG_CommonDropSetting<RCG_CardGenData>` | — | `Conditional(m_DropType == DropPool)` |
+| `m_MixDropPools` | 混合池リスト | `List<MixDropPoolData>` | — | `Conditional(m_DropType == MixPool)` |
+| `m_FilterDropData` | 条件式 | `FilterDropData`（内部入れ子） | — | `Conditional(m_DropType == FilterDrop)` |
+| `m_DropType` | DropType | `EDropType` enum | `DropType` | デフォルト `DropPool` |
 
-### A.3 重要 Method 摘要
+### A.3 主要メソッド
 
-*   **`GetDropCards(int, bool)`** → 主要外部入口，回傳 `iDropCount` 張隨機卡。
-*   **`GetDropCardsWithFilterFunc(int, Func)`** → 外部自訂篩選版（例如指定稀有度）。
-*   **`GetDropRate(bool, CheckDropConditionData, int)`** → 取最終權重表（總和=1）；`iIsFilterSkill = true` 時自動套用 `CheckRequireSkill`。
-*   **`CheckRequireSkill(RCG_CardGenData)`** (static) → 三層檢查：runtime 中 → 主選單跳過 → 解鎖檢查 → 隊伍專精符合性。
-*   **`DeserializeFromJson`** → 載入時清理失效 ID（DropPool / MixPool 兩種模式各自處理）。
-*   **`Preview`** → 編輯器內預覽 UI，可展開看完整掉落率表。
+*   **`GetDropCards(int, bool)`** → 主な外部入口、`iDropCount` 枚のランダムカードを返す。
+*   **`GetDropCardsWithFilterFunc(int, Func)`** → 外部カスタムフィルタ版。
+*   **`GetDropRate(bool, CheckDropConditionData, int)`** → 最終重みテーブル取得（合計=1）；`iIsFilterSkill = true` の場合 `CheckRequireSkill` を自動適用。
+*   **`CheckRequireSkill(RCG_CardGenData)`** (static) → 三層チェック：runtime 中 → メインメニュースキップ → 解放チェック → パーティ専門性適合。
+*   **`DeserializeFromJson`** → ロード時に不正 ID をクリア（DropPool / MixPool 各モードで処理）。
+*   **`Preview`** → エディタ内プレビュー UI、展開で完全なドロップ率表を表示可。
 
-### A.4 與其他系統的互動
+### A.4 他システムとの連携
 
-*   **`RCG_CommonDropSetting<T>`** — 通用掉落容器；`m_DropPool` 直接用它。
-*   **`RCG_CardGenData`** — 卡片 ID 包裝；掉落結果是 `List<RCG_CardGenData>`。
-*   **`RCG_CardDropPoolGenData`** — Asset Entry 包裝；其他 Asset 引用此池子時用這個型別欄位。
-*   **`RCG_CardFilter`** — `FilterDrop` 模式下查詢卡庫的入口。
-*   **`RCG_DataService.Ins.m_UnlockData`** — runtime 鎖定查詢。
-*   **`RCG_CharacterDataService.Ins.GetAllSkillTags()`** — 隊伍專精查詢。
+*   **`RCG_CommonDropSetting<T>`** — 汎用ドロップコンテナ；`m_DropPool` で直接使用。
+*   **`RCG_CardGenData`** — カード ID ラッパー；ドロップ結果は `List<RCG_CardGenData>`。
+*   **`RCG_CardDropPoolGenData`** — Asset Entry ラッパー；他 Asset がこの池を参照する際の型。
+*   **`RCG_CardFilter`** — `FilterDrop` モードでカードプールを問い合わせる入口。
+*   **`RCG_DataService.Ins.m_UnlockData`** — runtime ロック判定。
+*   **`RCG_CharacterDataService.Ins.GetAllSkillTags()`** — パーティ専門性問い合わせ。
 
-### A.5 已知議題
+### A.5 既知の問題
 
-*   `MixPool` 的 weight 計算對權重總和未做標準化（直接累加 `aWeight * aDrop.m_Weight`）；最終透過 `GetDropRate()` 標準化為總和=1。
-*   遞迴上限 10 層（`iLayer > 10` 直接回空），這個閾值是 magic number。
+*   `MixPool` の重み計算は内部正規化していない（`aWeight * aDrop.m_Weight` の単純累積）；最終的に `GetDropRate()` で合計=1に正規化。
+*   再帰上限10階層（`iLayer > 10` で空返却）はマジックナンバー。

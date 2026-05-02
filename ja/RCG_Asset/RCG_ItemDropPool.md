@@ -1,105 +1,95 @@
 ---
-title: 道具掉落池 (RCG_ItemDropPool) 說明
-description: 定義一組「會掉哪些道具、各自權重」的資料；事件獎勵、寶箱、商店補貨用它抽道具
+title: アイテムドロップ池 (RCG_ItemDropPool)
+description: 「どのアイテムがドロップし、それぞれの重みは」を定義するデータ。イベント報酬、宝箱、ショップ補充に使用
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-ja
 ---
 
-> [!WARNING]
-> 翻訳待機中 — このファイルは日本語翻訳が必要です。
-参考用に zh-Hant 原文を以下に掲載しています。
+# アイテムドロップ池
 
-
-# 道具掉落池
-
-> 程式類別名稱：`RCG_ItemDropPool`
+> クラス名：`RCG_ItemDropPool`
 
 ## 用途
 
-定義「**這個池子會掉哪些消耗道具、各自的權重**」。寶箱、事件獎勵、商人補貨從這裡抽道具（藥水、捲軸、食材⋯）。與 `RCG_CardDropPool` 相同骨架，只是抽的對象換成 `RCG_ItemData`。
+「**この池がドロップする消耗アイテムとそれぞれの重み**」を定義する。宝箱、イベント報酬、商人補充などからアイテム（ポーション、巻物、食材など）を抽選する。`RCG_CardDropPool` と同じ骨格、ドロップ対象が `RCG_ItemData` に変わるのみ。
 
-繼承自 `RCG_Asset<RCG_ItemDropPool>`，實作介面：`UCL.Core.UCLI_ShortName`。
+`RCG_Asset<RCG_ItemDropPool>` を継承。実装インターフェース：`UCL.Core.UCLI_ShortName`。
 
-## 編輯器中的樣貌
+## エディタ上の見た目
 
 ```
 RCG_ItemDropPool: <ID>
     DropType  ▾ DropPool / MixPool / FilterDrop
-    Name(多國語言)
-    ▼ DropPool / MixDropPools / FilterDropData  ← 視 DropType 顯示
+    Name(多言語)
+    ▼ DropPool / MixDropPools / FilterDropData  ← DropTypeに応じて表示
 ```
 
-## 主要欄位
+## 主要フィールド
 
-| 編輯器顯示 | 必填 | 說明 |
+| エディタ表示 | 必須 | 説明 |
 |---|---|---|
-| **DropType** | 是 | `DropPool`（直接列）/ `MixPool`（混合別的池）/ `FilterDrop`（標籤條件篩） |
-| **Name** | 否 | 顯示名稱（多語系）。空白時 fallback 到第一個 drop 名稱再 fallback 到 ID |
-| **DropPool** | DropType=DropPool | 道具清單 + 權重（`RCG_CommonDropSetting<RCG_ItemGenData>`） |
-| **MixDropPools** | DropType=MixPool | 引用其他池子並指定權重 |
-| **FilterDropData** | DropType=FilterDrop | 用內部 `DropFilter`（FilterType: Tag / RarityTag / Operator）動態篩 |
+| **DropType** | はい | `DropPool`（直接列挙）/ `MixPool`（他池混合）/ `FilterDrop`（タグ条件選別） |
+| **Name** | いいえ | 表示名（多言語）。空白時は最初のドロップ名 → ID へフォールバック |
+| **DropPool** | DropType=DropPool 時 | アイテム一覧 + 重み（`RCG_CommonDropSetting<RCG_ItemGenData>`） |
+| **MixDropPools** | DropType=MixPool 時 | 他池を参照し重み指定 |
+| **FilterDropData** | DropType=FilterDrop 時 | 内部 `DropFilter`（FilterType: Tag / RarityTag / Operator）で動的選別 |
 
-## 行為說明
+## 動作説明
 
-### 三種模式
-*   **DropPool**：手動列出每個道具 + 權重。
-*   **MixPool**：把多個既有池子按權重合併。最多遞迴 10 層。
-*   **FilterDrop**：條件式（道具標籤、稀有度），支援 AND / OR / NOT。沒條件 = 全道具庫均等。
+### 三つのモード
+*   **DropPool**：アイテムと重みを手動列挙。
+*   **MixPool**：既存池を重み付けで合成。最大10階層まで再帰。
+*   **FilterDrop**：条件式（アイテムタグ、レアリティ）、AND / OR / NOT 対応。条件なし = 全アイテムプール均等。
 
-### 隱性篩選（runtime）
-*   **未解鎖**（`UnlockData.m_LockedItems.CheckLocked`）：跳過。
-被剔除後剩餘道具**重新標準化權重**。
+### 暗黙のフィルタ（runtime）
+*   **未解放**（`UnlockData.m_LockedItems.CheckLocked`）：スキップ。
+除外後のアイテムは**重みを再正規化**。
 
-### 預覽
-編輯器內按 `ShowDetail` 可即時看當前掉落率列表。
+### プレビュー
+エディタの `ShowDetail` ボタンで現在のドロップ率一覧を確認可。
 
 ## 注意事項
 
-*   **DropPool 模式下** 反序列化時會自動移除不存在的道具 ID（檢查 `iData.Exist()`）。
-*   **FilterDrop 內部 `DropFilter`** 與 `RCG_CardDropPool` 使用的 `CardDropFilter` 不是同一個型別 — 道具不需要 SkillTag、EquipmentType 等卡牌專屬篩選。
-*   **MixPool 循環**會被 `iLayer > 10` 截斷。
-*   **道具未解鎖**會直接從 runtime 池中剔除，編輯器預覽不一定會反映此 runtime 邏輯。
+*   **DropPool モード時** デシリアライズで存在しないアイテム ID を自動削除（`iData.Exist()` チェック）。
+*   **内部 `DropFilter`** は `RCG_CardDropPool` の `CardDropFilter` とは別の型 — アイテムには SkillTag や EquipmentType などカード専用フィルタは不要。
+*   **MixPool 循環**は `iLayer > 10` で打ち切り。
+*   **未解放アイテム**は runtime 池から直接除外される。エディタプレビューはこの runtime ロジックを反映しない場合あり。
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## 付録：プログラマ参考 (Programmer Reference)
 
-> 此段以下使用程式內部術語，受眾轉為程式人員與 AI agent。前半段內容請優先採信。
-
-### A.1 類別資訊
-
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_DropSettings/RCG_ItemDropPool.cs`
-*   **繼承自**：`RCG_Asset<RCG_ItemDropPool>`
-*   **實作介面**：`UCL.Core.UCLI_ShortName`
+### A.1 クラス情報
+*   **ファイル**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_DropSettings/RCG_ItemDropPool.cs`
+*   **継承**：`RCG_Asset<RCG_ItemDropPool>`
+*   **実装**：`UCL.Core.UCLI_ShortName`
 *   **AssetGroup**：`EditDropSetting`
 
-### A.2 欄位對照
+### A.2 フィールドマッピング
 
-| 程式欄位 | 編輯器顯示 | 型別 | Localize Key | 備註 |
-|---|---|---|---|---|
-| `m_Name` | 顯示名稱 | `RCG_LocalizeData` | `Name` | |
-| `m_DropPool` | 掉落池 | `RCG_CommonDropSetting<RCG_ItemGenData>` | — | `Conditional(DropPool)` |
-| `m_MixDropPools` | 混合池 | `List<MixDropPoolData>` | — | `Conditional(MixPool)` |
-| `m_FilterDropData` | 條件式 | `FilterDropData` = `FilterDropDataBase<RCG_ItemGenData, RCG_ItemData, DropFilter>` | — | `Conditional(FilterDrop)` |
-| `m_DropType` | DropType | `EDropType` enum | `DropType` | |
+| コードフィールド | エディタ表示 | 型 | 備考 |
+|---|---|---|---|
+| `m_Name` | 表示名 | `RCG_LocalizeData` | |
+| `m_DropPool` | ドロップ池 | `RCG_CommonDropSetting<RCG_ItemGenData>` | `Conditional(DropPool)` |
+| `m_MixDropPools` | 混合池 | `List<MixDropPoolData>` | `Conditional(MixPool)` |
+| `m_FilterDropData` | 条件式 | `FilterDropDataBase<RCG_ItemGenData, RCG_ItemData, DropFilter>` | `Conditional(FilterDrop)` |
+| `m_DropType` | DropType | `EDropType` enum | |
 
-### A.3 重要 Method 摘要
+### A.3 主要メソッド
 
-*   **`GetDropItems(int)`** → 主要入口；自動套用 unlock 篩選後抽 N 個。
-*   **`GetDropItemsWithFilterFunc(int, Func)`** → 自訂篩選版。
-*   **`GetDropRate(CheckDropConditionData, int)`** → 標準化後權重表。
-*   **`DeserializeFromJson`** → 清理失效 ID。
+*   **`GetDropItems(int)`** → 主入口；unlock フィルタを自動適用後 N 個抽選。
+*   **`GetDropItemsWithFilterFunc(int, Func)`** → カスタムフィルタ版。
+*   **`GetDropRate(...)`** → 正規化後重みテーブル。
+*   **`DeserializeFromJson`** → 不正 ID クリア。
 
-### A.4 與其他系統的互動
+### A.4 他システムとの連携
 
-*   **`RCG_ItemData`** — 池子掉的目標型別。
-*   **`RCG_ItemGenData`** — Asset Entry 包裝。
-*   **`RCG_ItemDropPoolGenData`** — 其他 Asset 引用此池子時的型別。
-*   **`RCG_DataService.Ins.m_UnlockData.m_LockedItems`** — unlock 篩選來源。
-*   **`FilterDropDataBase<TGenData, TData, TFilter>`** — 通用條件篩 base class。
+*   **`RCG_ItemData`** — ドロップ対象型。
+*   **`RCG_ItemGenData`** / **`RCG_ItemDropPoolGenData`** — Asset Entry ラッパー。
+*   **`RCG_DataService.Ins.m_UnlockData.m_LockedItems`** — unlock フィルタソース。
+*   **`FilterDropDataBase<TGenData, TData, TFilter>`** — 汎用条件選別 base クラス。
 
-### A.5 已知議題
+### A.5 既知の問題
 
-*   程式註解 `// 清理不存在的道具 QWQ` — 標示 deserialize 階段的清理流程。
-*   遞迴上限 10 層（`iLayer > 10`）。
+*   コメント `// 清理不存在的道具 QWQ` がデシリアライズ段階のクリーンアップを示す。
+*   再帰上限10階層（`iLayer > 10`）。

@@ -1,70 +1,64 @@
 ---
-title: 狀態效果掉落池 (RCG_StatusDropPool) 說明
-description: 定義「會掉哪些狀態效果」的資料；隨機 Buff/Debuff、神祕祝福等情境用的池
+title: 状態効果ドロップ池 (RCG_StatusDropPool)
+description: 「ドロップする状態効果」を定義するデータ。ランダムバフ/デバフ、神秘の祝福などの場面で使用
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-ja
 ---
 
-> [!WARNING]
-> 翻訳待機中 — このファイルは日本語翻訳が必要です。
-参考用に zh-Hant 原文を以下に掲載しています。
+# 状態効果ドロップ池
 
-
-# 狀態效果掉落池
-
-> 程式類別名稱：`RCG_StatusDropPool`
+> クラス名：`RCG_StatusDropPool`
 
 ## 用途
 
-定義「**這個情境下可能抽到哪些狀態效果**」。例如「神壇給予的隨機祝福」「詛咒寶箱的隨機 debuff」「特殊事件的群體 buff」都從這裡抽 `RCG_CustomStatusData`。
+「**この状況下で抽選される可能性のある状態効果**」を定義する。例：「祭壇からのランダムな祝福」「呪われた宝箱からのランダムなデバフ」「特殊イベントの全体バフ」など、すべてここから `RCG_CustomStatusData` を抽選する。
 
-繼承自 `RCG_Asset<RCG_StatusDropPool>`，實作介面：`UCL.Core.UCLI_ShortName`。
+`RCG_Asset<RCG_StatusDropPool>` を継承。実装インターフェース：`UCL.Core.UCLI_ShortName`。
 
-## 編輯器中的樣貌
+## エディタ上の見た目
 
 ```
 RCG_StatusDropPool: <ID>
-    DropType  ▾ DropPool / MixPool      ← 沒有 FilterDrop
+    DropType  ▾ DropPool / MixPool      ← FilterDropなし
     ▼ DropPool / MixDropPools
 ```
 
-## 主要欄位
+## 主要フィールド
 
-| 編輯器顯示 | 必填 | 說明 |
+| エディタ表示 | 必須 | 説明 |
 |---|---|---|
-| **DropType** | 是 | `DropPool` / `MixPool`（**只有兩種模式**，沒有 FilterDrop） |
-| **DropPool** | DropType=DropPool | 狀態清單 + 權重 |
-| **MixDropPools** | DropType=MixPool | 混合其他池子 |
+| **DropType** | はい | `DropPool` / `MixPool`（**二つのモードのみ**、FilterDropなし） |
+| **DropPool** | DropType=DropPool 時 | 状態一覧 + 重み |
+| **MixDropPools** | DropType=MixPool 時 | 他池参照 |
 
-## 行為說明
+## 動作説明
 
-與其他 Drop Pool 骨架類似，但**只有兩種模式**：直接列、混合別的池。沒有「依條件動態篩」這個選項。
+他のドロップ池の骨格と類似だが、**二つのモードのみ**：直接列挙、他池混合。「条件による動的選別」オプションなし。
 
 ## 注意事項
 
-*   **沒有 FilterDrop 模式**：要做動態篩選需手動列舉。
-*   **enum 名稱叫 `DropType`**（不是 `EDropType`）。
-*   無 unlock 等 runtime 篩選。
+*   **FilterDrop モードなし**：動的選別は手動列挙が必要。
+*   **enum 名は `DropType`**（`EDropType` ではない）。
+*   unlock 等の runtime フィルタなし。
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## 付録：プログラマ参考 (Programmer Reference)
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_DropSettings/RCG_StatusDropPool.cs`
-*   **繼承自**：`RCG_Asset<RCG_StatusDropPool>`
+### A.1 クラス情報
+*   **ファイル**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_DropSettings/RCG_StatusDropPool.cs`
+*   **継承**：`RCG_Asset<RCG_StatusDropPool>`
 *   **AssetGroup**：`EditDropSetting`
 
-### A.2 欄位對照
+### A.2 フィールドマッピング
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| コードフィールド | エディタ表示 | 型 | 備考 |
 |---|---|---|---|
-| `m_DropPool` | 掉落池 | `RCG_CommonDropSetting<RCG_CustomStatusGenData>` | `Conditional(DropPool)` |
+| `m_DropPool` | ドロップ池 | `RCG_CommonDropSetting<RCG_CustomStatusGenData>` | `Conditional(DropPool)` |
 | `m_MixDropPools` | 混合池 | `List<MixDropPoolData>` | `Conditional(MixPool)` |
-| `m_DropType` | DropType | `DropType` enum | 只有 `DropPool` / `MixPool` |
+| `m_DropType` | DropType | `DropType` enum | `DropPool` / `MixPool` のみ |
 
-### A.3 與其他系統的互動
+### A.3 他システムとの連携
 
-*   **`RCG_CustomStatusData`** — 掉落目標。
-*   **`RCG_CustomStatusGenData`** / **`RCG_StatusDropPoolGenData`** — Asset Entry 包裝。
+*   **`RCG_CustomStatusData`** — ドロップ対象。
+*   **`RCG_CustomStatusGenData`** / **`RCG_StatusDropPoolGenData`** — Asset Entry ラッパー。

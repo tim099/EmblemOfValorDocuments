@@ -1,27 +1,21 @@
 ---
-title: 單位技能掉落池 (RCG_UnitSkillDropPool) 說明
-description: 定義「升級時可抽到哪些單位技能」的資料；角色升級、技能解鎖選單背後的池子
+title: ユニットスキルドロップ池 (RCG_UnitSkillDropPool)
+description: 「レベルアップ時に抽選されるユニットスキル」を定義するデータ。キャラレベルアップ、スキル解放メニューの背後にある池
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-ja
 ---
 
-> [!WARNING]
-> 翻訳待機中 — このファイルは日本語翻訳が必要です。
-参考用に zh-Hant 原文を以下に掲載しています。
+# ユニットスキルドロップ池
 
-
-# 單位技能掉落池
-
-> 程式類別名稱：`RCG_UnitSkillDropPool`
+> クラス名：`RCG_UnitSkillDropPool`
 
 ## 用途
 
-定義「**升級或選擇技能時，會抽到哪些 `RCG_UnitSkillData`**」。例如角色升級時會給玩家三選一的技能候選，這些候選就從某個 `RCG_UnitSkillDropPool` 抽。
+「**レベルアップやスキル選択時に抽選される `RCG_UnitSkillData`**」を定義する。例：キャラがレベルアップ時にプレイヤーへ提示する3択のスキル候補は、いずれかの `RCG_UnitSkillDropPool` から抽選される。
 
-繼承自 `RCG_Asset<RCG_UnitSkillDropPool>`，實作介面：`UCL.Core.UCLI_ShortName`。
+`RCG_Asset<RCG_UnitSkillDropPool>` を継承。実装インターフェース：`UCL.Core.UCLI_ShortName`。
 
-## 編輯器中的樣貌
+## エディタ上の見た目
 
 ```
 RCG_UnitSkillDropPool: <ID>
@@ -29,48 +23,47 @@ RCG_UnitSkillDropPool: <ID>
     ▼ DropPool / MixDropPools / FilterDropData
 ```
 
-## 主要欄位
+## 主要フィールド
 
-| 編輯器顯示 | 必填 | 說明 |
+| エディタ表示 | 必須 | 説明 |
 |---|---|---|
-| **DropType** | 是 | `DropPool` / `MixPool` / `FilterDrop` |
-| **DropPool** | DropType=DropPool | 技能清單 + 權重 |
-| **MixDropPools** | DropType=MixPool | 混合其他池子 |
-| **FilterDropData** | DropType=FilterDrop | 用內部 `DropFilter` 篩 |
+| **DropType** | はい | `DropPool` / `MixPool` / `FilterDrop` |
+| **DropPool** | DropType=DropPool 時 | スキル一覧 + 重み |
+| **MixDropPools** | DropType=MixPool 時 | 他池参照 |
+| **FilterDropData** | DropType=FilterDrop 時 | 内部 `DropFilter` で選別 |
 
-## 行為說明
+## 動作説明
 
-與其他 Drop Pool 同骨架。
+他のドロップ池と同じ骨格。
 
 ## 注意事項
 
-*   enum 名稱叫 `UnitSkillDropType`（沒有 `E` 前綴也沒叫 `DropType`），與其他 Drop Pool 命名不一致；歷史遺留差異。
-*   結構與 `RCG_CardDropPool` 類似，差異只在掉落目標換成 `RCG_UnitSkillData`。
+*   enum 名は `UnitSkillDropType`（`E` プレフィックスなし、`DropType` でもない）、他のドロップ池と命名不整合 — 歴史的経緯。
+*   構造は `RCG_CardDropPool` と類似、ドロップ対象が `RCG_UnitSkillData` に変わるのみ。
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## 付録：プログラマ参考 (Programmer Reference)
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_DropSettings/RCG_UnitSkillDropPool.cs`
-*   **繼承自**：`RCG_Asset<RCG_UnitSkillDropPool>`
+### A.1 クラス情報
+*   **ファイル**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_DropSettings/RCG_UnitSkillDropPool.cs`
+*   **継承**：`RCG_Asset<RCG_UnitSkillDropPool>`
 *   **AssetGroup**：`EditDropSetting`
 
-### A.2 欄位對照
+### A.2 フィールドマッピング
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| コードフィールド | エディタ表示 | 型 | 備考 |
 |---|---|---|---|
-| `m_DropPool` | 掉落池 | `RCG_CommonDropSetting<RCG_UnitSkillGenData>` | `Conditional(DropPool)` |
+| `m_DropPool` | ドロップ池 | `RCG_CommonDropSetting<RCG_UnitSkillGenData>` | `Conditional(DropPool)` |
 | `m_MixDropPools` | 混合池 | `List<MixDropPoolData>` | `Conditional(MixPool)` |
-| `m_FilterDropData` | 條件式 | `FilterDropData` | `Conditional(FilterDrop)` |
-| `m_DropType` | DropType | `UnitSkillDropType` enum | 預設 `DropPool` |
+| `m_FilterDropData` | 条件式 | `FilterDropData` | `Conditional(FilterDrop)` |
+| `m_DropType` | DropType | `UnitSkillDropType` enum | デフォルト `DropPool` |
 
-### A.3 重要 Method
+### A.3 主要メソッド
 
-*   **`GetDrops(int)`** / **`GetDropsWithFilterFunc(int, Func)`** — 抽 N 個技能。
-*   **`GetDropRate(...)`** — 標準化權重表。
+*   **`GetDrops(int)`** / **`GetDropsWithFilterFunc(int, Func)`** — N 個スキルを抽選。
 
-### A.4 與其他系統的互動
+### A.4 他システムとの連携
 
-*   **`RCG_UnitSkillData`** — 掉落目標。
-*   **`RCG_UnitSkillGenData`** / **`RCG_UnitSkillDropPoolGenData`** — Asset Entry 包裝。
+*   **`RCG_UnitSkillData`** — ドロップ対象。
+*   **`RCG_UnitSkillGenData`** / **`RCG_UnitSkillDropPoolGenData`** — Asset Entry ラッパー。

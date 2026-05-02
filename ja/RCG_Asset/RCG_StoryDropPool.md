@@ -1,27 +1,21 @@
 ---
-title: 故事掉落池 (RCG_StoryDropPool) 說明
-description: 定義「在某情境下會抽到哪些故事 (RCG_StoryData)」的資料；劇情段落、隨機故事插入點來源
+title: ストーリードロップ池 (RCG_StoryDropPool)
+description: 「この状況で抽選されるストーリー (RCG_StoryData)」を定義するデータ。物語段落、ランダムストーリー挿入点ソース
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-ja
 ---
 
-> [!WARNING]
-> 翻訳待機中 — このファイルは日本語翻訳が必要です。
-参考用に zh-Hant 原文を以下に掲載しています。
+# ストーリードロップ池
 
-
-# 故事掉落池
-
-> 程式類別名稱：`RCG_StoryDropPool`
+> クラス名：`RCG_StoryDropPool`
 
 ## 用途
 
-定義「**這個情境下可能抽到哪些故事段落**」。與 `RCG_QuestDropPool` 不同，這裡掉的是 `RCG_StoryData`（純劇情、對話、過場），不含戰鬥或選擇。例如「進入新章節時播放的開場白」「夜晚休息時的旅途見聞」。
+「**この状況下で抽選される可能性のあるストーリー段落**」を定義する。`RCG_QuestDropPool` と異なり、ここでドロップするのは `RCG_StoryData`（純粋な物語、会話、過場）であり、戦闘や選択は含まない。例：「新章突入時の導入」「夜の休息中の道中見聞」。
 
-繼承自 `RCG_Asset<RCG_StoryDropPool>`，實作介面：`UCL.Core.UCLI_ShortName`。
+`RCG_Asset<RCG_StoryDropPool>` を継承。実装インターフェース：`UCL.Core.UCLI_ShortName`。
 
-## 編輯器中的樣貌
+## エディタ上の見た目
 
 ```
 RCG_StoryDropPool: <ID>
@@ -29,48 +23,48 @@ RCG_StoryDropPool: <ID>
     ▼ DropPool / MixDropPools / FilterDropData
 ```
 
-## 主要欄位
+## 主要フィールド
 
-| 編輯器顯示 | 必填 | 說明 |
+| エディタ表示 | 必須 | 説明 |
 |---|---|---|
-| **DropType** | 是 | `DropPool` / `MixPool` / `FilterDrop` |
-| **DropPool** | DropType=DropPool | 故事清單 + 權重 |
-| **MixDropPools** | DropType=MixPool | 引用其他池子並指定權重 |
-| **FilterDropData** | DropType=FilterDrop | 用內部 `DropFilter` 篩 |
+| **DropType** | はい | `DropPool` / `MixPool` / `FilterDrop` |
+| **DropPool** | DropType=DropPool 時 | ストーリー一覧 + 重み |
+| **MixDropPools** | DropType=MixPool 時 | 他池参照し重み指定 |
+| **FilterDropData** | DropType=FilterDrop 時 | 内部 `DropFilter` で選別 |
 
-## 行為說明
+## 動作説明
 
-與其他 Drop Pool 同骨架；無 unlock / skill 等 runtime 篩選。
+他のドロップ池と同じ骨格；unlock / skill 等の runtime フィルタなし。
 
 ## 注意事項
 
-*   結構與 `RCG_QuestDropPool` 幾乎相同，差異只在掉落目標型別與篩選 tag 種類。
-*   **DropPool 模式下**反序列化會自動清理失效 ID（依 `iData.Exist()`）。
+*   構造は `RCG_QuestDropPool` とほぼ同一、違いはドロップ対象型と選別タグ種類のみ。
+*   **DropPool モード時** デシリアライズで不正 ID を自動クリーン（`iData.Exist()` 依拠）。
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## 付録：プログラマ参考 (Programmer Reference)
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_DropSettings/RCG_StoryDropPool.cs`
-*   **繼承自**：`RCG_Asset<RCG_StoryDropPool>`
+### A.1 クラス情報
+*   **ファイル**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_DropSettings/RCG_StoryDropPool.cs`
+*   **継承**：`RCG_Asset<RCG_StoryDropPool>`
 *   **AssetGroup**：`EditDropSetting`
 
-### A.2 欄位對照
+### A.2 フィールドマッピング
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| コードフィールド | エディタ表示 | 型 | 備考 |
 |---|---|---|---|
-| `m_DropPool` | 掉落池 | `RCG_CommonDropSetting<RCG_StoryGenData>` | `Conditional(DropPool)` |
+| `m_DropPool` | ドロップ池 | `RCG_CommonDropSetting<RCG_StoryGenData>` | `Conditional(DropPool)` |
 | `m_MixDropPools` | 混合池 | `List<MixDropPoolData>` | `Conditional(MixPool)` |
-| `m_FilterDropData` | 條件式 | `FilterDropData` | `Conditional(FilterDrop)` |
-| `m_DropType` | DropType | `EDropType` enum | 預設 `DropPool` |
+| `m_FilterDropData` | 条件式 | `FilterDropData` | `Conditional(FilterDrop)` |
+| `m_DropType` | DropType | `EDropType` enum | デフォルト `DropPool` |
 
-### A.3 重要 Method
+### A.3 主要メソッド
 
-*   **`GetDrops(int)`** / **`GetDropsWithFilterFunc(int, Func)`** — 抽 N 個故事。
-*   **`GetDropRate(...)`** — 標準化權重表。
+*   **`GetDrops(int)`** / **`GetDropsWithFilterFunc(int, Func)`** — N 個ストーリーを抽選。
+*   **`GetDropRate(...)`** — 正規化後重みテーブル。
 
-### A.4 與其他系統的互動
+### A.4 他システムとの連携
 
-*   **`RCG_StoryData`** — 掉落目標。
-*   **`RCG_StoryGenData`** / **`RCG_StoryDropPoolGenData`** — Asset Entry 包裝。
+*   **`RCG_StoryData`** — ドロップ対象。
+*   **`RCG_StoryGenData`** / **`RCG_StoryDropPoolGenData`** — Asset Entry ラッパー。

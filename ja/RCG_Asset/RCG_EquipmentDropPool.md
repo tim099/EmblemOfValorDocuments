@@ -1,105 +1,96 @@
 ---
-title: 裝備掉落池 (RCG_EquipmentDropPool) 說明
-description: 定義一組「會掉哪些裝備、權重」的資料；商店、戰鬥獎勵、寶箱靠它抽裝備
+title: 装備ドロップ池 (RCG_EquipmentDropPool)
+description: 「どの装備がドロップし、それぞれの重みは」を定義するデータ。ショップ、戦闘報酬、宝箱で装備を抽選
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-ja
 ---
 
-> [!WARNING]
-> 翻訳待機中 — このファイルは日本語翻訳が必要です。
-参考用に zh-Hant 原文を以下に掲載しています。
+# 装備ドロップ池
 
-
-# 裝備掉落池
-
-> 程式類別名稱：`RCG_EquipmentDropPool`
+> クラス名：`RCG_EquipmentDropPool`
 
 ## 用途
 
-定義「**這個池子會掉哪些裝備、各自權重**」。戰鬥勝利後、商店、寶箱、Boss 戰利品從這裡抽裝備（武器、護甲、飾品、遺物⋯）。與卡牌/道具池骨架相同，差異是「**遺物類裝備不能重複掉落**」由此處 runtime 篩除。
+「**この池がドロップする装備とそれぞれの重み**」を定義する。戦闘勝利後、ショップ、宝箱、ボス戦利品から装備（武器、防具、アクセサリー、レリック）を抽選する。カード/アイテム池と同じ骨格、違いは「**レリック類装備は重複ドロップ不可**」が runtime でここから除外される点。
 
-繼承自 `RCG_Asset<RCG_EquipmentDropPool>`，實作介面：`UCL.Core.UCLI_ShortName`。
+`RCG_Asset<RCG_EquipmentDropPool>` を継承。実装インターフェース：`UCL.Core.UCLI_ShortName`。
 
-## 編輯器中的樣貌
+## エディタ上の見た目
 
 ```
 RCG_EquipmentDropPool: <ID>
     DropType  ▾ DropPool / MixPool / FilterDrop
-    Name(多國語言)
-    ▼ DropPool / MixDropPools / FilterDropData  ← 視 DropType 顯示
+    Name(多言語)
+    ▼ DropPool / MixDropPools / FilterDropData
 ```
 
-## 主要欄位
+## 主要フィールド
 
-| 編輯器顯示 | 必填 | 說明 |
+| エディタ表示 | 必須 | 説明 |
 |---|---|---|
-| **DropType** | 是 | `DropPool` / `MixPool` / `FilterDrop` |
-| **Name** | 否 | 顯示名稱（多語系） |
-| **DropPool** | DropType=DropPool | 裝備清單 + 權重 |
-| **MixDropPools** | DropType=MixPool | 引用其他池子並指定權重 |
-| **FilterDropData** | DropType=FilterDrop | 用內部 `DropFilter`（SkillTag / RarityTag / Tag / EquipmentType / Operator）篩 |
+| **DropType** | はい | `DropPool` / `MixPool` / `FilterDrop` |
+| **Name** | いいえ | 表示名（多言語） |
+| **DropPool** | DropType=DropPool 時 | 装備一覧 + 重み |
+| **MixDropPools** | DropType=MixPool 時 | 他池参照し重み指定 |
+| **FilterDropData** | DropType=FilterDrop 時 | 内部 `DropFilter`（SkillTag / RarityTag / Tag / EquipmentType / Operator）で選別 |
 
-## 行為說明
+## 動作説明
 
-### 三種模式
-與其他 Drop Pool 同：DropPool（直接列）/ MixPool（合併）/ FilterDrop（條件篩）。FilterDrop 比卡牌池多一層「**裝備類型 (EquipmentType)**」可篩武器/防具/飾品。
+### 三つのモード
+他のドロップ池と同様。FilterDrop はカード池より「**装備タイプ (EquipmentType)**」が一段多く、武器/防具/アクセサリーで選別可。
 
-### 隱性篩選（runtime）
-*   **未解鎖** (`UnlockData.m_LockedEquipments.CheckLocked`)：跳過。
-*   **遺物已擁有** (`m_CanDropRepeatedly = false` 且玩家身上已有同 ID 裝備)：跳過。**這就是遺物只會出現一次的機制**。
-*   **隊伍無人符合專精**（裝備有指定 `m_SkillTags` 但隊伍無人持有）：跳過。
-被剔除後剩餘裝備**重新標準化權重**。
+### 暗黙のフィルタ（runtime）
+*   **未解放** (`UnlockData.m_LockedEquipments.CheckLocked`)：スキップ。
+*   **レリック既保有** (`m_CanDropRepeatedly = false` かつプレイヤーが同 ID 装備所持)：スキップ。**これがレリックが一度のみ出現する仕組み**。
+*   **パーティに専門性適合者なし**（装備に `m_SkillTags` 指定があり、パーティ内に保持者なし）：スキップ。
+除外後の装備は**重みを再正規化**。
 
-### 預覽
-編輯器按 `ShowDetail` 即時看最終掉落率。
+### プレビュー
+エディタの `ShowDetail` で最終ドロップ率を確認可。
 
 ## 注意事項
 
-*   **遺物的不重複掉落**完全靠 runtime 比對 `RCG_DataService.Ins.m_EquipmentsData.m_Equipments`；單機預覽看不到此邏輯，要實機測試才會生效。
-*   **裝備有專精限制**時池子可能在某些隊伍組合下大幅縮水甚至空池。設計時要考慮所有可能隊伍。
-*   **DropPool 模式下** 反序列化時會自動移除不存在的裝備 ID。
-*   **`CheckRequireSkill` 在這個類別永遠回 true**，過濾邏輯都集中在 `GetDropRate` 內的 closure 裡。
+*   **レリックの非重複ドロップ**は runtime で `RCG_DataService.Ins.m_EquipmentsData.m_Equipments` と比較する。プレビューでは確認不可、実機テスト必須。
+*   **専門性制限のある装備**は特定パーティ構成で大幅縮小、最悪空池になる。設計時に全可能パーティを考慮。
+*   **DropPool モード時** デシリアライズで存在しない装備 ID を自動削除。
+*   **`CheckRequireSkill` はこのクラスでは常に true を返す**。フィルタロジックは `GetDropRate` 内 closure に集約。
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## 付録：プログラマ参考 (Programmer Reference)
 
-> 此段以下使用程式內部術語，受眾轉為程式人員與 AI agent。前半段內容請優先採信。
-
-### A.1 類別資訊
-
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_DropSettings/RCG_EquipmentDropPool.cs`
-*   **繼承自**：`RCG_Asset<RCG_EquipmentDropPool>`
-*   **實作介面**：`UCL.Core.UCLI_ShortName`
+### A.1 クラス情報
+*   **ファイル**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_DropSettings/RCG_EquipmentDropPool.cs`
+*   **継承**：`RCG_Asset<RCG_EquipmentDropPool>`
+*   **実装**：`UCL.Core.UCLI_ShortName`
 *   **AssetGroup**：`EditDropSetting`
 
-### A.2 欄位對照
+### A.2 フィールドマッピング
 
-| 程式欄位 | 編輯器顯示 | 型別 | Localize Key | 備註 |
-|---|---|---|---|---|
-| `m_Name` | 顯示名稱 | `RCG_LocalizeData` | `Name` | `[SerializeField] protected` |
-| `m_DropPool` | 掉落池 | `RCG_CommonDropSetting<RCG_EquipmentGenData>` | — | `Conditional(DropPool)` |
-| `m_MixDropPools` | 混合池 | `List<MixDropPoolData>` | — | `Conditional(MixPool)` |
-| `m_FilterDropData` | 條件式 | `FilterDropData` = `FilterDropDataBase<RCG_EquipmentGenData, RCG_EquipmentData, DropFilter>` | — | `Conditional(FilterDrop)` |
-| `m_DropType` | DropType | `EDropType` enum | `DropType` | 預設 `DropPool` |
+| コードフィールド | エディタ表示 | 型 | 備考 |
+|---|---|---|---|
+| `m_Name` | 表示名 | `RCG_LocalizeData` | `[SerializeField] protected` |
+| `m_DropPool` | ドロップ池 | `RCG_CommonDropSetting<RCG_EquipmentGenData>` | `Conditional(DropPool)` |
+| `m_MixDropPools` | 混合池 | `List<MixDropPoolData>` | `Conditional(MixPool)` |
+| `m_FilterDropData` | 条件式 | `FilterDropDataBase<RCG_EquipmentGenData, RCG_EquipmentData, DropFilter>` | `Conditional(FilterDrop)` |
+| `m_DropType` | DropType | `EDropType` enum | デフォルト `DropPool` |
 
-### A.3 重要 Method 摘要
+### A.3 主要メソッド
 
-*   **`GetDropEquipments(int, List<RCG_SkillTagGenData>)`** → 主要入口；不指定 skills 時自動取隊伍當前 skills。
-*   **`GetDropRate(List<RCG_SkillTagGenData>, ...)`** → 套用 unlock + 遺物 + 專精檢查。
-*   **`CheckRequireSkill`** (static) → 永遠回 `true`（保留簽名一致性，實際過濾在 `GetDropRate` 的 closure）。
-*   **`DeserializeFromJson`** → 清理失效 ID。
+*   **`GetDropEquipments(int, List<RCG_SkillTagGenData>)`** → 主入口；skills 指定なしならパーティの現 skills を自動取得。
+*   **`GetDropRate(List<RCG_SkillTagGenData>, ...)`** → unlock + レリック + 専門性チェックを適用。
+*   **`CheckRequireSkill`** (static) → 常に `true` を返す（シグネチャ整合性のため、実フィルタは `GetDropRate` 内 closure）。
+*   **`DeserializeFromJson`** → 不正 ID クリア。
 
-### A.4 與其他系統的互動
+### A.4 他システムとの連携
 
-*   **`RCG_EquipmentData`** — 池子掉的目標型別。
-*   **`RCG_EquipmentGenData`** / **`RCG_EquipmentDropPoolGenData`** — Asset Entry 包裝。
-*   **`RCG_DataService.Ins.m_EquipmentsData.m_Equipments`** — 玩家身上裝備清單，用於遺物去重。
-*   **`RCG_DataService.Ins.m_UnlockData.m_LockedEquipments`** — unlock 篩選。
-*   **`RCG_CharacterDataService.Ins.GetAllSkillTags()`** — 隊伍專精查詢。
+*   **`RCG_EquipmentData`** — ドロップ対象型。
+*   **`RCG_EquipmentGenData`** / **`RCG_EquipmentDropPoolGenData`** — Asset Entry ラッパー。
+*   **`RCG_DataService.Ins.m_EquipmentsData.m_Equipments`** — プレイヤー装備リスト、レリック重複チェック用。
+*   **`RCG_DataService.Ins.m_UnlockData.m_LockedEquipments`** — unlock フィルタ。
+*   **`RCG_CharacterDataService.Ins.GetAllSkillTags()`** — パーティ専門性問い合わせ。
 
-### A.5 已知議題
+### A.5 既知の問題
 
-*   `CheckRequireSkill` 註解 `(應該不需要)` — 邏輯已搬到 `GetDropRate` 內 closure。
-*   遞迴上限 10 層。
+*   `CheckRequireSkill` のコメント「(應該不需要)」「(おそらく不要)」 — ロジックは `GetDropRate` 内 closure へ移動済み。
+*   再帰上限10階層。
