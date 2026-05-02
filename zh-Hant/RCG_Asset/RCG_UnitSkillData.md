@@ -1,0 +1,94 @@
+---
+title: RCG_UnitSkillData 說明
+description: <!-- TODO: 一句話功能摘要 -->
+last_updated: 2026-05-02
+target_audience: [Designer, Modder, AI_Agent]
+---
+
+# RCG_UnitSkillData
+
+> 程式類別名稱：`RCG_UnitSkillData`
+
+## 用途
+
+<!-- TODO: 描述這個 Asset 在遊戲裡負責什麼、什麼情境會用、舉 1-2 個範例。 -->
+
+繼承自 `RCG_Asset<RCG_UnitSkillData>`，實作介面：`RCGI_Status`, `RCGI_Unloackable`
+
+## 編輯器中的樣貌
+
+```
+<!-- TODO: 描繪此 Asset 在編輯器內的版面 -->
+```
+
+## 主要欄位
+
+| 編輯器顯示 | 必填 | 說明 |
+|---|---|---|
+| **Name** | — | <!-- TODO: 說明欄位用途 --> |
+| **Icon** | — | <!-- TODO: 說明欄位用途 --> |
+| **Effects** | — | <!-- TODO: 說明欄位用途 --> |
+| **AcquireSkillEvents** | — | <!-- TODO: 說明欄位用途 --> |
+| **SkillTags** | — | <!-- TODO: 說明欄位用途 --> |
+| **Tags** | — | <!-- TODO: 說明欄位用途 --> |
+| **CanLearnRepeatedly** | — | <!-- TODO: 說明欄位用途 --> |
+| **HideThisSkill** | — | <!-- TODO: 說明欄位用途 --> |
+| **IsLeaderSkill** | — | <!-- TODO: 說明欄位用途 --> |
+| **Unlock** | — | <!-- TODO: 說明欄位用途 --> |
+| **CanDrop** | — | <!-- TODO: 說明欄位用途 --> |
+| **InitCounters** | — | <!-- TODO: 說明欄位用途 --> |
+| **UnitSkillDescriptionType** | — | <!-- TODO: 說明欄位用途 --> |
+| **UnitSkillDescription** | — | <!-- TODO: 說明欄位用途 --> |
+| **DescriptionTemplate** | — | <!-- TODO: 說明欄位用途 --> |
+
+## 行為說明
+
+<!-- TODO: 戰鬥 / 載入 / 解鎖時的觸發時機與順序。 -->
+
+## 注意事項
+
+<!-- TODO: 常見的設計反模式 / 容易踩到的坑。 -->
+
+---
+
+## 附錄：程式人員參考 (Programmer Reference)
+
+> 此段以下使用程式內部術語，受眾轉為程式人員與 AI agent。前半段內容請優先採信。
+
+### A.1 類別資訊
+
+*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_UnitSkillData.cs`
+*   **繼承自**：`RCG_Asset<RCG_UnitSkillData>, RCGI_Status, RCGI_Unloackable`
+*   **實作介面**：`RCGI_Status`, `RCGI_Unloackable`
+
+### A.2 欄位對照（自動產生，需人工複核）
+
+| 程式欄位 | 編輯器顯示 | 型別 | Localize Key | 備註 |
+|---|---|---|---|---|
+| `m_Name` | Name | `RCG_LocalizeData` | `Name` | |
+| `m_Icon` | Icon | `RCG_SpriteData` | `Icon` | |
+| `m_Effects` | Effects | `List<RCG_CommonEffect>` | `Effects` | |
+| `m_AcquireSkillEvents` | AcquireSkillEvents | `List<RCG_MapEvent>` | `AcquireSkillEvents` | |
+| `m_SkillTags` | SkillTags | `List<RCG_SkillTagGenData>` | `SkillTags` | |
+| `m_Tags` | Tags | `List<RCG_ItemTagGenData>` | `Tags` | |
+| `m_CanLearnRepeatedly` | CanLearnRepeatedly | `bool` | `CanLearnRepeatedly` | |
+| `m_HideThisSkill` | HideThisSkill | `bool` | `HideThisSkill` | Header("HideThisSkillDes") |
+| `m_IsLeaderSkill` | IsLeaderSkill | `bool` | `IsLeaderSkill` | |
+| `m_Unlock` | Unlock | `RCG_UnlockEntry` | `Unlock` | |
+| `m_CanDrop` | CanDrop | `bool` | `CanDrop` | |
+| `m_InitCounters` | InitCounters | `List<int>` | `InitCounters` | |
+| `m_UnitSkillDescriptionType` | UnitSkillDescriptionType | `CardDescriptionType` | `UnitSkillDescriptionType` | |
+| `m_UnitSkillDescription` | UnitSkillDescription | `RCG_LocalizeData` | `UnitSkillDescription` | UCL.Core.PA.Conditional(nameof(m_UnitSkillDescriptionType), false, CardDescriptionType.Manually) |
+| `m_DescriptionTemplate` | DescriptionTemplate | `string` | `DescriptionTemplate` | UCL.Core.PA.Conditional(nameof(m_UnitSkillDescriptionType), false, CardDescriptionType.Manually) |
+
+### A.3 重要 Method 摘要
+
+<!-- TODO: 補上影響行為的關鍵 method（OnGUI / Preview / 序列化覆寫等）。 -->
+
+### A.4 與其他系統的互動
+
+<!-- TODO: 列出依賴 / 被依賴的類別與系統。 -->
+
+### A.5 已知議題（選填）
+
+<!-- TODO: TODO/FIXME 摘錄、待重構點。 -->
