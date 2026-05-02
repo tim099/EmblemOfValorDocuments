@@ -1,91 +1,85 @@
 ---
-title: 音效資料 (RCG_SEData) 說明
-description: 單一音效的設定：音檔、音量、AudioType、可同步等待結束
+title: SE データ (RCG_SEData)
+description: 単一 SE の設定：音声ファイル、音量、AudioType、終了まで同期待機可
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-ja
 ---
 
-> [!WARNING]
-> 翻訳待機中 — このファイルは日本語翻訳が必要です。
-参考用に zh-Hant 原文を以下に掲載しています。
+# SE データ
 
-
-# 音效資料
-
-> 程式類別名稱：`RCG_SEData`
+> クラス名：`RCG_SEData`
 
 ## 用途
 
-**單一音效（SE）的設定**。例如「卡牌打出音」「命中音」「按鈕點擊音」「勝利音樂」等。每個 `RCG_SEData` 是一份音檔 + 音量 + 類型，可以同步播放或等待播完。
+**単一 SE（サウンドエフェクト）の設定**。例：「カード使用音」「命中音」「ボタン押下音」「勝利 BGM」等。各 `RCG_SEData` は1つの音声ファイル + 音量 + タイプ、同期再生または再生終了まで待機可。
 
-繼承自 `RCG_Asset<RCG_SEData>`。
+`RCG_Asset<RCG_SEData>` を継承。
 
-## 編輯器中的樣貌
+## エディタ上の見た目
 
 ```
 RCG_SEData: <ID>
-    SE          ← 音檔（RCG_AudioData）
-    Volume      ← 音量（0~1，slider）
-    AudioType   ← 音效類型（SE / UI 等）
-    Note        ← 備註
+    SE          ← 音声ファイル（RCG_AudioData）
+    Volume      ← 音量（0~1、slider）
+    AudioType   ← SE タイプ（SE / UI 等）
+    Note        ← メモ
 ```
 
-## 主要欄位
+## 主要フィールド
 
-| 編輯器顯示 | 必填 | 說明 |
+| エディタ表示 | 必須 | 説明 |
 |---|---|---|
-| **SE** | 是 | 音檔（`RCG_AudioData`），預設走 `ModResource` 載入 |
-| **Volume** | 是 | 音量 0~1（slider），預設 1.0 |
-| **AudioType** | 是 | 音效類型（`UCL.Core.Game.AudioType`），預設 `SE` |
-| **Note** | 否 | 備註（編輯時自用） |
+| **SE** | はい | 音声ファイル（`RCG_AudioData`）、デフォルト `ModResource` 経由読込 |
+| **Volume** | はい | 音量 0~1（slider）、デフォルト 1.0 |
+| **AudioType** | はい | SE タイプ（`UCL.Core.Game.AudioType`）、デフォルト `SE` |
+| **Note** | いいえ | メモ（編集時自用） |
 
-## 行為說明
+## 動作説明
 
 ### `PlaySE()`
-非阻塞播放——`PlaySEAsync().Forget()` 立刻返回，不等待音檔結束。
+非ブロッキング再生 — `PlaySEAsync().Forget()` で即返却、音声ファイル終了を待たない。
 
 ### `PlaySEAsync()` (UniTask)
-async 取 clip → `UCL_GameAudioService.Ins.Play(clip, audioType, volume)`，回傳 `AudioPlayer`。
+async で clip 取得 → `UCL_GameAudioService.Ins.Play(clip, audioType, volume)`、`AudioPlayer` 返却。
 
 ### `PlaySEUntilEnd(token)`
-取 player 後設定 `EndAct` 旗標 → `WaitUntil` 結束；可用在「過場 SE 結束才能繼續」的情境。
+player 取得後に `EndAct` フラグ設定 → `WaitUntil` で終了；「過場 SE 終了後に継続必要」の状況に使用可能。
 
-### 預設 ID
-`RCG_SEGenData.DefaultID = "Null"`：表示「無音效」；`s_Victory = "SoundEffect_Victory"` 是內建的勝利音效。
+### デフォルト ID
+`RCG_SEGenData.DefaultID = "Null"`：「SE なし」を意味；`s_Victory = "SoundEffect_Victory"` は内蔵勝利 SE。
 
 ## 注意事項
 
-*   **`m_SE.IsEmpty` 時不會 LogError**：靜默 return null；要確認音效有播要主動檢查。
-*   **`PlaySE()` 是非阻塞**：要等音效播完用 `PlaySEUntilEnd(token)`。
-*   **AudioType 影響混音器分組**：UI / SE / BGM 各有獨立音量控制，挑錯類型會被誤調。
+*   **`m_SE.IsEmpty` 時に LogError なし**：静黙 return null；SE が再生されたか確認したいなら主動チェック必要。
+*   **`PlaySE()` は非ブロッキング**：SE 再生終了まで待つには `PlaySEUntilEnd(token)` 使用。
+*   **AudioType がミキサーグルーピングに影響**：UI / SE / BGM に独立音量制御あり、誤タイプで誤調整される。
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## 付録：プログラマ参考 (Programmer Reference)
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_SEData.cs`
-*   **繼承自**：`RCG_Asset<RCG_SEData>`
+### A.1 クラス情報
+*   **ファイル**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_SEData.cs`
+*   **継承**：`RCG_Asset<RCG_SEData>`
 *   **AssetGroup**：`EditGameSetting`
 
-### A.2 欄位對照
+### A.2 フィールドマッピング
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| コードフィールド | エディタ表示 | 型 | 備考 |
 |---|---|---|---|
-| `m_SE` | SE | `RCG_AudioData` | 預設 `ModResource + GroupSoundEffect` |
-| `m_Volume` | Volume | `float` | `[UCL_Slider(0, 1)]`，預設 1.0 |
-| `m_AudioType` | AudioType | `UCL.Core.Game.AudioType` | 預設 `SE` |
+| `m_SE` | SE | `RCG_AudioData` | デフォルト `ModResource + GroupSoundEffect` |
+| `m_Volume` | Volume | `float` | `[UCL_Slider(0, 1)]`、デフォルト 1.0 |
+| `m_AudioType` | AudioType | `UCL.Core.Game.AudioType` | デフォルト `SE` |
 | `m_Note` | Note | `string` | |
 
-### A.3 重要 Method
+### A.3 主要メソッド
 
 *   **`PlaySE()`** — fire-and-forget。
-*   **`PlaySEAsync()`** — 取 clip 並播放，回 `AudioPlayer`。
-*   **`PlaySEUntilEnd(token)`** — 等播完再回。
+*   **`PlaySEAsync()`** — clip 取得し再生、`AudioPlayer` 返却。
+*   **`PlaySEUntilEnd(token)`** — 再生終了まで待機。
 
-### A.4 與其他系統的互動
+### A.4 他システムとの連携
 
-*   **`UCL.Core.Game.UCL_GameAudioService`** — 實際播放服務。
-*   **`RCG_AudioData`** — 音檔資源封裝。
-*   **`RCG_SEGenData`** — Asset Entry；預設 ID `Null`，`s_Victory` 內建。
+*   **`UCL.Core.Game.UCL_GameAudioService`** — 実再生サービス。
+*   **`RCG_AudioData`** — 音声ファイルリソースラッパー。
+*   **`RCG_SEGenData`** — Asset Entry；デフォルト ID `Null`、`s_Victory` 内蔵。

@@ -1,102 +1,96 @@
 ---
-title: 通用特效 (RCG_CommonVFXData) 說明
-description: 通用 VFX 設定：特效資源、附帶音效、演出時間、附著位置（DisplayPos）
+title: 汎用エフェクト (RCG_CommonVFXData)
+description: 汎用 VFX 設定：エフェクトリソース、付随 SE、演出時間、付着位置（DisplayPos）
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-ja
 ---
 
-> [!WARNING]
-> 翻訳待機中 — このファイルは日本語翻訳が必要です。
-参考用に zh-Hant 原文を以下に掲載しています。
+# 汎用エフェクト
 
-
-# 通用特效
-
-> 程式類別名稱：`RCG_CommonVFXData`
+> クラス名：`RCG_CommonVFXData`
 
 ## 用途
 
-**戰場上各種通用特效模板**。例如「狀態層數增加」「充能光環」「過載」「選取圈」「死亡」等不屬於攻擊特效的視覺效果。每個 `RCG_CommonVFXData` 含 VFX 資源、附帶音效、演出時間、貼到單位身上的位置。
+**戦場上の各種汎用エフェクトテンプレート**。例：「状態層数増加」「チャージオーラ」「過負荷」「選択リング」「死亡」等、攻撃エフェクトに属さない視覚効果。各 `RCG_CommonVFXData` に VFX リソース、付随 SE、演出時間、ユニットへの貼付位置を含む。
 
-繼承自 `RCG_Asset<RCG_CommonVFXData>`。
+`RCG_Asset<RCG_CommonVFXData>` を継承。
 
-## 編輯器中的樣貌
+## エディタ上の見た目
 
 ```
 RCG_CommonVFXData: <ID>
-    VFX             ← VFX 資源（RCG_VFXResData）
-    SE              ← 附帶音效（可空）
-    VFXTime         ← 特效演出時間（秒）
-    DisplayPos      ← 特效附著位置（EDisplayPos enum）
+    VFX             ← VFX リソース（RCG_VFXResData）
+    SE              ← 付随 SE（空可）
+    VFXTime         ← 演出時間（秒）
+    DisplayPos      ← エフェクト付着位置（EDisplayPos enum）
 ```
 
-## 主要欄位
+## 主要フィールド
 
-| 編輯器顯示 | 必填 | 說明 |
+| エディタ表示 | 必須 | 説明 |
 |---|---|---|
-| **VFX** | 是 | VFX 資源 |
-| **SE** | 否 | 附帶音效（建立 VFX 時自動播放） |
-| **VFXTime** | 是 | 演出時間（秒），預設 0.4f |
-| **DisplayPos** | 是 | 附著位置（`EDisplayPos.DisplayPos` 為預設） |
+| **VFX** | はい | VFX リソース |
+| **SE** | いいえ | 付随 SE（VFX 構築時に自動再生） |
+| **VFXTime** | はい | 演出時間（秒）、デフォルト 0.4f |
+| **DisplayPos** | はい | 付着位置（`EDisplayPos.DisplayPos` がデフォルト） |
 
-## 行為說明
+## 動作説明
 
 ### `CreateVFX(token)`
 1. `m_VFX.IsEmpty` → return null。
-2. 透過 `m_VFX.CreateVFX()` 建立。
-3. 設 `vfx.CommonVFXData = this`（給 runtime 反查設定）。
-4. `m_SE.GetData().PlaySE()` 同步播音。
+2. `m_VFX.CreateVFX()` 経由で構築。
+3. `vfx.CommonVFXData = this` 設定（runtime 逆引き用）。
+4. `m_SE.GetData().PlaySE()` で同期再生。
 
 ### `PlayVFX(data, token)`
-建立 VFX → 設定位置（`SetPosition(iData.User)`）→ 等待 `m_VFXTime` 秒。
+VFX 構築 → 位置設定（`SetPosition(iData.User)`）→ `m_VFXTime` 秒待機。
 
-### 預設 ID 常數
-`RCG_CommonVFXGenData` 提供多個內建 ID：
-*   `VFX_StatusLayer` — 狀態層數增加
-*   `VFX_ChargeEffect` / `VFX_OverloadEffect` — 充能 / 過載
-*   `VFX_SelectionRing` — 選取圈
+### デフォルト ID 定数
+`RCG_CommonVFXGenData` が複数の内蔵 ID 提供：
+*   `VFX_StatusLayer` — 状態層数増加
+*   `VFX_ChargeEffect` / `VFX_OverloadEffect` — チャージ / 過負荷
+*   `VFX_SelectionRing` — 選択リング
 *   `CommonVFX_Dead` — 死亡
 
-也提供 static 實例 `s_ChargeEffect / s_OverloadEffect / s_SelectionRing / s_Dead`，方便不必手寫 ID 字串。
+static インスタンス `s_ChargeEffect / s_OverloadEffect / s_SelectionRing / s_Dead` も提供、ID 文字列を手書きする必要なし。
 
 ## 注意事項
 
-*   **`m_SE` 在 `CreateVFX` 時自動播放**：不要在外層再呼叫一次 `PlaySE()` 否則會雙重播放。
-*   **`m_VFXTime > 0` 才會等待**：設 0 表示「fire and forget」（建立後立即返回）。
-*   **`m_DisplayPos` enum**：決定 VFX 掛在單位的哪個層級（前景 / 背景 / 中央等）；具體 enum 值參考程式定義。
+*   **`m_SE` は `CreateVFX` 時に自動再生**：外側で更に `PlaySE()` を呼ぶと二重再生になる。
+*   **`m_VFXTime > 0` で待機**：0 設定は「fire and forget」（構築後すぐ返却）。
+*   **`m_DisplayPos` enum**：VFX をユニットのどの階層に掛けるか（前景 / 背景 / 中央等）；具体的 enum 値はプログラム定義参照。
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## 付録：プログラマ参考 (Programmer Reference)
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_CommonVFXData.cs`
-*   **繼承自**：`RCG_Asset<RCG_CommonVFXData>`
+### A.1 クラス情報
+*   **ファイル**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_CommonVFXData.cs`
+*   **継承**：`RCG_Asset<RCG_CommonVFXData>`
 *   **AssetGroup**：`EditVFX`
 
-### A.2 欄位對照
+### A.2 フィールドマッピング
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| コードフィールド | エディタ表示 | 型 | 備考 |
 |---|---|---|---|
 | `m_VFX` | VFX | `RCG_VFXResData` | |
 | `m_SE` | SE | `RCG_SEGenData` | |
-| `m_VFXTime` | VFXTime | `float` | 預設 0.4 |
+| `m_VFXTime` | VFXTime | `float` | デフォルト 0.4 |
 | `m_DisplayPos` | DisplayPos | `EDisplayPos` enum | |
 
-### A.3 重要 Method
+### A.3 主要メソッド
 
-*   **`CreateVFX(token)`** — 建立 + 設 CommonVFXData + 播音。
-*   **`PlayVFX(data, token)`** — 建立 + 設定位置 + 等待 VFXTime。
+*   **`CreateVFX(token)`** — 構築 + CommonVFXData 設定 + SE 再生。
+*   **`PlayVFX(data, token)`** — 構築 + 位置設定 + VFXTime 待機。
 
-### A.4 與其他系統的互動
+### A.4 他システムとの連携
 
-*   **`RCG_VFXResData`** — VFX 資源。
-*   **`RCG_SEGenData / RCG_SEData`** — 音效系統。
-*   **`RCG_VFX`** — runtime 特效實例。
-*   **`RCG_CommonVFXGenData`** — Asset Entry；含多個內建 ID 與 static 實例。
-*   **`EDisplayPos` (enum)** — 顯示位置定義。
+*   **`RCG_VFXResData`** — VFX リソース。
+*   **`RCG_SEGenData / RCG_SEData`** — SE システム。
+*   **`RCG_VFX`** — runtime エフェクトインスタンス。
+*   **`RCG_CommonVFXGenData`** — Asset Entry；複数の内蔵 ID と static インスタンス含む。
+*   **`EDisplayPos` (enum)** — 表示位置定義。
 
-### A.5 已知議題
+### A.5 既知の問題
 
-*   舊版 `DeserializeFromJson` 對 LoadType=Resource 的 LogError 已註解。
+*   旧版 `DeserializeFromJson` の LoadType=Resource に対する LogError はコメントアウト済。
