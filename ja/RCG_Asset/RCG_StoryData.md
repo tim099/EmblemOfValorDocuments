@@ -1,115 +1,109 @@
 ---
-title: 故事資料 (RCG_StoryData) 說明
-description: 一段「故事」的完整定義：起始事件、子故事字典、條件、隨機起點、Tag 篩選
+title: ストーリーデータ (RCG_StoryData)
+description: 1つの「ストーリー」の完全な定義：開始イベント、サブストーリー辞書、条件、ランダム開始、Tag フィルタ
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-ja
 ---
 
-> [!WARNING]
-> 翻訳待機中 — このファイルは日本語翻訳が必要です。
-参考用に zh-Hant 原文を以下に掲載しています。
+# ストーリーデータ
 
-
-# 故事資料
-
-> 程式類別名稱：`RCG_StoryData`
+> クラス名：`RCG_StoryData`
 
 ## 用途
 
-**一段「故事」的完整劇本資料**。故事比 `RCG_MapEventData` 更複雜——包含多段子故事 (`SubStory`) 構成的對話樹，玩家做選擇後跳到不同子故事。例如「商人」可以是一個 Story：起始畫面 → 選擇 →「購買」/「離開」/「殺商人」 → 各自的子故事 → 結局。
+**1つの「ストーリー」の完全な脚本データ**。`RCG_MapEventData` よりも複雑 — 複数のサブストーリー (`SubStory`) が構成する会話ツリーを含み、プレイヤーが選択すると異なるサブストーリーに飛ぶ。例：「商人」は1つの Story：開始画面 → 選択 →「購入」/「離脱」/「商人撃破」 → 各々のサブストーリー → 結末。
 
-繼承自 `RCG_Asset<RCG_StoryData>`，實作介面：`UCLI_ShortName`。
+`RCG_Asset<RCG_StoryData>` を継承。実装：`UCLI_ShortName`。
 
-## 編輯器中的樣貌
+## エディタ上の見た目
 
 ```
 RCG_StoryData: <ID>
-    StoryData (m_StoryData)         ← 故事的元資料
+    StoryData (m_StoryData)         ← ストーリーのメタデータ
         Tags / CanTriggerRepeatedly / Conditions
         IsRandomStart / RandomStartStories
-    Story (StartEvent)              ← 起始 SubStory（key = "Start"）
-    SubStory (m_EventDic)           ← 所有子故事 dictionary：{ id → RCG_OptionEventData }
+    Story (StartEvent)              ← 開始 SubStory（key = "Start"）
+    SubStory (m_EventDic)           ← 全サブストーリー dictionary：{ id → RCG_OptionEventData }
 ```
 
-## 主要欄位
+## 主要フィールド
 
-| 編輯器顯示 | 必填 | 說明 |
+| エディタ表示 | 必須 | 説明 |
 |---|---|---|
-| **Tags** | 否 | 故事標籤（用於 StoryDropPool 篩選） |
-| **CanTriggerRepeatedly** | — | 是否可重複觸發 |
-| **Conditions** | 否 | 觸發條件（OR；空 = 無條件） |
-| **IsRandomStart** | — | 是否從多個起點隨機選一個 |
-| **RandomStartStories** | IsRandomStart=true | 隨機起點清單 + 權重 |
-| **Story** | 是 | 主起始事件（key 固定為 `"Start"`） |
-| **SubStory** | 否 | 所有子故事字典（key = state name，value = `RCG_OptionEventData`） |
+| **Tags** | いいえ | ストーリータグ（StoryDropPool フィルタ用） |
+| **CanTriggerRepeatedly** | — | 繰返し発動可能か |
+| **Conditions** | いいえ | 発動条件（OR；空 = 無条件） |
+| **IsRandomStart** | — | 複数の開始点からランダムに1つ選ぶか |
+| **RandomStartStories** | IsRandomStart=true 時 | ランダム開始点一覧 + 重み |
+| **Story** | はい | 主開始イベント（key 固定で `"Start"`） |
+| **SubStory** | いいえ | 全サブストーリー辞書（key = state name、value = `RCG_OptionEventData`） |
 
-每個 `RCG_OptionEventData`（子故事）內含對話 / 選項 / 結果效果，可指定下一個 SubStory 的 ID 形成樹狀結構。
+各 `RCG_OptionEventData`（サブストーリー）の内訳は会話 / オプション / 結果効果、次の SubStory の ID を指定可能でツリー構造形成。
 
-## 行為說明
+## 動作説明
 
-### 起點選擇 (`GetStartSubStory(iSubStory)`)
-*   如果指定了 `iSubStory` → 用它。
-*   否則若 `m_IsRandomStart` 且 `m_RandomStartStories` 非空 → 按權重隨機抽。
-*   否則 fallback 到 `StartStateName = "Start"`。
+### 開始点選択 (`GetStartSubStory(iSubStory)`)
+*   `iSubStory` 指定済 → 使用。
+*   それ以外で `m_IsRandomStart` かつ `m_RandomStartStories` 非空 → 重み付きランダム抽選。
+*   それ以外で fallback `StartStateName = "Start"`。
 
-### 觸發 (`StartStory(token, iSubStory, iIsRoot)`)
-1. 用 `GetStartSubStory(iSubStory)` 決定起點。
-2. 寫入 `RCG_DataService.Ins.StartStory(ID, iSubStory, iIsRoot)`（紀錄已觸發故事）。
-3. 設 `s_CurStoryData = this`（給其他系統查詢當前故事）。
-4. 取對應 SubStory 的 `RCG_OptionEventData.StartEvent(...)` 開始演繹。
-5. 結束後清 `s_CurStoryData = null`。
+### 発動 (`StartStory(token, iSubStory, iIsRoot)`)
+1. `GetStartSubStory(iSubStory)` で開始点決定。
+2. `RCG_DataService.Ins.StartStory(ID, iSubStory, iIsRoot)` 書込（発動済ストーリー記録）。
+3. `s_CurStoryData = this` 設定（他システムが現ストーリーを問い合わせ可）。
+4. 対応 SubStory の `RCG_OptionEventData.StartEvent(...)` を取得し演出開始。
+5. 終了後 `s_CurStoryData = null` クリア。
 
-### 條件判斷 (`StoryData.CheckCondition`)
-*   `m_Conditions` 為空 → 永遠回 true。
-*   非空 → `CheckConditions_OR`（OR 關係）。
+### 条件判定 (`StoryData.CheckCondition`)
+*   `m_Conditions` 空 → 常に true 返却。
+*   非空 → `CheckConditions_OR`（OR 関係）。
 
 ## 注意事項
 
-*   **`StartStateName = "Start"` 是 magic string**：起始事件 key 固定為這個；其他名稱不會被當起始。
-*   **重複觸發旗標**：`CanTriggerRepeatedly` 預設 true（與 MapEventData 相反）；故事多半允許重複。
-*   **`s_CurStoryData` 是全局靜態**：故事執行期間外部能查到當前故事；但**多個故事不能並行**（會互相覆蓋）。
-*   **`m_EventDic` 自動補空項**：`GetSubStory(state)` 找不到 key 時會自動 add 一個空 `RCG_OptionEventData`，所以呼叫端不會 NRE，但會看到空白故事。
+*   **`StartStateName = "Start"` は magic string**：開始イベントの key は固定でこれ；他名前は開始とみなされない。
+*   **繰返し発動フラグ**：`CanTriggerRepeatedly` のデフォルトは true（MapEventData と逆）；ストーリーは多くの場合繰返し可。
+*   **`s_CurStoryData` はグローバル static**：ストーリー実行期間に外部から現ストーリー検索可；ただし**複数ストーリーを並行不可**（互いに上書き）。
+*   **`m_EventDic` 自動空項目補完**：`GetSubStory(state)` で key 不在時に自動的に空 `RCG_OptionEventData` を add、呼出側が NRE しない、ただし空白ストーリーが見える。
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## 付録：プログラマ参考 (Programmer Reference)
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_StoryData.cs`
-*   **繼承自**：`RCG_Asset<RCG_StoryData>`
-*   **實作介面**：`UCLI_ShortName`
+### A.1 クラス情報
+*   **ファイル**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_StoryData.cs`
+*   **継承**：`RCG_Asset<RCG_StoryData>`
+*   **実装**：`UCLI_ShortName`
 *   **AssetGroup**：`EditQuestSetting`
-*   **常數**：`StartStateName = "Start"`
+*   **定数**：`StartStateName = "Start"`
 
-### A.2 欄位對照
+### A.2 フィールドマッピング
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| コードフィールド | エディタ表示 | 型 | 備考 |
 |---|---|---|---|
-| `m_StoryData` | StoryData | `StoryData`（巢狀） | 元資料：tags / conditions / random start |
-| `m_EventDic` | SubStory | `Dictionary<string, RCG_OptionEventData>` | 子故事樹 |
+| `m_StoryData` | StoryData | `StoryData`（入れ子） | メタデータ：tags / conditions / random start |
+| `m_EventDic` | SubStory | `Dictionary<string, RCG_OptionEventData>` | サブストーリーツリー |
 
-`StoryData` 巢狀含 `m_Tags` / `m_CanTriggerRepeatedly` / `m_Conditions` / `m_IsRandomStart` / `m_RandomStartStories`。
+`StoryData` 入れ子に `m_Tags` / `m_CanTriggerRepeatedly` / `m_Conditions` / `m_IsRandomStart` / `m_RandomStartStories`。
 
-### A.3 重要 Method
+### A.3 主要メソッド
 
-*   **`StartStory(token, iSubStory, iIsRoot)`** — 主觸發；async；含起點選擇 + DataService 紀錄 + s_CurStoryData 切換。
-*   **`StartEvent` (property)** — `GetSubStory(StartStateName)`，起始事件捷徑。
-*   **`GetSubStory(state)`** — 取子故事；缺則自動 add 空項。
-*   **`StoryData.CheckCondition(data)`** — 觸發條件 OR 檢查。
-*   **`StoryData.GetStartSubStory(iSubStory)`** — 起點選擇邏輯。
-*   **`DefaultStory` (static)** — 預設故事 fallback。
+*   **`StartStory(token, iSubStory, iIsRoot)`** — 主発動；async；開始点選択 + DataService 記録 + s_CurStoryData 切替を含む。
+*   **`StartEvent` (property)** — `GetSubStory(StartStateName)`、開始イベントショートカット。
+*   **`GetSubStory(state)`** — サブストーリー取得；不在時に空項目を自動 add。
+*   **`StoryData.CheckCondition(data)`** — 発動条件 OR チェック。
+*   **`StoryData.GetStartSubStory(iSubStory)`** — 開始点選択ロジック。
+*   **`DefaultStory` (static)** — デフォルトストーリー fallback。
 
-### A.4 與其他系統的互動
+### A.4 他システムとの連携
 
-*   **`RCG_OptionEventData`** — 每個 SubStory 的內容（對話、選項、結果）。
-*   **`RCG_StoryDropPool`** — 隨機池來源。
-*   **`RCG_DataService.Ins.StartStory`** — runtime 紀錄已觸發故事。
-*   **`RCG_StoryGenData`** — Asset Entry 包裝。
-*   **`RCG_GameManager.Random`** — 隨機起點抽取。
+*   **`RCG_OptionEventData`** — 各 SubStory の内容（会話、オプション、結果）。
+*   **`RCG_StoryDropPool`** — ランダム池ソース。
+*   **`RCG_DataService.Ins.StartStory`** — runtime 発動済ストーリー記録。
+*   **`RCG_StoryGenData`** — Asset Entry ラッパー。
+*   **`RCG_GameManager.Random`** — ランダム開始点抽選。
 
-### A.5 已知議題
+### A.5 既知の問題
 
-*   `s_CurStoryData` 不支援故事並行；極端情況需考慮中斷處理。
-*   `// public class StoryState` 與 `m_OptionEventData` 註解掉，標示舊版單一事件結構轉成 dictionary 的歷史。
-*   `DeserializeFromJson` 內舊版遷移邏輯（`m_EventDic[StartStateName] = m_OptionEventData`）已註解。
+*   `s_CurStoryData` がストーリー並行をサポートしない；極端な状況で中断処理を考慮する必要。
+*   `// public class StoryState` と `m_OptionEventData` がコメントアウト、旧版単一イベント構造から dictionary への移行履歴を示す。
+*   `DeserializeFromJson` 内の旧版移行ロジック（`m_EventDic[StartStateName] = m_OptionEventData`）はコメントアウト済。

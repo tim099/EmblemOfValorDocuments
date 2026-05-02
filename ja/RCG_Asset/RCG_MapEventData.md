@@ -1,88 +1,82 @@
 ---
-title: 地圖事件資料 (RCG_MapEventData) 說明
-description: 小地圖節點上可觸發的事件包：對話、過場、給予物品、戰鬥前奏等
+title: マップイベントデータ (RCG_MapEventData)
+description: 小マップノードで発動可能なイベントパッケージ：会話、過場、アイテム付与、戦闘前奏等
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-ja
 ---
 
-> [!WARNING]
-> 翻訳待機中 — このファイルは日本語翻訳が必要です。
-参考用に zh-Hant 原文を以下に掲載しています。
+# マップイベントデータ
 
-
-# 地圖事件資料
-
-> 程式類別名稱：`RCG_MapEventData`
+> クラス名：`RCG_MapEventData`
 
 ## 用途
 
-**小地圖節點上可觸發的事件包**。例如踩到「神祕節點」會跳出對話 → 選擇 → 給予獎勵；「篝火」直接給回血選單；「商人」開店。每個 `RCG_MapEventData` 是一組 `RCG_MapEvent` 的容器，觸發時依序加入事件管理器。
+**小マップノードで発動可能なイベントパッケージ**。例：「神秘ノード」を踏むと会話 → 選択 → 報酬付与；「キャンプファイア」は直接回復メニュー；「商人」はショップを開く。各 `RCG_MapEventData` は1セットの `RCG_MapEvent` のコンテナ；発動時に順次イベント管理者に追加。
 
-繼承自 `RCG_Asset<RCG_MapEventData>`。
+`RCG_Asset<RCG_MapEventData>` を継承。
 
-## 編輯器中的樣貌
+## エディタ上の見た目
 
 ```
 RCG_MapEventData: <ID>
-    Name                     ← 事件顯示名（多語系）
-    Icon                     ← 自訂圖示（空白時用第一個 Event 的預設圖示）
-    CanTriggerRepeatedly     ← 是否可重複觸發
-    Events                   ← 實際事件清單（RCG_MapEvent）
+    Name                     ← イベント表示名（多言語）
+    Icon                     ← カスタムアイコン（空白で最初の Event のデフォルトアイコン使用）
+    CanTriggerRepeatedly     ← 繰返し発動可能か
+    Events                   ← 実イベント一覧（RCG_MapEvent）
 ```
 
-## 主要欄位
+## 主要フィールド
 
-| 編輯器顯示 | 必填 | 說明 |
+| エディタ表示 | 必須 | 説明 |
 |---|---|---|
-| **Name** | 否 | 顯示名（多語系）；空白時 fallback 到第一個 Event 的 ShortName |
-| **Icon** | 否 | 圖示；空白時用第一個 Event 的 `DefaultIcon` |
-| **CanTriggerRepeatedly** | — | 是否可重複觸發；false → 觸發後節點上的事件會清除 |
-| **Events** | 是 | 實際的事件清單（`List<RCG_MapEvent>`） |
+| **Name** | いいえ | 表示名（多言語）；空白時は最初の Event の ShortName にフォールバック |
+| **Icon** | いいえ | アイコン；空白時は最初の Event の `DefaultIcon` 使用 |
+| **CanTriggerRepeatedly** | — | 繰返し発動可能か；false → 発動後にノード上のイベントクリア |
+| **Events** | はい | 実イベント一覧（`List<RCG_MapEvent>`） |
 
-## 行為說明
+## 動作説明
 
-### 觸發 (`StartEvent(node)`)
-逐一 clone 每個 `RCG_MapEvent` 並加入 `RCG_MapEventManager`。Clone 而非直接用是為了讓同一個 Asset 多次觸發時，每次都是獨立 instance。
+### 発動 (`StartEvent(node)`)
+各 `RCG_MapEvent` を順次 clone し `RCG_MapEventManager` に追加。直接使用ではなく Clone なのは、同 Asset を複数回発動する時に各回が独立 instance であることを保証するため。
 
-### 圖示與名稱的 fallback
+### アイコンと名前の fallback
 *   `Icon`：`m_Icon` 空 → `m_Events[0].DefaultIcon` → null。
-*   `LocalizedName`：`m_Name` 有 → 用；否則 → `m_Events[0].GetShortName()`。
-*   `EventHoverTips`：`LocalizedName`（滑鼠在節點上時的提示）。
+*   `LocalizedName`：`m_Name` あり → 使用；なければ → `m_Events[0].GetShortName()`。
+*   `EventHoverTips`：`LocalizedName`（マウスがノード上にある時のチップ）。
 
 ## 注意事項
 
-*   **`CanTriggerRepeatedly = false`** 觸發後節點上的事件會清除：適合「一次性事件」如劇情關鍵點、獨特獎勵。
-*   **Events 為空時**：圖示與名稱會 fallback 失敗（回 null / 空字串），UI 上看起來像沒事件。
-*   **預設 ID `Start`**：通常作為起點節點專用事件。
+*   **`CanTriggerRepeatedly = false`** で発動後にノード上のイベントクリア：「一度きりのイベント」如劇情キーポイント、固有報酬向き。
+*   **Events 空の時**：アイコンと名前の fallback 失敗（null / 空文字列返却）、UI 上はイベントなしのように見える。
+*   **デフォルト ID `Start`**：通常はスタートノード専用イベントとして使用。
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## 付録：プログラマ参考 (Programmer Reference)
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_MapEventData.cs`
-*   **繼承自**：`RCG_Asset<RCG_MapEventData>`
+### A.1 クラス情報
+*   **ファイル**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_MapEventData.cs`
+*   **継承**：`RCG_Asset<RCG_MapEventData>`
 *   **AssetGroup**：`EditQuestSetting`
 
-### A.2 欄位對照
+### A.2 フィールドマッピング
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| コードフィールド | エディタ表示 | 型 | 備考 |
 |---|---|---|---|
 | `m_Name` | Name | `RCG_LocalizeData` | |
-| `m_Icon` | Icon | `RCG_SpriteData` | Addressable 預設 |
-| `m_CanTriggerRepeatedly` | CanTriggerRepeatedly | `bool` | 預設 `false` |
+| `m_Icon` | Icon | `RCG_SpriteData` | Addressable デフォルト |
+| `m_CanTriggerRepeatedly` | CanTriggerRepeatedly | `bool` | デフォルト `false` |
 | `m_Events` | Events | `List<RCG_MapEvent>` | |
 
-### A.3 重要 Method
+### A.3 主要メソッド
 
-*   **`StartEvent(RCG_MapNode)`** — 主觸發入口；clone 每個 event 加入 manager。
-*   **`Icon` (property)** — 含 fallback 邏輯。
-*   **`LocalizedName / EventHoverTips`** — 顯示用屬性。
+*   **`StartEvent(RCG_MapNode)`** — 主発動入口；各 event を clone し manager に追加。
+*   **`Icon` (property)** — fallback ロジック含む。
+*   **`LocalizedName / EventHoverTips`** — 表示用プロパティ。
 
-### A.4 與其他系統的互動
+### A.4 他システムとの連携
 
-*   **`RCG_MapEvent`** — 實際事件單位（對話 / 選擇 / 獎勵 / 戰鬥前奏）。
-*   **`RCG_MapEventManager`** — runtime 事件佇列管理。
-*   **`RCG_MapNode`** — 觸發來源節點。
-*   **`RCG_MapEventGenData`** — Asset Entry；預設 ID = `"Start"`。
+*   **`RCG_MapEvent`** — 実イベント単位（会話 / 選択 / 報酬 / 戦闘前奏）。
+*   **`RCG_MapEventManager`** — runtime イベントキュー管理。
+*   **`RCG_MapNode`** — 発動ソースノード。
+*   **`RCG_MapEventGenData`** — Asset Entry；デフォルト ID = `"Start"`。
