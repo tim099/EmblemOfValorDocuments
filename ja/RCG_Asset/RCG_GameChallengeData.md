@@ -1,87 +1,81 @@
 ---
-title: 遊戲挑戰 (RCG_GameChallengeData) 說明
-description: 全局遊戲挑戰目標：完成此通關目標才視為「達成挑戰」（與 Achievement 不同）
+title: ゲームチャレンジ (RCG_GameChallengeData)
+description: グローバルゲームチャレンジ目標：このクリア目標を達成して初めて「チャレンジ達成」とみなされる（Achievement と異なる）
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-ja
 ---
 
-> [!WARNING]
-> 翻訳待機中 — このファイルは日本語翻訳が必要です。
-参考用に zh-Hant 原文を以下に掲載しています。
+# ゲームチャレンジ
 
-
-# 遊戲挑戰
-
-> 程式類別名稱：`RCG_GameChallengeData`
+> クラス名：`RCG_GameChallengeData`
 
 ## 用途
 
-**全局的「通關挑戰目標」設定**。例如「擊敗最終 Boss」「不使用任何道具通關」「3 回合內結束戰鬥」。挑戰是「**通關目標**」級別，與單純獲得的 `RCG_AchievementAsset` 不同——挑戰決定「這場遊戲是否已通關」。
+**グローバルな「クリア目標」設定**。例：「最終ボス撃破」「アイテム不使用クリア」「3ターン以内に戦闘終了」。チャレンジは「**クリア目標**」レベル、純粋に取得する `RCG_AchievementAsset` と異なる — チャレンジは「このゲームがクリア済か」を決定する。
 
-繼承自 `RCG_Asset<RCG_GameChallengeData>`，實作介面：`RCGI_Unloackable`。
+`RCG_Asset<RCG_GameChallengeData>` を継承。実装：`RCGI_Unloackable`。
 
-## 編輯器中的樣貌
+## エディタ上の見た目
 
 ```
 RCG_GameChallengeData: <ID>
-    Name             ← 挑戰名（多語系；預設 "GameChallenge"）
-    Unlock           ← 解鎖條件
-    ChallengeGoals   ← 完成條件（多個 RCG_QuestGoalData 共同構成）
+    Name             ← チャレンジ名（多言語、デフォルト "GameChallenge"）
+    Unlock           ← 解放条件
+    ChallengeGoals   ← 達成条件（複数 RCG_QuestGoalData で構成）
 ```
 
-## 主要欄位
+## 主要フィールド
 
-| 編輯器顯示 | 必填 | 說明 |
+| エディタ表示 | 必須 | 説明 |
 |---|---|---|
-| **Name** | 是 | 挑戰顯示名（多語系） |
-| **Unlock** | 否 | 解鎖條件；空 = 預設已解鎖 |
-| **ChallengeGoals** | 是 | 完成條件清單（`RCG_QuestGoalData`），達成全部視為通關 |
+| **Name** | はい | チャレンジ表示名（多言語） |
+| **Unlock** | いいえ | 解放条件；空 = デフォルト解放 |
+| **ChallengeGoals** | はい | 達成条件一覧（`RCG_QuestGoalData`）、全達成でクリアとみなす |
 
-## 行為說明
+## 動作説明
 
-### 解鎖判斷 (`IsUnlocked`)
-*   `m_Unlock.IsEmpty || m_Unlock.Unlocked`：沒設條件或條件已通過 → 已解鎖。
+### 解放判定 (`IsUnlocked`)
+*   `m_Unlock.IsEmpty || m_Unlock.Unlocked`：条件設定なしまたは条件達成 → 解放済。
 
-### 完成判斷
-本檔本身不負責「是否完成」的判斷；交由外部的 quest manager 或 challenge manager 檢查 `m_ChallengeGoals` 的進度。
+### 達成判定
+本ファイル自体は「達成済か」の判定を担当しない；外部の quest manager や challenge manager が `m_ChallengeGoals` の進度をチェックする。
 
 ## 注意事項
 
-*   **預設 ID `Challenge_FinalBoss`** 是「擊敗最終 Boss」的標準挑戰，多數路線通關都用這個。
-*   **與 `RCG_AchievementAsset` 的差異**：成就是「附加榮譽」（解鎖條件達成 → 獲得獎勵 / 顯示）；挑戰是「**通關判定**」（達成 → 該局結束 / 觸發結算）。
-*   **`m_Name` 預設值是 `"GameChallenge"`**：必須改名才會在 UI 顯示有意義的標題。
+*   **デフォルト ID `Challenge_FinalBoss`** は「最終ボス撃破」の標準チャレンジ、多くのルートクリアでこれを使用。
+*   **`RCG_AchievementAsset` との違い**：成就は「附加栄誉」（解放条件達成 → 報酬 / 表示）；チャレンジは「**クリア判定**」（達成 → 当該局終了 / 集計発動）。
+*   **`m_Name` のデフォルト値は `"GameChallenge"`**：UI で意味のあるタイトルを表示するには改名必須。
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## 付録：プログラマ参考 (Programmer Reference)
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_GameChallengeData.cs`
-*   **繼承自**：`RCG_Asset<RCG_GameChallengeData>`
-*   **實作介面**：`RCGI_Unloackable`
+### A.1 クラス情報
+*   **ファイル**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_GameChallengeData.cs`
+*   **継承**：`RCG_Asset<RCG_GameChallengeData>`
+*   **実装**：`RCGI_Unloackable`
 *   **AssetGroup**：`EditGameSetting`
 
-### A.2 欄位對照
+### A.2 フィールドマッピング
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| コードフィールド | エディタ表示 | 型 | 備考 |
 |---|---|---|---|
-| `m_Name` | Name | `RCG_LocalizeData` | 預設 `"GameChallenge"` |
+| `m_Name` | Name | `RCG_LocalizeData` | デフォルト `"GameChallenge"` |
 | `m_Unlock` | Unlock | `RCG_UnlockEntry` | |
 | `m_ChallengeGoals` | ChallengeGoals | `List<RCG_QuestGoalData>` | |
 
-### A.3 重要 Method
+### A.3 主要メソッド
 
 *   **`IsUnlocked` (property)** — `m_Unlock.IsEmpty || m_Unlock.Unlocked`。
 *   **`UnlockEntry`** — `m_Unlock`。
 *   **`LocalizedName`** — `m_Name.Name`。
 
-### A.4 與其他系統的互動
+### A.4 他システムとの連携
 
-*   **`RCG_QuestGoalData`** — 通關條件元素。
-*   **`RCG_GameChallengeGenData`** — Asset Entry 包裝；預設 `Challenge_FinalBoss`。
-*   **`RCG_UnlockEntry`** — 解鎖系統。
+*   **`RCG_QuestGoalData`** — クリア条件要素。
+*   **`RCG_GameChallengeGenData`** — Asset Entry；デフォルト `Challenge_FinalBoss`。
+*   **`RCG_UnlockEntry`** — 解放システム。
 
-### A.5 已知議題
+### A.5 既知の問題
 
-*   無 `Preview` 實作；用基底類預設繪製。
+*   `Preview` 実装なし；基底クラスデフォルト描画使用。

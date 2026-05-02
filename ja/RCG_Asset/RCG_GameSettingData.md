@@ -1,90 +1,84 @@
 ---
-title: 遊戲設定 (RCG_GameSettingData) 說明
-description: 不同版本（Demo / 正式版）的遊戲級設定：主選單、最大解鎖等級、教學重置、商店刷新成本
+title: ゲーム設定 (RCG_GameSettingData)
+description: ビルドごとの（Demo / 正式版）ゲームレベル設定：メインメニュー、最大解放レベル、チュートリアルリセット、ショップ更新コスト
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-ja
 ---
 
-> [!WARNING]
-> 翻訳待機中 — このファイルは日本語翻訳が必要です。
-参考用に zh-Hant 原文を以下に掲載しています。
+# ゲーム設定
 
-
-# 遊戲設定
-
-> 程式類別名稱：`RCG_GameSettingData`
+> クラス名：`RCG_GameSettingData`
 
 ## 用途
 
-**版本級的遊戲設定**——讓不同 build（Demo / 正式版 / 展覽版）能套不同設定。系統會用 `Application.version` 當作 ID 從中找對應 Asset；如果沒有同 ID 的，fallback 到 `Default`。
+**ビルドレベルのゲーム設定** — 異なる build（Demo / 正式版 / 展示版）に異なる設定を適用可能にする。システムは `Application.version` を ID として該当 Asset を取得；同 ID がない場合は `Default` にフォールバック。
 
-繼承自 `RCG_Asset<RCG_GameSettingData>`。
+`RCG_Asset<RCG_GameSettingData>` を継承。
 
-## 編輯器中的樣貌
+## エディタ上の見た目
 
 ```
 RCG_GameSettingData: <ID = Application.version>
     GameVersion          ← Default / Demo
-    MainMenu             ← 主選單設定引用
-    MaxUnlockLevel       ← 最大解鎖等級上限
-    ResetTutorialOnNewGame ← 是否每次開新遊戲重置教學
-    RefreshBlessingShopPrice ← 祝福商店刷新成本基數
+    MainMenu             ← メインメニュー設定の参照
+    MaxUnlockLevel       ← 最大解放レベル上限
+    ResetTutorialOnNewGame ← 新ゲームごとにチュートリアルリセット
+    RefreshBlessingShopPrice ← 祝福ショップ更新コスト基数
 ```
 
-## 主要欄位
+## 主要フィールド
 
-| 編輯器顯示 | 必填 | 說明 |
+| エディタ表示 | 必須 | 説明 |
 |---|---|---|
-| **GameVersion** | 是 | `Default`（普通版）或 `Demo`（鎖定部分功能 / 解鎖等級） |
-| **MainMenu** | 是 | 主選單設定的引用（`RCG_MainMenuEntry`） |
-| **MaxUnlockLevel** | 是 | 最大解鎖等級；超過後等級不再成長（預設 1000） |
-| **ResetTutorialOnNewGame** | — | 每次開新遊戲時重置教學，**展覽機**用 |
-| **RefreshBlessingShopPrice** | 是 | 刷新祝福商店成本基數；總成本 = (剩餘可購買物品數 - 4) × 此值（預設 10） |
+| **GameVersion** | はい | `Default`（普通版）または `Demo`（一部機能 / 解放レベルロック） |
+| **MainMenu** | はい | メインメニュー設定の参照（`RCG_MainMenuEntry`） |
+| **MaxUnlockLevel** | はい | 最大解放レベル；超過後はレベル成長停止（デフォルト 1000） |
+| **ResetTutorialOnNewGame** | — | 新ゲームごとにチュートリアルをリセット、**展示機**用 |
+| **RefreshBlessingShopPrice** | はい | 祝福ショップ更新コスト基数；総コスト = (残り購入可能数 - 4) × この値（デフォルト 10） |
 
-## 行為說明
+## 動作説明
 
 ### Asset 取得 (`Ins`)
-`RCG_GameSettingData.Ins` 用 `Application.version` 當 ID 從 Asset 庫取對應實例。**因此 Asset 命名要符合 build 版本號**（如 `0.1.0` / `0.2.0-demo`）；若沒精確匹配，`Util.GetData(version, useDefaultIfMissing = true)` 會 fallback 到 `Default`。
+`RCG_GameSettingData.Ins` が `Application.version` を ID として Asset 庫から対応インスタンスを取得。**そのため Asset 命名は build バージョン番号に符合させる必要**（如 `0.1.0` / `0.2.0-demo`）；正確マッチがなければ、`Util.GetData(version, useDefaultIfMissing = true)` が `Default` にフォールバック。
 
-### Demo 版限制
-`GameVersion = Demo` 時遊戲邏輯會自動鎖定一些功能（例如：強制 `MaxUnlockLevel` 為較低值、禁用某些章節）。具體鎖定邏輯散落在各 manager；本檔只是個 flag。
+### Demo 版制限
+`GameVersion = Demo` 時にゲームロジックが一部機能を自動ロック（例：`MaxUnlockLevel` 強制低値、特定章無効化）。具体的ロックロジックは各 manager に散在；本ファイルは flag のみ。
 
 ## 注意事項
 
-*   **ID 必須對應 Application.version**：建版號改了，舊的 Asset 不會自動套用（需新增同名 Asset 或讓 Default 涵蓋）。
-*   **`m_GameSetting` 已被註解**：原本 `RCG_GameInitData.m_GameSetting` 引用此 Asset，現在改用 `Application.version` 自動查找。
-*   **`RefreshBlessingShopPrice` 公式**：含負數 case（剩餘 ≤ 4 時成本為 0 或負數），實際價格邏輯需 clamp 到 ≥ 0。
+*   **ID は Application.version に対応必須**：build バージョン変更時に旧 Asset は自動適用されない（同名 Asset 新規作成または Default でカバーする必要）。
+*   **`m_GameSetting` はコメントアウト済**：元は `RCG_GameInitData.m_GameSetting` がこの Asset を参照、現在は `Application.version` 自動検索に変更。
+*   **`RefreshBlessingShopPrice` 公式**：負数 case 含む（残り ≤ 4 時にコストが 0 または負）、実価格ロジックでは ≥ 0 にクランプ必要。
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## 付録：プログラマ参考 (Programmer Reference)
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_GameSettingData.cs`
-*   **繼承自**：`RCG_Asset<RCG_GameSettingData>`
+### A.1 クラス情報
+*   **ファイル**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_GameSettingData.cs`
+*   **継承**：`RCG_Asset<RCG_GameSettingData>`
 *   **AssetGroup**：`EditGameSetting`
 
-### A.2 欄位對照
+### A.2 フィールドマッピング
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| コードフィールド | エディタ表示 | 型 | 備考 |
 |---|---|---|---|
 | `m_GameVersion` | GameVersion | `GameVersion` enum | `Default` / `Demo` |
 | `m_MainMenu` | MainMenu | `RCG_MainMenuEntry` | |
-| `m_MaxUnlockLevel` | MaxUnlockLevel | `int` | 預設 1000 |
-| `m_ResetTutorialOnNewGame` | ResetTutorialOnNewGame | `bool` | 預設 false |
-| `m_RefreshBlessingShopPrice` | RefreshBlessingShopPrice | `int` | 預設 10 |
+| `m_MaxUnlockLevel` | MaxUnlockLevel | `int` | デフォルト 1000 |
+| `m_ResetTutorialOnNewGame` | ResetTutorialOnNewGame | `bool` | デフォルト false |
+| `m_RefreshBlessingShopPrice` | RefreshBlessingShopPrice | `int` | デフォルト 10 |
 
-### A.3 重要 Method
+### A.3 主要メソッド
 
 *   **`Ins` (static)** — `Util.GetData(Application.version, useDefaultIfMissing = true)`。
 
-### A.4 與其他系統的互動
+### A.4 他システムとの連携
 
-*   **`RCG_MainMenuData`** — `m_MainMenu` 引用的主選單設定。
-*   **`RCG_GameInitData`** — 遊戲初始資料；舊版 `m_GameSetting` 欄位已註解，現由 `Application.version` 自動關聯。
-*   **`RCG_GameSettingGenData`** — Asset Entry；預設 ID = `"Default"`。
+*   **`RCG_MainMenuData`** — `m_MainMenu` 参照のメインメニュー設定。
+*   **`RCG_GameInitData`** — ゲーム初期データ；旧 `m_GameSetting` フィールドはコメントアウト、現在は `Application.version` で自動関連。
+*   **`RCG_GameSettingGenData`** — Asset Entry；デフォルト ID = `"Default"`。
 
-### A.5 已知議題
+### A.5 既知の問題
 
-*   `Ins` 中的 `Debug.Log("Application.version: ...")` 已標記 "log!!"——應該是 dev 用，release 前要移除。
+*   `Ins` の `Debug.Log("Application.version: ...")` は "log!!" マーク済み — dev 用、release 前に削除必須。

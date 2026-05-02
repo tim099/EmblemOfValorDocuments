@@ -1,82 +1,76 @@
 ---
-title: 主選單資料 (RCG_MainMenuData) 說明
-description: 主選單畫面的設定容器（背景、按鈕、版面）；目前內容主要由 RCG_MainMenuSetting 處理
+title: メインメニューデータ (RCG_MainMenuData)
+description: メインメニュー画面の設定コンテナ（背景、ボタン、レイアウト）；現状の内容は主に RCG_MainMenuSetting で処理
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-ja
 ---
 
-> [!WARNING]
-> 翻訳待機中 — このファイルは日本語翻訳が必要です。
-参考用に zh-Hant 原文を以下に掲載しています。
+# メインメニューデータ
 
-
-# 主選單資料
-
-> 程式類別名稱：`RCG_MainMenuData`
+> クラス名：`RCG_MainMenuData`
 
 ## 用途
 
-**主選單畫面的設定**——包裝一個 `RCG_MainMenuSetting`，讓不同 build / 版本能套不同主選單（例如展覽版用簡化選單、Demo 版鎖部分按鈕）。
+**メインメニュー画面の設定** — `RCG_MainMenuSetting` をラップ、異なる build / バージョンに異なるメインメニュー適用可（例：展示版で簡素化メニュー、Demo 版で部分ボタンロック）。
 
-繼承自 `RCG_Asset<RCG_MainMenuData>`。
+`RCG_Asset<RCG_MainMenuData>` を継承。
 
-## 編輯器中的樣貌
+## エディタ上の見た目
 
 ```
 RCG_MainMenuData: <ID = Default>
-    MainMenuSetting   ← 實際的主選單設定（背景、按鈕、版面、過場⋯）
+    MainMenuSetting   ← 実際のメインメニュー設定（背景、ボタン、レイアウト、過場…）
 ```
 
-## 主要欄位
+## 主要フィールド
 
-| 編輯器顯示 | 必填 | 說明 |
+| エディタ表示 | 必須 | 説明 |
 |---|---|---|
-| **MainMenuSetting** | 是 | 主選單設定本體（`RCG_MainMenuSetting`），含背景、按鈕、版面細節等 |
+| **MainMenuSetting** | はい | メインメニュー設定本体（`RCG_MainMenuSetting`）、背景、ボタン、レイアウト詳細を含む |
 
-## 行為說明
+## 動作説明
 
-本類別本身只是個薄薄的包裝；實際邏輯都在 `RCG_MainMenuSetting`（不是 RCG_Asset 子類，是純資料容器）。
+このクラス自体は薄いラッパー；実ロジックは `RCG_MainMenuSetting` に（RCG_Asset サブクラスではなく純粋データコンテナ）。
 
-### Static 入口
-*   `RCG_MainMenuData.CreateInstance()` — 從 Asset 取 `Default` 實例（強制重讀）。
-*   `RCG_MainMenuData.Ins` 已被註解；引用點改走 `RCG_GameSettingData.m_MainMenu`。
+### Static エントリ
+*   `RCG_MainMenuData.CreateInstance()` — Asset から `Default` インスタンス取得（強制再読込）。
+*   `RCG_MainMenuData.Ins` はコメントアウト済；参照箇所は `RCG_GameSettingData.m_MainMenu` 経由に変更。
 
-### 引用關係
-`RCG_GameSettingData.m_MainMenu`（型別 `RCG_MainMenuEntry`）引用此資料；不同遊戲版本可在 GameSettingData 上指定不同 MainMenuData。
+### 参照関係
+`RCG_GameSettingData.m_MainMenu`（型 `RCG_MainMenuEntry`）がこのデータを参照；異なるゲームバージョンで GameSettingData 上に異なる MainMenuData を指定可能。
 
 ## 注意事項
 
-*   **ID 預設為 `Default`**：本類別預期單一 Asset；要做版本變體就建多個 ID。
-*   **`m_MainMenuSetting` 標 `[AlwaysExpendOnGUI]`**：Inspector 內預設展開，方便編輯。
-*   **`Ins` static 已被註解**：取資料統一從 GameSettingData 走，不要直接 `RCG_MainMenuData.Util.GetData(...)`。
+*   **ID デフォルト `Default`**：このクラスは Asset 1つのみ想定；バージョン変種のために複数 ID 作成可能。
+*   **`m_MainMenuSetting` は `[AlwaysExpendOnGUI]`**：Inspector でデフォルト展開、編集が便利。
+*   **`Ins` static はコメントアウト済**：データ取得は GameSettingData 経由に統一、`RCG_MainMenuData.Util.GetData(...)` を直接呼ばない。
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## 付録：プログラマ参考 (Programmer Reference)
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_MainMenuData.cs`
-*   **繼承自**：`RCG_Asset<RCG_MainMenuData>`
+### A.1 クラス情報
+*   **ファイル**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_MainMenuData.cs`
+*   **継承**：`RCG_Asset<RCG_MainMenuData>`
 *   **AssetGroup**：`EditGameSetting`
-*   **常數**：`DefaultID = "Default"`
+*   **定数**：`DefaultID = "Default"`
 
-### A.2 欄位對照
+### A.2 フィールドマッピング
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| コードフィールド | エディタ表示 | 型 | 備考 |
 |---|---|---|---|
 | `m_MainMenuSetting` | MainMenuSetting | `RCG_MainMenuSetting` | `[AlwaysExpendOnGUI]` |
 
-### A.3 重要 Method
+### A.3 主要メソッド
 
 *   **`CreateInstance()` (static)** — `Util.GetData(DefaultID, false)`。
-*   建構式預設 `ID = DefaultID`。
+*   コンストラクタデフォルト `ID = DefaultID`。
 
-### A.4 與其他系統的互動
+### A.4 他システムとの連携
 
-*   **`RCG_MainMenuSetting`** — 實際內容。
-*   **`RCG_MainMenuEntry`** — Asset Entry 包裝；`RCG_GameSettingData.m_MainMenu` 用此型別引用。
+*   **`RCG_MainMenuSetting`** — 実コンテンツ。
+*   **`RCG_MainMenuEntry`** — Asset Entry ラッパー；`RCG_GameSettingData.m_MainMenu` がこの型で参照。
 
-### A.5 已知議題
+### A.5 既知の問題
 
-*   `Ins` static 已被註解，標示「請走 GameSettingData 取」的設計轉變。
+*   `Ins` static はコメントアウト済、「GameSettingData 経由で取得」という設計変更を示す。
