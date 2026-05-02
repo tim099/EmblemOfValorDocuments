@@ -1,132 +1,126 @@
 ---
-title: 裝備資料 (RCG_EquipmentData) 說明
-description: 角色穿戴的裝備模板（武器、防具、飾品、遺物）：類型、稀有度、效果、強化分支、不重複掉落
+title: Equipment Data (RCG_EquipmentData)
+description: Template for character-worn equipment (weapons, armor, accessories, relics) — type, rarity, effects, upgrade branches, no-repeat drop
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-en
 ---
 
-> [!WARNING]
-> Translation pending — this file needs an English translation.
-The original zh-Hant content is included below for reference.
+# Equipment Data
 
+> Class name: `RCG_EquipmentData`
 
-# 裝備資料
+## Purpose
 
-> 程式類別名稱：`RCG_EquipmentData`
+**Template for equipment worn by characters**. Weapons, armor, accessories, relics (special bonus items) all are. Each equipment has its own rarity, type, effects (triggered in battle), upgrade branches, and a "can drop repeatedly" flag.
 
-## 用途
+Inherits from `RCG_Asset<RCG_EquipmentData>`. Implements: `RCGI_Item` / `RCGI_Unloackable`.
 
-**角色身上穿戴的裝備模板**。武器、防具、飾品、遺物（特殊加成物品）皆是。每個裝備有自己的稀有度、類型、效果（戰鬥中各 trigger 觸發）、強化分支、是否能重複掉落。
-
-繼承自 `RCG_Asset<RCG_EquipmentData>`，實作介面：`RCGI_Item` / `RCGI_Unloackable`。
-
-## 編輯器中的樣貌
+## Editor Layout
 
 ```
 RCG_EquipmentData: <ID>
     Name / Description / Rarity / Tags / EquipmentType / Icon / Price
-    Effects                    ← 戰鬥中觸發的效果
-    InitCounters               ← 起始計數器
-    SkillTags                  ← 職業專屬限制
-    Unlock                     ← 解鎖條件
-    UpgradeBranch              ← 可強化成哪些裝備
+    Effects                    ← effects triggered in battle
+    InitCounters               ← initial counter values
+    SkillTags                  ← class restriction
+    Unlock                     ← unlock condition
+    UpgradeBranch              ← list of equipment this can upgrade into
     EnhenceLevel / HideInCodex / CanDropRepeatedly
     Preview
 ```
 
-## 主要欄位
+## Main Fields
 
-| 編輯器顯示 | 必填 | 說明 |
+| Editor Display | Required | Description |
 |---|---|---|
-| **Name** | 是 | 裝備名（多語系） |
-| **Description** | 否 | 風味描述 |
-| **Rarity** | 是 | 稀有度 |
-| **Tags** | 否 | 一般標籤（DropPool 用） |
-| **EquipmentType** | 是 | `Weapon` / `Armor` / `Accessory` / `Relic`（**遺物：不佔裝備格、強制裝在主角身上**） |
-| **Icon** | 是 | 裝備圖 |
-| **Price** | 是 | 商店售價；預設 500，可用 `Auto Price` 按鈕重算（基礎 10 × 稀有度價值） |
-| **Effects** | 否 | 戰鬥中各 trigger 觸發的效果 |
-| **InitCounters** | 否 | 給 effect 中計數器類效果用的初值 |
-| **SkillTags** | 否 | 職業專屬限制（隊伍中要有對應職業才掉落；OR 關係：任一符合即可） |
-| **Unlock** | 否 | 解鎖條件 |
-| **UpgradeBranch** | 否 | 可強化成哪些裝備（透過遊戲內強化機制）；空 = 不能強化 |
-| **EnhenceLevel** | — | 強化等級 > 0 表示「強化版」，**不顯示在圖鑑** |
-| **HideInCodex** | — | 圖鑑隱藏（測試 / 強化版會自動隱藏） |
-| **CanDropRepeatedly** | — | 是否能重複掉落；遺物 (`Relic`) 通常設 false |
+| **Name** | yes | Equipment name (localized) |
+| **Description** | no | Flavor description |
+| **Rarity** | yes | Rarity |
+| **Tags** | no | General tags (used by DropPool) |
+| **EquipmentType** | yes | `Weapon` / `Armor` / `Accessory` / `Relic` (**Relic: doesn't take a slot, must be on the lead character**) |
+| **Icon** | yes | Equipment icon |
+| **Price** | yes | Shop sell price; default 500, can be reset by `Auto Price` button (10 × rarity value) |
+| **Effects** | no | Effects triggered in battle on various triggers |
+| **InitCounters** | no | Initial values for counter-type effects |
+| **SkillTags** | no | Class restriction (party must have matching class to drop; OR relation: any one matches) |
+| **Unlock** | no | Unlock condition |
+| **UpgradeBranch** | no | List of equipment this can upgrade into; empty = not upgradable |
+| **EnhenceLevel** | — | Enhance level > 0 means "enhanced version", **hidden from codex** |
+| **HideInCodex** | — | Codex hidden (test / enhanced versions are auto-hidden) |
+| **CanDropRepeatedly** | — | Can drop repeatedly; relics (`Relic`) usually set false |
 
-## 行為說明
+## Behavior
 
-### 觸發
-`OnTriggerEffect(data, triggerOn)` → 從 `m_Effects` 取對應 trigger 的 effects 並依序觸發。`TriggerOnUnitState(triggerOn)` 是 quick check。
+### Triggering
+`OnTriggerEffect(data, triggerOn)` → fetches effects from `m_Effects` for the trigger and fires in order. `TriggerOnUnitState(triggerOn)` is a quick check.
 
-### 圖鑑隱藏判斷
-`HideInCodex` (property) = `m_HideInCodex || m_EnhenceLevel > 0`：強化版自動隱藏，避免圖鑑出現「+1 / +2」等同名重複。
+### Codex Hide Check
+`HideInCodex` (property) = `m_HideInCodex || m_EnhenceLevel > 0`: enhanced versions are auto-hidden to avoid showing duplicate "+1 / +2" entries in the codex.
 
-### 描述
-`GetFullDescription` = `Effects 描述 + m_Description（風味文字）`。
+### Description
+`GetFullDescription` = `Effects description + m_Description (flavor text)`.
 
 ### Auto Price
-編輯器頁面有 `Auto Price` 按鈕：對所有裝備套用 `Price = 10 × Rarity.m_Value`。
+Editor page has an `Auto Price` button: applies `Price = 10 × Rarity.m_Value` to all equipment.
 
-### 排序
-`RCG_EquimpmentComparer` 按「裝備類型（Weapon=10, Armor=20, Accessory=30）」→「價格降序」排序。
+### Sorting
+`RCG_EquimpmentComparer` sorts by "EquipmentType (Weapon=10, Armor=20, Accessory=30)" → "price descending".
 
-## 注意事項
+## Caveats
 
-*   **遺物 (`Relic`) 規則**：不佔裝備格、強制在主角身上、`CanDropRepeatedly` 通常設 false（DropPool 會檢查身上是否已有）。
-*   **`SkillTags` 與卡牌專精的差異**：裝備是 OR 關係（任一隊員有就能掉），卡牌的 `RequireSkills` 才是 AND。
-*   **強化版 (`EnhenceLevel > 0`) 自動隱藏圖鑑**：圖鑑只會看到原版。
-*   **`NullEquipmentID = "NullEquipment"`** 是系統保留 ID，代表「無裝備」；不要拿來命名一般裝備。
-*   **Auto Price 會洗手動價**。
+*   **Relic (`Relic`) rules**: doesn't take a slot, forced on lead character, `CanDropRepeatedly` usually false (DropPool checks player inventory).
+*   **`SkillTags` differs from card SkillTags**: equipment uses OR (any one party member matches), while cards' `RequireSkills` use AND.
+*   **Enhanced versions (`EnhenceLevel > 0`) auto-hide from codex**: codex only shows the original.
+*   **`NullEquipmentID = "NullEquipment"`** is a reserved system ID meaning "no equipment"; don't use for actual equipment.
+*   **Auto Price overwrites manual prices.**
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## Appendix: Programmer Reference
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_EquipmentData.cs`
-*   **繼承自**：`RCG_Asset<RCG_EquipmentData>`
-*   **實作介面**：`RCGI_Item` / `RCGI_Unloackable`
-*   **AssetGroup**：`EditItems`
+### A.1 Class Info
+*   **File**: `CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_EquipmentData.cs`
+*   **Inherits**: `RCG_Asset<RCG_EquipmentData>`
+*   **Implements**: `RCGI_Item` / `RCGI_Unloackable`
+*   **AssetGroup**: `EditItems`
 
-### A.2 欄位對照
+### A.2 Field Mapping
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| Code Field | Editor Display | Type | Notes |
 |---|---|---|---|
 | `m_Name` | Name | `RCG_LocalizeData` | |
 | `m_Description` | Description | `RCG_LocalizeData` | |
 | `m_Rarity` | Rarity | `RCG_RarityTagGenData` | |
 | `m_Tags` | Tags | `List<RCG_ItemTagGenData>` | |
-| `m_EquipmentType` | EquipmentType | `EquipmentType` enum | `Weapon` 預設 |
+| `m_EquipmentType` | EquipmentType | `EquipmentType` enum | Default `Weapon` |
 | `m_Icon` | Icon | `RCG_SpriteData` | |
-| `m_Price` | Price | `int` | 預設 500 |
+| `m_Price` | Price | `int` | Default 500 |
 | `m_Effects` | Effects | `List<RCG_CommonEffect>` | |
 | `m_InitCounters` | InitCounters | `List<int>` | |
 | `m_SkillTags` | SkillTags | `List<RCG_SkillTagGenData>` | |
 | `m_Unlock` | Unlock | `RCG_UnlockEntry` | |
 | `m_UpgradeBranch` | UpgradeBranch | `List<RCG_EquipmentGenData>` | |
-| `m_EnhenceLevel` | EnhenceLevel | `int` | 預設 0 |
+| `m_EnhenceLevel` | EnhenceLevel | `int` | Default 0 |
 | `m_HideInCodex` | HideInCodex | `bool` | |
-| `m_CanDropRepeatedly` | CanDropRepeatedly | `bool` | 預設 `true` |
+| `m_CanDropRepeatedly` | CanDropRepeatedly | `bool` | Default `true` |
 
-### A.3 重要 Method 摘要
+### A.3 Key Methods
 
-*   **`AddItem()`** — 玩家獲得：`m_EquipmentsData.AddEquipment(new RCG_Equipment(ID))`。
-*   **`OnTriggerEffect(data, triggerOn)`** — 戰鬥觸發。
-*   **`HideInCodex` (property)** — `m_HideInCodex || m_EnhenceLevel > 0`。
-*   **`GetDescription` / `GetFullDescription`** — 描述生成。
-*   **`CreateSelectAssetPage`** — `RCG_EquipmentDataEditorPage.Create()`。
+*   **`AddItem()`** — player acquisition: `m_EquipmentsData.AddEquipment(new RCG_Equipment(ID))`.
+*   **`OnTriggerEffect(data, triggerOn)`** — battle trigger.
+*   **`HideInCodex` (property)** — `m_HideInCodex || m_EnhenceLevel > 0`.
+*   **`GetDescription` / `GetFullDescription`** — description generation.
+*   **`CreateSelectAssetPage`** — `RCG_EquipmentDataEditorPage.Create()`.
 
-### A.4 與其他系統的互動
+### A.4 System Interactions
 
-*   **`RCG_Equipment`** — runtime 裝備實例。
-*   **`RCG_DataService.Ins.m_EquipmentsData`** — 玩家裝備儲存。
-*   **`RCG_EquipmentDropPool`** — 掉落池（含 `m_CanDropRepeatedly` 檢查）。
-*   **`RCG_EquipmentInfoPanel`** — 詳細資訊 UI。
-*   **`RCG_EquimpmentComparer`** — 排序 helper。
+*   **`RCG_Equipment`** — runtime equipment instance.
+*   **`RCG_DataService.Ins.m_EquipmentsData`** — player equipment storage.
+*   **`RCG_EquipmentDropPool`** — drop pool (with `m_CanDropRepeatedly` check).
+*   **`RCG_EquipmentInfoPanel`** — detail UI.
+*   **`RCG_EquimpmentComparer`** — sort helper.
 
-### A.5 已知議題
+### A.5 Known Issues
 
-*   `m_CanDropRepeatedly` 的 TODO 註解（"需要記錄掉落 & 排除"）暗示「不重複掉落」的紀錄機制有歷史改動；目前由 DropPool runtime 比對玩家裝備清單實現。
-*   `DeserializeFromJson` 的自動價格 `m_Price = m_Rarity.GetData().m_Value.GetValue(null) * 15` 已註解，被 Auto Price 工具取代。
+*   `m_CanDropRepeatedly` TODO comment ("需要記錄掉落&排除" / "needs drop tracking & exclusion") hints at history of "no-repeat drop" mechanism changes; currently runtime-checked against player inventory in DropPool.
+*   `DeserializeFromJson` auto-pricing line `m_Price = m_Rarity.GetData().m_Value.GetValue(null) * 15` commented out, replaced by Auto Price tool.

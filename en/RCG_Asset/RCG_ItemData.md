@@ -1,114 +1,108 @@
 ---
-title: 道具資料 (RCG_ItemData) 說明
-description: 玩家可使用的消耗 / 任務道具模板（藥水、捲軸、鑰匙等）：稀有度、效果、使用次數、解鎖
+title: Item Data (RCG_ItemData)
+description: Template for player consumable / quest items (potions, scrolls, keys, etc.) — rarity, effects, use times, unlock
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-en
 ---
 
-> [!WARNING]
-> Translation pending — this file needs an English translation.
-The original zh-Hant content is included below for reference.
+# Item Data
 
+> Class name: `RCG_ItemData`
 
-# 道具資料
+## Purpose
 
-> 程式類別名稱：`RCG_ItemData`
+**Template for items the player can hold / use**. Potions, scrolls, food, quest keys, healing items — all are instances of this class. Each item has its own icon, effects, rarity, use limit, unlock conditions.
 
-## 用途
+Inherits from `RCG_Asset<RCG_ItemData>`. Implements: `RCGI_Item` (can be added to inventory) / `RCGI_Unloackable` (unlockable).
 
-**玩家可持有 / 使用的道具模板**。藥水、捲軸、食材、任務鑰匙、回復道具⋯ 全都是這個類別的實例。每個道具有自己的圖示、效果、稀有度、使用次數限制、解鎖條件。
-
-繼承自 `RCG_Asset<RCG_ItemData>`，實作介面：`RCGI_Item`（可加入背包）/ `RCGI_Unloackable`（可解鎖）。
-
-## 編輯器中的樣貌
+## Editor Layout
 
 ```
 RCG_ItemData: <ID>
-    Data (m_Data)              ← 主要設定（巢狀類）
-    Effects (m_ItemEffects)    ← 道具效果（OnPlay 觸發）
-    Preview                    ← 即時呈現
+    Data (m_Data)              ← main settings (nested class)
+    Effects (m_ItemEffects)    ← item effects (OnPlay trigger)
+    Preview                    ← live preview
 ```
 
-## 主要欄位（Data 內）
+## Main Fields (within Data)
 
-| 編輯器顯示 | 必填 | 說明 |
+| Editor Display | Required | Description |
 |---|---|---|
-| **Name** | 是 | 道具名（多語系） |
-| **Description** | 否 | 風味描述（多語系，附加在自動描述後） |
-| **TargetType** | 是 | 使用時的選目標範圍（None / Friend / Enemy 等） |
-| **Price** | 是 | 商人售價；預設 20，可用 `Auto Price` 按鈕重算（基礎 3 × 稀有度價值） |
-| **Icon** | 是 | 道具圖示 |
-| **Rarity** | 是 | 稀有度標籤 |
-| **ItemType** | 是 | `Normal`（普通）或 `QuestItem`（任務道具，劇情用） |
-| **ItemUseType** | 是 | `Consume`（用完即消失）/ `OncePerBattle`（每戰一次）/ `OncePerTurn`（每回合一次）/ `Infinite`（無限次） |
-| **UseTimes** | 視 ItemUseType | 可使用次數（Consume / OncePer* 模式有效） |
-| **Unlock** | 否 | 解鎖條件 |
-| **HideInCodex** | — | 圖鑑隱藏（測試道具） |
+| **Name** | yes | Item name (localized) |
+| **Description** | no | Flavor description (localized; appended after auto description) |
+| **TargetType** | yes | Target selection range when using (None / Friend / Enemy, etc.) |
+| **Price** | yes | Merchant sell price; default 20, can be reset by `Auto Price` button (3 × rarity value) |
+| **Icon** | yes | Item icon |
+| **Rarity** | yes | Rarity tag |
+| **ItemType** | yes | `Normal` (regular) or `QuestItem` (quest-only, story use) |
+| **ItemUseType** | yes | `Consume` (consumed on use) / `OncePerBattle` / `OncePerTurn` / `Infinite` |
+| **UseTimes** | depends | Use count (effective in Consume / OncePer* modes) |
+| **Unlock** | no | Unlock conditions |
+| **HideInCodex** | — | Hide in codex (test items) |
 
-外層另有 **m_ItemEffects** = `List<RCG_CommonEffect>`，描述使用時觸發的效果（OnPlay 是主要 trigger）。
+Outer class also has **m_ItemEffects** = `List<RCG_CommonEffect>`, describing effects triggered on use (OnPlay is the main trigger).
 
-## 行為說明
+## Behavior
 
-### 使用流程
-1. 玩家從背包選道具 → 進入 `RCG_ItemInfoPanel`。
-2. `CheckUsable(data)`：對每個 effect 跑 `CheckPlayable`，全部 true 才能使用。
-3. `TriggerEffect(data)`：取所有 `OnPlay` effect 並依序觸發（含 try-catch 防爆）。
-4. 依 `ItemUseType` 決定是否消失 / 鎖定到下回合 / 鎖定到下場戰鬥。
+### Use Flow
+1. Player selects an item from inventory → enters `RCG_ItemInfoPanel`.
+2. `CheckUsable(data)`: runs `CheckPlayable` on each effect; usable only when all are true.
+3. `TriggerEffect(data)`: fetches all `OnPlay` effects and triggers them in order (with try-catch).
+4. Per `ItemUseType`, decides whether to consume / lock to next turn / lock to next battle.
 
-### 描述生成
-*   自動由 `Effects` 串接（每個 effect 一行）。
-*   外加：非 Normal 的 ItemType 標記、非 Consume 的 UseType 標記。
-*   `UseTimes > 1` 時加上「剩餘 N/M 次」說明（runtime 才會顯示剩餘次數）。
-*   `m_Description` 有設定時 → 在自動描述下面額外加風味文字。
+### Description Generation
+*   Auto-composed from `Effects` (one per line).
+*   Appends: non-Normal ItemType marker, non-Consume UseType marker.
+*   When `UseTimes > 1`, appends "Remaining N/M" (only at runtime).
+*   When `m_Description` is set → appends flavor text after the auto description.
 
-### Auto Price（編輯器工具）
-編輯器 `RCG_ItemDataEditorPage` 上方有 `Auto Price` 按鈕：對所有 ItemData 套用 `Price = 3 × Rarity.m_Value`。**會覆蓋手動設的價格**。
+### Auto Price (Editor Tool)
+The editor's `RCG_ItemDataEditorPage` has an `Auto Price` button: applies `Price = 3 × Rarity.m_Value` to all ItemData. **Overwrites manual prices.**
 
-## 注意事項
+## Caveats
 
-*   **ItemUseType = Infinite 時 UseTime 回 0**：runtime 不消耗、不鎖定。
-*   **`m_Description` 與自動描述會疊加**：手動寫的部分顯示在效果之後。
-*   **QuestItem 不會被一般使用流程消耗**：通常綁定劇情事件觸發。
-*   **Auto Price 會洗掉手動價**——按之前要確認。
+*   **`UseTime` returns 0 when `ItemUseType = Infinite`**: runtime doesn't consume / lock.
+*   **`m_Description` stacks with auto description**: hand-written text shows after effects.
+*   **QuestItem won't be consumed by general use flow**: usually triggered through story events.
+*   **Auto Price overwrites manual prices** — confirm before pressing.
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## Appendix: Programmer Reference
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_ItemData.cs`
-*   **繼承自**：`RCG_Asset<RCG_ItemData>`
-*   **實作介面**：`RCGI_Item` / `RCGI_Unloackable`
-*   **AssetGroup**：`EditItems`
+### A.1 Class Info
+*   **File**: `CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_ItemData.cs`
+*   **Inherits**: `RCG_Asset<RCG_ItemData>`
+*   **Implements**: `RCGI_Item` / `RCGI_Unloackable`
+*   **AssetGroup**: `EditItems`
 
-### A.2 欄位對照（外層）
+### A.2 Field Mapping (outer)
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| Code Field | Editor Display | Type | Notes |
 |---|---|---|---|
-| `m_Data` | Data | `ItemData`（巢狀） | `[SerializeField] protected` |
+| `m_Data` | Data | `ItemData` (nested) | `[SerializeField] protected` |
 | `m_ItemEffects` | Effects | `List<RCG_CommonEffect>` | |
 
-`ItemData` 巢狀內含 `m_Name` / `m_Description` / `m_TargetType` / `m_Price` / `m_Icon` / `m_Rarity` / `m_ItemType` / `m_ItemUseType` / `m_UseTimes` / `m_Unlock` / `m_HideInCodex`。
+`ItemData` nested fields: `m_Name` / `m_Description` / `m_TargetType` / `m_Price` / `m_Icon` / `m_Rarity` / `m_ItemType` / `m_ItemUseType` / `m_UseTimes` / `m_Unlock` / `m_HideInCodex`.
 
-### A.3 重要 Method 摘要
+### A.3 Key Methods
 
-*   **`AddItem()`** — 玩家獲得：`RCG_Item.Create(ID)` → `m_ItemsData.AddItem`。
-*   **`CheckUsable(TriggerEffectData)`** — 對所有 enabled effects 跑 `CheckPlayable` 取 AND。
-*   **`TriggerEffect(TriggerEffectData)`** — 取 `OnPlay` effects 並逐一觸發（try-catch）。
-*   **`Description` / `FullDescription` / `GetDescription`** — 三層描述生成。
-*   **`Effects` (property)** — `m_ItemEffects.GetEnableEffects()`。
-*   **`Infos` (property)** — 聚合 effect infos + ItemType 描述。
-*   **`CreateSelectAssetPage`** — `RCG_ItemDataEditorPage.Create()`。
+*   **`AddItem()`** — player acquisition: `RCG_Item.Create(ID)` → `m_ItemsData.AddItem`.
+*   **`CheckUsable(TriggerEffectData)`** — AND check on all enabled effects' `CheckPlayable`.
+*   **`TriggerEffect(TriggerEffectData)`** — fetches and fires `OnPlay` effects (try-catch).
+*   **`Description` / `FullDescription` / `GetDescription`** — three-tier description generation.
+*   **`Effects` (property)** — `m_ItemEffects.GetEnableEffects()`.
+*   **`Infos` (property)** — aggregates effect infos + ItemType description.
+*   **`CreateSelectAssetPage`** — `RCG_ItemDataEditorPage.Create()`.
 
-### A.4 與其他系統的互動
+### A.4 System Interactions
 
-*   **`RCG_Item`** — runtime 道具實例。
-*   **`RCG_DataService.Ins.m_ItemsData`** — 玩家背包儲存。
-*   **`RCG_ItemDataEditorPage`** — 編輯主畫面（含 Auto Price 工具）。
-*   **`RCG_ItemInfoPanel`** — 詳細資訊 UI。
+*   **`RCG_Item`** — runtime item instance.
+*   **`RCG_DataService.Ins.m_ItemsData`** — player inventory storage.
+*   **`RCG_ItemDataEditorPage`** — editor main page (with Auto Price tool).
+*   **`RCG_ItemInfoPanel`** — detail UI.
 
-### A.5 已知議題
+### A.5 Known Issues
 
-*   `m_UseTimes` 的「暫時未完成 先隱藏」註解暗示可變使用次數的功能還沒完整實作。
-*   `SerializeToJson` / `DeserializeFromJson` override 已被註解；曾規劃過自動價格遷移邏輯。
+*   `m_UseTimes`'s "暫時未完成 先隱藏" / "temporarily incomplete, hidden" comment hints variable-uses isn't fully implemented.
+*   `SerializeToJson` / `DeserializeFromJson` overrides are commented out; legacy auto-pricing migration logic was once planned.

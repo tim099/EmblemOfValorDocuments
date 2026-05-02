@@ -1,101 +1,95 @@
 ---
-title: 主動能力資料 (RCG_ActivePowerData) 說明
-description: 角色身上的「主動能力」：可手動觸發的能力（類似道具但綁定角色而非背包）
+title: Active Power Data (RCG_ActivePowerData)
+description: Character "active abilities" — manually triggered abilities (similar to items, but bound to a character rather than the inventory)
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-en
 ---
 
-> [!WARNING]
-> Translation pending — this file needs an English translation.
-The original zh-Hant content is included below for reference.
+# Active Power Data
 
+> Class name: `RCG_ActivePowerData`
 
-# 主動能力資料
+## Purpose
 
-> 程式類別名稱：`RCG_ActivePowerData`
+**Template for character "active abilities"**. Sits between "equipment" and "items": abilities the player can **manually trigger** in battle (unlike passives), but **bound to a specific character** (unlike items in the shared inventory). Examples: "Healer: once per battle, group heal", "Swordmaster: once per turn, manually trigger crit".
 
-## 用途
+Inherits from `RCG_Asset<RCG_ActivePowerData>`. Implements: `RCGI_Item` / `RCGI_Unloackable`.
 
-**角色身上的「主動能力」模板**。介於「裝備」與「道具」之間：玩家可在戰鬥中**手動觸發**的能力（不像被動），但**綁定在特定角色身上**（不像道具放在共用背包）。例如「治療師：每戰可釋放一次群體治療」「劍士：每回合可手動引發暴擊」。
-
-繼承自 `RCG_Asset<RCG_ActivePowerData>`，實作介面：`RCGI_Item` / `RCGI_Unloackable`。
-
-## 編輯器中的樣貌
+## Editor Layout
 
 ```
 RCG_ActivePowerData: <ID>
-    Data (m_Data)               ← 主要設定（Name / Description / Icon / TargetType / Price / Unlock / ItemUseType）
-    ItemEffects                 ← 主動能力的效果（OnPlay 觸發）
+    Data (m_Data)               ← main settings (Name / Description / Icon / TargetType / Price / Unlock / ItemUseType)
+    ItemEffects                 ← active power effects (OnPlay trigger)
     Preview
 ```
 
-## 主要欄位
+## Main Fields
 
-| 編輯器顯示 | 必填 | 說明 |
+| Editor Display | Required | Description |
 |---|---|---|
-| **Name / Description / Icon** | 是 | 名稱、風味描述、圖示 |
-| **TargetType** | 是 | 使用時的選目標範圍 |
-| **Price** | 是 | 商店價（如果可購買） |
-| **ItemUseType** | 是 | `Consume` / `OncePerBattle` / `OncePerTurn` / `Infinite` |
-| **UseTimes** | 視 ItemUseType | 可使用次數 |
-| **Unlock** | 否 | 解鎖條件 |
-| **ItemEffects** | 否 | 觸發效果（`RCG_CommonEffect` list） |
+| **Name / Description / Icon** | yes | Name, flavor description, icon |
+| **TargetType** | yes | Target selection range when using |
+| **Price** | yes | Shop price (if purchasable) |
+| **ItemUseType** | yes | `Consume` / `OncePerBattle` / `OncePerTurn` / `Infinite` |
+| **UseTimes** | depends | Use count |
+| **Unlock** | no | Unlock condition |
+| **ItemEffects** | no | Trigger effects (`RCG_CommonEffect` list) |
 
-## 行為說明
+## Behavior
 
-### 與道具的差異
-*   **道具**：放共用背包，任何角色都能用。
-*   **主動能力**：綁定在特定角色身上（`RCG_DataService.Ins.m_ActivePowersData`），通常隨角色加入隊伍而帶來。
+### Difference from Items
+*   **Item**: in shared inventory, any character can use.
+*   **Active Power**: bound to a specific character (`RCG_DataService.Ins.m_ActivePowersData`); usually granted when the character joins the party.
 
-### 使用 / 觸發
-`CheckUsable(data)` → 所有 effect 的 `CheckPlayable` 全 true 才能用。
-`TriggerEffect(data)` → 取 `OnPlay` effects 依序觸發（含 try-catch）。
+### Use / Trigger
+`CheckUsable(data)` → all effects' `CheckPlayable` AND.
+`TriggerEffect(data)` → fetch and fire `OnPlay` effects (with try-catch).
 
-### 描述生成
-與 `RCG_ItemData` 類似：自動由 effects 串接 + UseType 標記 + UseTimes 顯示。
+### Description
+Similar to `RCG_ItemData`: auto-composed from effects + UseType marker + UseTimes display.
 
-## 注意事項
+## Caveats
 
-*   **`ShowInfo()` 是空殼**：原本要走 `RCG_ItemInfoPanel`，但被註解掉（`// QWQ`），目前無作用。實際 UI 由其他位置顯示。
-*   **沒有 ItemType 欄位**（與 `RCG_ItemData` 不同）：因為已是「主動能力」分類，不再細分 Normal / QuestItem。
-*   **`InitActivePowers` 的舊註解**：原本角色加入時會自動套用 InitActivePowers，但已轉用 UnitSkill 系統取代（程式內有大段註解標示）。
-*   **無 Auto Price 工具**：與 ItemData / EquipmentData 不同，編輯器頁面沒做這個。
+*   **`ShowInfo()` is empty**: was supposed to use `RCG_ItemInfoPanel`, but commented out (`// QWQ`); currently no-op. Actual UI handled elsewhere.
+*   **No ItemType field** (unlike `RCG_ItemData`): already classified as "active power" without further sub-classification.
+*   **`InitActivePowers` legacy**: characters used to auto-apply InitActivePowers on join; superseded by UnitSkill system (large commented-out block in code).
+*   **No Auto Price tool**: unlike ItemData / EquipmentData, the editor page doesn't provide this.
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## Appendix: Programmer Reference
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_ActivePowerData.cs`
-*   **繼承自**：`RCG_Asset<RCG_ActivePowerData>`
-*   **實作介面**：`RCGI_Item` / `RCGI_Unloackable`
-*   **AssetGroup**：`EditCharacter`
+### A.1 Class Info
+*   **File**: `CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_ActivePowerData.cs`
+*   **Inherits**: `RCG_Asset<RCG_ActivePowerData>`
+*   **Implements**: `RCGI_Item` / `RCGI_Unloackable`
+*   **AssetGroup**: `EditCharacter`
 
-### A.2 欄位對照（外層）
+### A.2 Field Mapping (outer)
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| Code Field | Editor Display | Type | Notes |
 |---|---|---|---|
-| `m_Data` | Data | `ActivePowerData`（巢狀） | `[SerializeField] protected` |
+| `m_Data` | Data | `ActivePowerData` (nested) | `[SerializeField] protected` |
 | `m_ItemEffects` | Effects | `List<RCG_CommonEffect>` | |
 
-`ActivePowerData` 巢狀含 `m_Name` / `m_Description` / `m_TargetType` / `m_Price` / `m_Icon` / `m_ItemUseType` / `m_UseTimes` / `m_Unlock`。
+`ActivePowerData` nested: `m_Name` / `m_Description` / `m_TargetType` / `m_Price` / `m_Icon` / `m_ItemUseType` / `m_UseTimes` / `m_Unlock`.
 
-### A.3 重要 Method 摘要
+### A.3 Key Methods
 
-*   **`AddItem()`** — `RCG_ActivePower.Create(ID)` → `m_ActivePowersData.AddActivePower`。
-*   **`CheckUsable(TriggerEffectData)`** — 全 effect AND check。
-*   **`TriggerEffect(TriggerEffectData)`** — `OnPlay` effects 觸發。
-*   **`Description` / `FullDescription` / `GetDescription`** — 描述生成（`RCG_ActivePower` 可選參數帶 runtime 剩餘次數）。
-*   **`UseTime`** — 依 `ItemUseType` 回傳次數（Infinite → 0）。
+*   **`AddItem()`** — `RCG_ActivePower.Create(ID)` → `m_ActivePowersData.AddActivePower`.
+*   **`CheckUsable(TriggerEffectData)`** — AND on all effects.
+*   **`TriggerEffect(TriggerEffectData)`** — fires `OnPlay` effects.
+*   **`Description` / `FullDescription` / `GetDescription`** — description generation (`RCG_ActivePower` optional param brings runtime remaining count).
+*   **`UseTime`** — per `ItemUseType` returns count (Infinite → 0).
 
-### A.4 與其他系統的互動
+### A.4 System Interactions
 
-*   **`RCG_ActivePower`** — runtime 主動能力實例。
-*   **`RCG_DataService.Ins.m_ActivePowersData`** — 角色綁定儲存。
-*   **`RCG_CommonEffect`** — 觸發效果單位。
+*   **`RCG_ActivePower`** — runtime active power instance.
+*   **`RCG_DataService.Ins.m_ActivePowersData`** — character-bound storage.
+*   **`RCG_CommonEffect`** — trigger effect unit.
 
-### A.5 已知議題
+### A.5 Known Issues
 
-*   `ShowInfo()` 已被註解（`// QWQ`），UI 入口需確認。
-*   舊版 `InitActivePowers` 自動加成邏輯已棄用（被 UnitSkill 取代）。
+*   `ShowInfo()` is commented out (`// QWQ`); UI entry point unclear.
+*   Legacy `InitActivePowers` auto-apply logic deprecated (replaced by UnitSkill).
