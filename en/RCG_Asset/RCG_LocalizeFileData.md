@@ -1,82 +1,76 @@
 ---
-title: 本地化檔資料 (RCG_LocalizeFileData) 說明
-description: 把多語系文字檔（每語一份）打包成 Asset，依當前語系自動取對應檔
+title: Localize File Data (RCG_LocalizeFileData)
+description: Bundles per-language text files into an Asset; auto-fetches the corresponding file based on current language
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-en
 ---
 
-> [!WARNING]
-> Translation pending — this file needs an English translation.
-The original zh-Hant content is included below for reference.
+# Localize File Data
 
+> Class name: `RCG_LocalizeFileData`
 
-# 本地化檔資料
+## Purpose
 
-> 程式類別名稱：`RCG_LocalizeFileData`
+**Bundling Asset for multi-language text files**. When you need long-form localized text (e.g., scripts, tutorial explanations, codex entries), one `.txt` / `.json` per language; this Asset bundles them together and auto-fetches the matching one for the current language.
 
-## 用途
+Inherits from `RCG_Asset<RCG_LocalizeFileData>`.
 
-**多語系文字檔的打包 Asset**。當需要長段落的本地化文字（例如劇本、教學說明、功勳簿條目）時，每語系一份 `.txt` / `.json`，本 Asset 把它們綁在一起，依當前語系自動取對應檔。
-
-繼承自 `RCG_Asset<RCG_LocalizeFileData>`。
-
-## 編輯器中的樣貌
+## Editor Layout
 
 ```
 RCG_LocalizeFileData: <ID>
-    DefaultLang        ← 預設語系（fallback 用）
-    LocalizeFile       ← 語系 → TextAsset 字典
+    DefaultLang        ← default language (fallback)
+    LocalizeFile       ← language → TextAsset dictionary
 ```
 
-## 主要欄位
+## Main Fields
 
-| 編輯器顯示 | 必填 | 說明 |
+| Editor Display | Required | Description |
 |---|---|---|
-| **DefaultLang** | 是 | 預設語系（當前語系沒對應檔時 fallback） |
-| **LocalizeFile** | 是 | `Dictionary<UCL_LanguageCodeEntry, UCL_TextAssetEntry>`：每個語系對一份文字檔 |
+| **DefaultLang** | yes | Default language (used when no match for current language) |
+| **LocalizeFile** | yes | `Dictionary<UCL_LanguageCodeEntry, UCL_TextAssetEntry>`: each language → text file |
 
-## 行為說明
+## Behavior
 
-### `GetTextData()` 取檔順序
-1. `m_LocalizeFile` 有當前語系 → 用它。
-2. 否則有 `DefaultLang` → fallback 到預設。
-3. 否則 → 取 `LocalizeFile.Values.FirstElementInCollection()`（第一個 entry）。
-4. 完全空 → null。
+### `GetTextData()` Lookup Order
+1. `m_LocalizeFile` has current language → use it.
+2. Else if `DefaultLang` exists → fallback to default.
+3. Else → returns `LocalizeFile.Values.FirstElementInCollection()` (first entry).
+4. All empty → null.
 
 ### `GetText()`
-取文字內容；無資料回空字串。
+Returns text content; empty string when no data.
 
-## 注意事項
+## Caveats
 
-*   **`UCL_LanguageCodeEntry` 是字典 key**：不同語系用不同 entry，編輯時注意 key 不要重複。
-*   **缺漏語系時 fallback 順序**：當前 → 預設 → 第一個。即使全缺也不會 NRE，會回空字串。
-*   **與 i18n 短字串系統的差異**：短字串走 `UCL_LocalizeManager`（key-value），本檔適用於**長段落 / 整段內容**。
+*   **`UCL_LanguageCodeEntry` is the dict key**: different languages use different entries; avoid duplicates when editing.
+*   **Fallback order on missing**: current → default → first. Even if all are missing, no NRE — returns empty string.
+*   **Difference from short-string i18n**: short strings use `UCL_LocalizeManager` (key-value); this Asset suits **long passages / full content**.
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## Appendix: Programmer Reference
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_LocalizeFileData.cs`
-*   **繼承自**：`RCG_Asset<RCG_LocalizeFileData>`
-*   **AssetGroup**：`EditLocalizeSetting`
+### A.1 Class Info
+*   **File**: `CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_LocalizeFileData.cs`
+*   **Inherits**: `RCG_Asset<RCG_LocalizeFileData>`
+*   **AssetGroup**: `EditLocalizeSetting`
 
-### A.2 欄位對照
+### A.2 Field Mapping
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| Code Field | Editor Display | Type | Notes |
 |---|---|---|---|
 | `m_DefaultLang` | DefaultLang | `UCL_LanguageCodeEntry` | |
 | `m_LocalizeFile` | LocalizeFile | `Dictionary<UCL_LanguageCodeEntry, UCL_TextAssetEntry>` | |
 
-### A.3 重要 Method
+### A.3 Key Methods
 
-*   **`GetTextData()`** — 含當前語 → DefaultLang → 第一個 entry 的 fallback 鏈。
-*   **`GetText()`** — 取字串內容；無資料回空字串。
+*   **`GetTextData()`** — current language → DefaultLang → first entry fallback chain.
+*   **`GetText()`** — string content; empty on missing.
 
-### A.4 與其他系統的互動
+### A.4 System Interactions
 
-*   **`UCL_LanguageCodeEntry`** — 語系系統。
-*   **`UCL_TextAssetEntry`** — 文字檔資源包裝。
-*   **`RCG_GameManager.CurLanguageCode`** — 當前語系來源。
-*   **`RCG_LocalizeFileGenData`** — Asset Entry 包裝。
+*   **`UCL_LanguageCodeEntry`** — language system.
+*   **`UCL_TextAssetEntry`** — text file resource wrapper.
+*   **`RCG_GameManager.CurLanguageCode`** — current language source.
+*   **`RCG_LocalizeFileGenData`** — Asset Entry wrapper.

@@ -1,98 +1,92 @@
 ---
-title: 牌組資料 (RCG_DeckData) 說明
-description: 一份完整牌組的定義（卡牌清單與配置）；角色起始牌組、加入牌組、玩家牌組底層
+title: Deck Data (RCG_DeckData)
+description: Definition of a complete deck (cards and configuration) — used for character starting decks, join decks, player deck base
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-en
 ---
 
-> [!WARNING]
-> Translation pending — this file needs an English translation.
-The original zh-Hant content is included below for reference.
+# Deck Data
 
+> Class name: `RCG_DeckData`
 
-# 牌組資料
+## Purpose
 
-> 程式類別名稱：`RCG_DeckData`
+**Definition of a complete deck**. Each card + count = one deck. Use cases:
+*   `RCG_CharacterData.m_Deck` (starting deck)
+*   Character `m_JoinDeck` (deck brought when joining mid-game)
+*   `RCG_BattlePresetData.m_Deck` (deck for test battles)
+*   Decks granted by special events
 
-## 用途
+Inherits from `RCG_Asset<RCG_DeckData>`. Implements: `RCGI_Unloackable` (unlockable).
 
-**一份完整牌組的定義**。每張卡牌 + 數量 = 牌組。應用情境：
-*   角色 `RCG_CharacterData.m_Deck`（起始牌組）
-*   角色 `m_JoinDeck`（中途加入時帶來的牌組）
-*   `RCG_BattlePresetData.m_Deck`（測試戰鬥用牌組）
-*   特殊事件給予的整套牌
-
-繼承自 `RCG_Asset<RCG_DeckData>`，實作介面：`RCGI_Unloackable`（可解鎖）。
-
-## 編輯器中的樣貌
+## Editor Layout
 
 ```
 RCG_DeckData: <ID>
-    Name           ← 牌組顯示名（多語系）
-    Deck           ← 卡牌清單（SpawnDeckData，含每張卡 + 數量）
-    Unlock         ← 解鎖條件
+    Name           ← deck display name (localized)
+    Deck           ← card list (SpawnDeckData, with each card + count)
+    Unlock         ← unlock condition
 ```
 
-## 主要欄位
+## Main Fields
 
-| 編輯器顯示 | 必填 | 說明 |
+| Editor Display | Required | Description |
 |---|---|---|
-| **Name** | 否 | 顯示名（多語系）；空白時 fallback 到 ID |
-| **Deck** | 是 | 卡牌清單與數量（`SpawnDeckData`） |
-| **Unlock** | 否 | 解鎖條件 |
+| **Name** | no | Display name (localized); falls back to ID when empty |
+| **Deck** | yes | Card list and counts (`SpawnDeckData`) |
+| **Unlock** | no | Unlock condition |
 
-## 行為說明
+## Behavior
 
 ### `SelectCard(setting)`
-按 `SelectCardSetting` 從牌組裡**順序**篩出第一張符合的卡（**非隨機**）；命中則 clone 成 `RCG_CardBattleData` 回傳。
+Filters the deck **in order** (not random) by `SelectCardSetting`, returning the first matching card; clones into `RCG_CardBattleData` and returns.
 
 ### `SelectCards(count, setting)`
-TODO：尚未實作（程式內 `// ToDo` 直接 return null）。
+TODO: not yet implemented (`// ToDo` returns null directly).
 
 ### `GetAllCards()`
-回傳整副牌組的 `RCG_CardGenData` 清單。
+Returns the deck's full `RCG_CardGenData` list.
 
 ### Tooltip Infos
-`Infos = m_Deck.Infos`：聚合所有卡上的狀態效果說明（例：「出血」、「燃燒」狀態解說）。
+`Infos = m_Deck.Infos`: aggregates all status effect descriptions on cards (e.g., "Bleed" / "Burn" status help).
 
-## 注意事項
+## Caveats
 
-*   **`SelectCards` 還沒實作**：要批量隨機抽卡，目前不能用此入口；需自己實作或走別的 utility。
-*   **預設 ID `Default` / `BackUp`**：`RCG_DeckGenData.DefaultID = "Default"`、`BackUpID = "BackUp"`——常作為「初始牌組」與「備用牌組」的命名約定。
+*   **`SelectCards` is unimplemented**: for batch random card draws, this entry is unusable; implement separately or use other utilities.
+*   **Default IDs `Default` / `BackUp`**: `RCG_DeckGenData.DefaultID = "Default"`, `BackUpID = "BackUp"` — common naming conventions for "starting deck" and "backup deck".
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## Appendix: Programmer Reference
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_DeckData.cs`
-*   **繼承自**：`RCG_Asset<RCG_DeckData>`
-*   **實作介面**：`RCGI_Unloackable`
-*   **AssetGroup**：`EditItems`
+### A.1 Class Info
+*   **File**: `CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_DeckData.cs`
+*   **Inherits**: `RCG_Asset<RCG_DeckData>`
+*   **Implements**: `RCGI_Unloackable`
+*   **AssetGroup**: `EditItems`
 
-### A.2 欄位對照
+### A.2 Field Mapping
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| Code Field | Editor Display | Type | Notes |
 |---|---|---|---|
 | `m_Name` | Name | `RCG_LocalizeData` | |
-| `m_Deck` | Deck | `SpawnDeckData` | 卡牌清單 + 配置 |
+| `m_Deck` | Deck | `SpawnDeckData` | card list + config |
 | `m_Unlock` | Unlock | `RCG_UnlockEntry` | |
 
-### A.3 重要 Method
+### A.3 Key Methods
 
-*   **`SelectCard(setting)`** — 按條件順序選一張，clone 成 `RCG_CardBattleData`。
-*   **`SelectCards(count, setting)`** — **未實作**（return null + TODO）。
-*   **`GetAllCards()`** — 全副牌列表。
-*   **`AllCardsName / Infos / LocalizedName`** — 顯示用屬性。
+*   **`SelectCard(setting)`** — picks the first card in order matching the setting; clones to `RCG_CardBattleData`.
+*   **`SelectCards(count, setting)`** — **unimplemented** (returns null + TODO).
+*   **`GetAllCards()`** — full deck list.
+*   **`AllCardsName / Infos / LocalizedName`** — display-related properties.
 
-### A.4 與其他系統的互動
+### A.4 System Interactions
 
-*   **`SpawnDeckData`** — 實際牌組容器。
-*   **`RCG_CardBattleData`** — 戰鬥用卡片實例。
-*   **`SelectCardSetting`** — 卡牌選擇規則。
-*   **`RCG_DeckGenData`** — Asset Entry；`Default` / `BackUp` 兩個常數 ID。
+*   **`SpawnDeckData`** — actual deck container.
+*   **`RCG_CardBattleData`** — battle card instance.
+*   **`SelectCardSetting`** — card selection rules.
+*   **`RCG_DeckGenData`** — Asset Entry; `Default` / `BackUp` two constant IDs.
 
-### A.5 已知議題
+### A.5 Known Issues
 
-*   `SelectCards` 尚未實作（`// ToDo`）。
+*   `SelectCards` not implemented (`// ToDo`).

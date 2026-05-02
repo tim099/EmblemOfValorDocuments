@@ -1,123 +1,117 @@
 ---
-title: 解鎖資料 (RCG_UnlockData) 說明
-description: 通用解鎖條件設定（卡牌 / 裝備 / 道具 / 技能 / 系統功能）；含商店解鎖與 Steam 成就串接
+title: Unlock Data (RCG_UnlockData)
+description: Generic unlock condition (cards / equipment / items / skills / system features) — supports blessing-shop unlock and Steam achievement bridge
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-en
 ---
 
-> [!WARNING]
-> Translation pending — this file needs an English translation.
-The original zh-Hant content is included below for reference.
+# Unlock Data
 
+> Class name: `RCG_UnlockData`
 
-# 解鎖資料
+## Purpose
 
-> 程式類別名稱：`RCG_UnlockData`
+**Generic unlock condition setting**. Multiple Assets (cards / equipment / items / skills / characters / bigmaps / decks / active powers) can reference the same `RCG_UnlockData` to share an unlock condition — e.g., "at level 5, unlock a starting set of cards and equipment" only needs one UnlockData; related Assets set `m_Unlock.ID = "Lv5_Unlock"`.
 
-## 用途
+Also supports "blessing shop unlock" (after meeting the condition, still must purchase with blessings) and "system feature unlock" (after unlock, enables features like Final Level / Ban Card / Camp Fire Enhancement, etc.).
 
-**通用的解鎖條件設定**。多個資料（卡牌 / 裝備 / 道具 / 技能 / 角色 / 大地圖 / 牌組 / 主動能力）可以引用同一個 `RCG_UnlockData` 共享解鎖條件——例如「達到 5 級時一次解鎖一組初級卡牌與裝備」只需建一個 UnlockData，相關資產 `m_Unlock.ID = "Lv5_Unlock"` 即可。
+Inherits from `RCG_Asset<RCG_UnlockData>`.
 
-也支援「祝福商店解鎖」（解鎖後仍要花祝福購買）與「系統功能解鎖」（解鎖後啟用最終關 / 禁卡 / 篝火強化等）。
-
-繼承自 `RCG_Asset<RCG_UnlockData>`。
-
-## 編輯器中的樣貌
+## Editor Layout
 
 ```
 RCG_UnlockData: <ID>
-    UnlockSetting       ← 解鎖條件本體（UnlockType: Level / SkillTagLevel / None / Tutorial / Achievement / Never）
-    IsBlessingShop      ← 是否透過祝福商店解鎖
-    IsHiddenInCodex     ← 圖鑑中隱藏
-    SystemUnlockItems   ← 解鎖此 Asset 時順便啟用的系統功能（FinalLevel / BanCard / Inheritance...）
+    UnlockSetting       ← unlock condition body (UnlockType: Level / SkillTagLevel / None / Tutorial / Achievement / Never)
+    IsBlessingShop      ← whether unlocked through blessing shop
+    IsHiddenInCodex     ← hide from codex
+    SystemUnlockItems   ← system features enabled when this Asset unlocks (FinalLevel / BanCard / Inheritance...)
 ```
 
-## 主要欄位
+## Main Fields
 
-| 編輯器顯示 | 必填 | 說明 |
+| Editor Display | Required | Description |
 |---|---|---|
-| **UnlockSetting** | 是 | 解鎖條件主設定 |
-| **IsBlessingShop** | — | true：解鎖條件達成後仍要在祝福商店購買才生效 |
-| **IsHiddenInCodex** | — | 圖鑑隱藏（不暴露未解鎖的物件名） |
-| **SystemUnlockItems** | 否 | 一同啟用的系統功能清單（`SystemUnlockItem` enum） |
+| **UnlockSetting** | yes | Main condition setting |
+| **IsBlessingShop** | — | true: condition met but still requires blessing-shop purchase to take effect |
+| **IsHiddenInCodex** | — | Codex hidden (avoid leaking unlock targets' names) |
+| **SystemUnlockItems** | no | List of system features to enable (`SystemUnlockItem` enum) |
 
-`UnlockSetting` 內含：
+`UnlockSetting` contains:
 
-| 子欄位 | 說明 |
+| Sub-field | Description |
 |---|---|
-| **UnlockType** | `Level`（玩家等級）/ `SkillTagLevel`（職業等級）/ `None`（直接解鎖）/ `Tutorial`（通教學）/ `Achievement`（特定成就）/ `Never`（永不解鎖） |
-| **SkillTag** | UnlockType=SkillTagLevel 時的職業 |
-| **UnlockLevel** | UnlockType=Level/SkillTagLevel 時的等級門檻 |
-| **Achievement** | UnlockType=Achievement 時的成就 ID |
+| **UnlockType** | `Level` (player level) / `SkillTagLevel` (class level) / `None` (auto-unlock) / `Tutorial` (clear tutorial) / `Achievement` (specific achievement) / `Never` |
+| **SkillTag** | when UnlockType=SkillTagLevel: the class |
+| **UnlockLevel** | when UnlockType=Level/SkillTagLevel: level threshold |
+| **Achievement** | when UnlockType=Achievement: achievement ID |
 
-## 行為說明
+## Behavior
 
 ### `CheckUnlock()` (static)
-掃所有 UnlockData：
-1. 已在 `RCG_GameRecord.UnlockRecords` 內 → 跳過。
-2. `UnlockType.None` → 直接記錄解鎖 + 套用 `SystemUnlockItems`，但不彈窗顯示。
-3. 其他類型：`!IsLocked()` → 記錄 + 套用 SystemUnlockItems；非祝福商店物品則加入回傳 set（讓上層彈解鎖通知）。
-回傳「本次新解鎖且非祝福商店的 ID 集合」，供 UI 顯示「新解鎖物品」。
+Scans all UnlockData:
+1. Already in `RCG_GameRecord.UnlockRecords` → skip.
+2. `UnlockType.None` → directly record unlock + apply `SystemUnlockItems`, but no popup notification.
+3. Else: `!IsLocked()` → record + apply SystemUnlockItems; non-blessing-shop items added to return set (for upper-layer popup).
+Returns "set of newly unlocked, non-blessing-shop IDs" for UI to display "newly unlocked items".
 
 ### `GetUnloackables<T>(id)` (generic static)
-查所有實作 `RCGI_Unloackable` 的 Asset 中 `UnlockEntry.ID == id` 的；用於本 UnlockData 對應到哪些卡牌 / 裝備 / 道具 / 技能 / 角色 / 大地圖 / 牌組 / 主動能力。
+Queries all `RCGI_Unloackable` Assets where `UnlockEntry.ID == id`; used to find which cards / equipment / items / skills / characters / bigmaps / decks / active powers correspond to this UnlockData.
 
 ### `IsLocked()` (UnlockSetting)
-*   `Level` → 玩家等級 < `m_UnlockLevel`。
-*   `SkillTagLevel` → 對應職業等級 < `m_UnlockLevel`。
-*   `None` → false（已解鎖）。
-*   `Tutorial` → true（這層永遠回 true，實際解鎖判斷在 GameRecord 的 Tutorial 集合）。
-*   `Achievement` → 該成就未解鎖。
-*   `Never` → true。
+*   `Level` → player level < `m_UnlockLevel`.
+*   `SkillTagLevel` → corresponding class level < `m_UnlockLevel`.
+*   `None` → false (already unlocked).
+*   `Tutorial` → true (this layer always returns true; actual unlock check happens in GameRecord's Tutorial set).
+*   `Achievement` → that achievement not unlocked.
+*   `Never` → true.
 
-### Editor 預覽
-分四類顯示對應的 unlockable：CardData / ItemData / EquipmentData / UnitSkillData，可分頁切換。BigMap / Character 略過。
+### Editor Preview
+Shows four categories of unlockables: CardData / ItemData / EquipmentData / UnitSkillData, paginated. BigMap / Character omitted.
 
-## 注意事項
+## Caveats
 
-*   **`Tutorial` UnlockType 在 IsLocked 永遠回 true**：實際解鎖路徑走 `RCG_GameRecord.Ins.UnlockedCharacters` 等記錄，不靠 `IsLocked`。
-*   **`IsBlessingShop = true` 的解鎖**有兩階段：條件達成 → 解鎖商店上架；玩家購買 → 真正可用（記錄在 `RCG_GameRecord.UnlockedCards / UnlockedItems / UnlockedEquipments`）。
-*   **`SystemUnlockItems` 是 enum 寫死**：FinalLevel / BanCard / Inheritance LV1/2 / RestPointEnhancement LV1/2 / Blessing_Shop LV1/2/3 / Secret_Base，新增功能要改 enum + 程式對應點。
-*   **Disabled 解鎖**：`UnlockEditor` 提供把已解鎖的記錄「禁用」的開關，加入 `DisabledUnlockRecord` 集合（debug / 測試用）。
+*   **`Tutorial` UnlockType always returns true in IsLocked**: actual unlock path goes through `RCG_GameRecord.Ins.UnlockedCharacters` etc., not `IsLocked`.
+*   **`IsBlessingShop = true` unlocks have two stages**: condition met → unlocks shop listing; player purchase → actually usable (recorded in `RCG_GameRecord.UnlockedCards / UnlockedItems / UnlockedEquipments`).
+*   **`SystemUnlockItems` is a hardcoded enum**: FinalLevel / BanCard / Inheritance LV1/2 / RestPointEnhancement LV1/2 / Blessing_Shop LV1/2/3 / Secret_Base; adding features requires changing enum + program code.
+*   **Disabled unlock**: `UnlockEditor` provides a toggle to disable unlocked records, adding to the `DisabledUnlockRecord` set (debug / test use).
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## Appendix: Programmer Reference
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_UnlockData.cs`
-*   **繼承自**：`RCG_Asset<RCG_UnlockData>`
-*   **AssetGroup**：`EditGameSetting`
+### A.1 Class Info
+*   **File**: `CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_UnlockData.cs`
+*   **Inherits**: `RCG_Asset<RCG_UnlockData>`
+*   **AssetGroup**: `EditGameSetting`
 
-### A.2 欄位對照
+### A.2 Field Mapping
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| Code Field | Editor Display | Type | Notes |
 |---|---|---|---|
-| `m_UnlockSetting` | UnlockSetting | `UnlockSetting` | 條件主設定 |
+| `m_UnlockSetting` | UnlockSetting | `UnlockSetting` | main condition setting |
 | `m_IsBlessingShop` | IsBlessingShop | `bool` | |
 | `m_IsHiddenInCodex` | IsHiddenInCodex | `bool` | |
-| `m_SystemUnlockItems` | SystemUnlockItems | `List<SystemUnlockItem>` | enum：10 種系統功能 |
+| `m_SystemUnlockItems` | SystemUnlockItems | `List<SystemUnlockItem>` | enum: 10 system features |
 
-### A.3 重要 Method
+### A.3 Key Methods
 
-*   **`CheckUnlock()` (static)** — 掃描全 UnlockData 並更新解鎖紀錄。
-*   **`GetUnloackables<T>(id)` (generic static)** — 對應引用此 UnlockData 的所有 Asset。
-*   **`GetLockedCards / GetLockedEquipments / ... ` (instance)** — 各類型的快捷查詢。
-*   **`UnlockSetting.IsLocked()`** — 條件判斷。
-*   **`UnlockSetting.GetShortName()`** — 自動生成解鎖描述字串。
-*   **`RCG_UnlockEntry.Unlocked / IsShopItem / Name / UnlockType`** — 引用此資料的 entry 的 helper。
+*   **`CheckUnlock()` (static)** — scans all UnlockData and updates unlock records.
+*   **`GetUnloackables<T>(id)` (generic static)** — finds Assets referencing this UnlockData.
+*   **`GetLockedCards / GetLockedEquipments / ... ` (instance)** — quick queries by type.
+*   **`UnlockSetting.IsLocked()`** — condition check.
+*   **`UnlockSetting.GetShortName()`** — auto-generates unlock description string.
+*   **`RCG_UnlockEntry.Unlocked / IsShopItem / Name / UnlockType`** — entry helpers for referencing this data.
 
-### A.4 與其他系統的互動
+### A.4 System Interactions
 
-*   **`RCG_GameRecord.Ins.UnlockRecords`** — 已解鎖紀錄集。
-*   **`RCG_GameRecord.UnlockedCards / UnlockedItems / UnlockedEquipments / UnlockedCharacters`** — 商店購買紀錄。
-*   **`RCG_GameAchievement.Ins.IsAchievementUnlocked`** — Achievement 類型解鎖檢查。
-*   **`RCG_GameRecord.DisabledUnlockRecord`** — debug 禁用解鎖。
-*   **`RCG_DataService.Ins.m_GameData.m_UnlockedSystemUnlocks`** — 系統功能解鎖紀錄。
-*   **`UCLI_Asset.GetUtilByType`** — 反射取對應型別的 Asset Util。
+*   **`RCG_GameRecord.Ins.UnlockRecords`** — unlocked record set.
+*   **`RCG_GameRecord.UnlockedCards / UnlockedItems / UnlockedEquipments / UnlockedCharacters`** — shop purchase records.
+*   **`RCG_GameAchievement.Ins.IsAchievementUnlocked`** — Achievement type unlock check.
+*   **`RCG_GameRecord.DisabledUnlockRecord`** — debug-disabled unlocks.
+*   **`RCG_DataService.Ins.m_GameData.m_UnlockedSystemUnlocks`** — system feature unlock record.
+*   **`UCLI_Asset.GetUtilByType`** — reflective fetch of corresponding type's Asset Util.
 
-### A.5 已知議題
+### A.5 Known Issues
 
-*   `// TODO: Add Deck QWQ234!!` — 預覽 UI 漏了 Deck / Character 兩類，列舉不完整。
-*   `RCG_ShopUnlockData` / `CommonItemGenData` 是同檔的輔助結構，與 RCG_UnlockData 配合使用。
+*   `// TODO: Add Deck QWQ234!!` — preview UI omits Deck / Character categories; enumeration incomplete.
+*   `RCG_ShopUnlockData` / `CommonItemGenData` are same-file helpers used with RCG_UnlockData.

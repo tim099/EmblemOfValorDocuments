@@ -1,63 +1,57 @@
 ---
-title: Runtime 腳本 (RCG_RuntimeScriptData) 說明
-description: 把一段邏輯腳本（RCG_RuntimeScript）打包成 Asset，可被多處引用
+title: Runtime Script (RCG_RuntimeScriptData)
+description: Bundles a logic script (RCG_RuntimeScript) into an Asset, reusable from many places
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-en
 ---
 
-> [!WARNING]
-> Translation pending — this file needs an English translation.
-The original zh-Hant content is included below for reference.
+# Runtime Script
 
+> Class name: `RCG_RuntimeScriptData`
 
-# Runtime 腳本
+## Purpose
 
-> 程式類別名稱：`RCG_RuntimeScriptData`
+**Bundles an `RCG_RuntimeScript` logic script into an Asset**. Lets multiple places reuse the same logic without copy-paste (e.g., "common death sequence", "conditional check script").
 
-## 用途
+Inherits from `RCG_Asset<RCG_RuntimeScriptData>`.
 
-**把一段 `RCG_RuntimeScript` 邏輯腳本打包成 Asset**。讓多處可重用同一段邏輯而不必複製貼上（例如「死亡時觸發的通用流程」「某條件下執行的判斷腳本」）。
-
-繼承自 `RCG_Asset<RCG_RuntimeScriptData>`。
-
-## 編輯器中的樣貌
+## Editor Layout
 
 ```
 RCG_RuntimeScriptData: <ID>
-    RuntimeScript    ← 實際的腳本內容（RCG_RuntimeScript）
+    RuntimeScript    ← actual script content (RCG_RuntimeScript)
 ```
 
-## 主要欄位
+## Main Fields
 
-| 編輯器顯示 | 必填 | 說明 |
+| Editor Display | Required | Description |
 |---|---|---|
-| **RuntimeScript** | 是 | 實際的腳本（`RCG_RuntimeScript`，含節點、變數、執行順序等） |
+| **RuntimeScript** | yes | Actual script (`RCG_RuntimeScript`, with nodes, variables, execution order, etc.) |
 
-## 行為說明
+## Behavior
 
-本檔本身只是個容器；所有邏輯都在 `RCG_RuntimeScript` 裡。
+This file is just a container; all logic is in `RCG_RuntimeScript`.
 
-## 注意事項
+## Caveats
 
-*   **Preview 只顯示 ID**：要看實際內容必須開編輯按鈕進入腳本編輯器。
-*   **`RCG_RuntimeScript` 的具體結構**請參考程式內定義（不在此資料的職責內）。
+*   **Preview shows only ID**: viewing actual content requires opening the script editor via the edit button.
+*   **`RCG_RuntimeScript`'s exact structure** is in the program code (not this Asset's responsibility).
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## Appendix: Programmer Reference
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RuntimeData/RCG_RuntimeScriptData.cs`
-*   **繼承自**：`RCG_Asset<RCG_RuntimeScriptData>`
-*   **AssetGroup**：`Runtime`
+### A.1 Class Info
+*   **File**: `CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RuntimeData/RCG_RuntimeScriptData.cs`
+*   **Inherits**: `RCG_Asset<RCG_RuntimeScriptData>`
+*   **AssetGroup**: `Runtime`
 
-### A.2 欄位對照
+### A.2 Field Mapping
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| Code Field | Editor Display | Type | Notes |
 |---|---|---|---|
 | `m_RuntimeScript` | RuntimeScript | `RCG_RuntimeScript` | |
 
-### A.3 與其他系統的互動
+### A.3 System Interactions
 
-*   **`RCG_RuntimeScript`** — 實際腳本內容。
+*   **`RCG_RuntimeScript`** — actual script content.

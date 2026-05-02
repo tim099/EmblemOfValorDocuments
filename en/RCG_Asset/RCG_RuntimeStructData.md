@@ -1,117 +1,111 @@
 ---
-title: Runtime 結構定義 (RCG_RuntimeStructData) 說明
-description: RCG_RuntimeData 用的「型別表」：定義 Int/Float/String/Bool/Json/Enum/Struct/List/Dic 結構
+title: Runtime Struct Data (RCG_RuntimeStructData)
+description: "Type table" used by RCG_RuntimeData — defines Int / Float / String / Bool / Json / Enum / Struct / List / Dic structures
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-en
 ---
 
-> [!WARNING]
-> Translation pending — this file needs an English translation.
-The original zh-Hant content is included below for reference.
+# Runtime Struct Data
 
+> Class name: `RCG_RuntimeStructData`
 
-# Runtime 結構定義
+## Purpose
 
-> 程式類別名稱：`RCG_RuntimeStructData`
+**The "type definition table" used by `RCG_RuntimeData`**. When the system needs to dynamically define data structures (without C# classes, using data instead), this is where you build a Struct: which fields, what types each is. Example: a "player run state" Struct can contain `Score: Int / IsBoss: Bool / Inventory: List<Item>`.
 
-## 用途
+Inherits from `RCG_Asset<RCG_RuntimeStructData>`.
 
-**`RCG_RuntimeData` 使用的「型別定義表」**。系統需要動態定義資料結構時（不靠 C# 的 class 而靠資料），就在這裡建一個 Struct 描述：欄位有哪些、各自是什麼型別。例如「玩家本局狀態」這個 Struct 可以含 `Score: Int / IsBoss: Bool / Inventory: List<Item>`。
-
-繼承自 `RCG_Asset<RCG_RuntimeStructData>`。
-
-## 編輯器中的樣貌
+## Editor Layout
 
 ```
 RCG_RuntimeStructData: <ID>
     StructType  ▾ Int / Float / String / Bool / Json / Enum / Struct / Dic / List
-    Name(多國語言)
-    Fields       (StructType=Struct)  ← 各欄位定義 dic：name → struct type ref
-    ElementType  (StructType=List/Dic) ← 元素型別 ref
-    Enums        (StructType=Enum)     ← enum 值列表
+    Name(localized)
+    Fields       (StructType=Struct)  ← per-field dict: name → struct type ref
+    ElementType  (StructType=List/Dic) ← element type ref
+    Enums        (StructType=Enum)     ← enum value list
 ```
 
-## 主要欄位
+## Main Fields
 
-| 編輯器顯示 | 必填 | 說明 |
+| Editor Display | Required | Description |
 |---|---|---|
-| **StructType** | 是 | 9 種型別：5 種原始型別（Int/Float/String/Bool/Json）+ Enum + Struct + List + Dic |
-| **Name** | 否 | 顯示名（多語系） |
-| **Fields** | StructType=Struct | 結構欄位 dic：欄位名 → 對另一個 RuntimeStructData 的引用 |
-| **ElementType** | StructType=List/Dic | 元素型別引用 |
-| **Enums** | StructType=Enum | 列舉值的字串列表 |
+| **StructType** | yes | 9 types: 5 primitives (Int/Float/String/Bool/Json) + Enum + Struct + List + Dic |
+| **Name** | no | Display name (localized) |
+| **Fields** | when StructType=Struct | Struct field dict: name → reference to another RuntimeStructData |
+| **ElementType** | when StructType=List/Dic | Element type reference |
+| **Enums** | when StructType=Enum | List of enum value strings |
 
-## 行為說明
+## Behavior
 
-### 預設原始型別自動產生 (`PrimitiveDic`)
-5 種原始型別會在第一次存取時懶建：`{ "Int": ..., "Float": ..., "String": ..., "Bool": ..., "Json": ... }`。**它們不需要手動建 Asset**，使用時直接引用 ID `"Int"` / `"Float"` 等即可。
+### Default Primitive Types (`PrimitiveDic`)
+The 5 primitive types are lazily built on first access: `{ "Int": ..., "Float": ..., "String": ..., "Bool": ..., "Json": ... }`. **You don't need to manually create Assets for these** — just reference IDs `"Int"` / `"Float"` etc.
 
-### 泛型字串解析 (`CreateData`)
-ID 帶尖括號（如 `"List<Int>"` 或 `"Dic<String,Float>"`）時自動解析：
-*   切出 StructType 字串（List / Dic）。
-*   切出 element type 字串（取最後一個逗號後）。
-*   建立並 cache 到 `GenericDic`。
+### Generic String Parsing (`CreateData`)
+When the ID has angle brackets (e.g., `"List<Int>"` or `"Dic<String,Float>"`), it auto-parses:
+*   Splits the StructType string (List / Dic).
+*   Splits the element type string (after the last comma).
+*   Builds and caches into `GenericDic`.
 
-### 預覽 (`PreviewData`)
-依 StructType 用對應 UI 繪製資料；遞迴展開 Struct / List / Dic。
+### Preview (`PreviewData`)
+Renders data per StructType in the corresponding UI; recursively expands Struct / List / Dic.
 
-### 編輯 (`DataOnGUI`)
-依 StructType 繪製對應的編輯介面（IntField / NumField / TextArea / BoolField / Popup / 巢狀資料展開等）。
+### Editing (`DataOnGUI`)
+Renders the corresponding edit UI per StructType (IntField / NumField / TextArea / BoolField / Popup / nested data, etc.).
 
-### Json 序列化 (`SerializeDataToJson` / `DeserializeDataFromJson`)
-全結構支援 JSON 來回轉換；遞迴處理 Struct/List/Dic。
+### JSON Serialization (`SerializeDataToJson` / `DeserializeDataFromJson`)
+Full structure supports JSON round-trip; recursively handles Struct/List/Dic.
 
-### 資料變動偵測
-`DataOnGUI` 用 `iDataDic[PrevDataKey]` 比對當前資料；不一致就清掉 GUI 子 dic（避免 IntField cache 殘留錯誤輸入）。
+### Data-Change Detection
+`DataOnGUI` uses `iDataDic[PrevDataKey]` to compare current data; on mismatch, clears the GUI sub-dict (avoids stale IntField cache from wrong input).
 
-## 注意事項
+## Caveats
 
-*   **`Event` 型別已被註解**（程式內 `// Event,`）：曾規劃但未實作。
-*   **原始型別 Asset 不要手動建**：用 `PrimitiveDic` 自動懶建即可，手動建會跟自動產生的衝突。
-*   **List / Dic 的泛型語法**：用 `"List<元素型別ID>"` / `"Dic<KeyID,ValueID>"`（其中 Key 目前只支援 String，第一個值會被忽略只讀最後一個）。
-*   **遞迴上限 10 層**：`CreateData(layer)` 防無限遞迴；過深的巢狀 struct 會回 null。
-*   **修改 Struct 的 Fields**：原本資料不會自動遷移；改 schema 後舊資料的 dictionary 可能保留多餘 key 或缺漏 key。
+*   **`Event` type commented out** (in code: `// Event,`): once planned, never implemented.
+*   **Don't manually create Assets for primitive types**: `PrimitiveDic` lazy-builds them; manual creation conflicts with auto-generated.
+*   **Generic syntax for List / Dic**: use `"List<ElementTypeID>"` / `"Dic<KeyID,ValueID>"` (Key only supports String currently; the first value is ignored, only the last is read).
+*   **Recursion cap of 10**: `CreateData(layer)` prevents infinite recursion; deeply nested structs return null.
+*   **Modifying Struct's Fields**: existing data isn't auto-migrated; after changing schema, old data dictionaries may have stale keys or missing keys.
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## Appendix: Programmer Reference
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RuntimeData/RCG_RuntimeStructData.cs`
-*   **繼承自**：`RCG_Asset<RCG_RuntimeStructData>`
-*   **AssetGroup**：`Runtime`
-*   **常數**：`s_PrimitiveTypes` = 5 種；`GenericTypeDic` = List/Dic（dic 的元素型別數）
+### A.1 Class Info
+*   **File**: `CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RuntimeData/RCG_RuntimeStructData.cs`
+*   **Inherits**: `RCG_Asset<RCG_RuntimeStructData>`
+*   **AssetGroup**: `Runtime`
+*   **Constants**: `s_PrimitiveTypes` = 5 types; `GenericTypeDic` = List/Dic (Dic's element type count)
 
-### A.2 欄位對照
+### A.2 Field Mapping
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| Code Field | Editor Display | Type | Notes |
 |---|---|---|---|
-| `m_StructType` | StructType | `StructType` enum | 9 種 |
+| `m_StructType` | StructType | `StructType` enum | 9 types |
 | `m_Name` | Name | `RCG_LocalizeData` | |
 | `m_Fields` | Fields | `Dictionary<string, RCG_RuntimeStructGenData>` | `Conditional(Struct)` |
 | `m_ElementType` | ElementType | `RCG_RuntimeStructGenData` | `Conditional(List/Dic)` |
 | `m_Enums` | Enums | `List<string>` | `Conditional(Enum)` |
 
-### A.3 重要 Method 摘要
+### A.3 Key Methods
 
-*   **`PrimitiveDic` / `GenericDic` (static)** — 懶建快取。
-*   **`GetAllIDs(useCache)`** — 含 primitives + generics + base IDs。
-*   **`CreateData(string)` (override)** — 含泛型字串解析。
-*   **`CreateData(int layer = 0)` (instance)** — 建初始值（含遞迴上限）。
-*   **`DataOnGUI(data, fieldName, dataDic)`** — 主編輯介面，按 StructType 分流。
-*   **`PreviewData(data, fieldName)`** — 主預覽。
-*   **`SerializeDataToJson / DeserializeDataFromJson`** — JSON 來回。
-*   **`GetRuntimeObject(obj, key/int)` / `SetData(obj, key/int, val)` / `GetList / GetDictionary / GetFields / GetFieldInfo`** — 給外部存取資料的 helper。
+*   **`PrimitiveDic` / `GenericDic` (static)** — lazy-built caches.
+*   **`GetAllIDs(useCache)`** — primitives + generics + base IDs.
+*   **`CreateData(string)` (override)** — includes generic string parsing.
+*   **`CreateData(int layer = 0)` (instance)** — build initial value (with recursion cap).
+*   **`DataOnGUI(data, fieldName, dataDic)`** — main edit UI; branches by StructType.
+*   **`PreviewData(data, fieldName)`** — main preview.
+*   **`SerializeDataToJson / DeserializeDataFromJson`** — JSON round-trip.
+*   **`GetRuntimeObject(obj, key/int)` / `SetData(obj, key/int, val)` / `GetList / GetDictionary / GetFields / GetFieldInfo`** — helpers for external data access.
 
-### A.4 與其他系統的互動
+### A.4 System Interactions
 
-*   **`RCG_RuntimeData`** — 引用此型別的 Asset。
-*   **`RCG_RuntimeObject`** — 動態值容器。
-*   **`RCG_RuntimeStructGenData`** — Asset Entry 包裝；含 `GenericTypeLeft = '<'` 等常數。
+*   **`RCG_RuntimeData`** — Asset that references this type.
+*   **`RCG_RuntimeObject`** — dynamic value container.
+*   **`RCG_RuntimeStructGenData`** — Asset Entry; includes constants like `GenericTypeLeft = '<'`.
 
-### A.5 已知議題
+### A.5 Known Issues
 
-*   `Event` 型別在 enum 中註解，存在但不會被使用。
-*   `IsNone` 只判斷 Struct 類型的 Fields 為空；其他類型不會被視為 None。
-*   `CreateData` 的泛型解析僅取**最後一個** type 參數（適用 Dic 但未來若擴展可能改）。
+*   `Event` in the enum is commented out; declared but unused.
+*   `IsNone` only checks empty Fields for Struct type; other types never count as None.
+*   `CreateData`'s generic parsing only takes the **last** type parameter (works for Dic, may need future extension).
