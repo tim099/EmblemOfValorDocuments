@@ -1,88 +1,70 @@
 ---
-title: RCG_UnitSkillDropPool 說明
-description: <!-- TODO: 一句話功能摘要 -->
+title: 單位技能掉落池 (RCG_UnitSkillDropPool) 說明
+description: 定義「升級時可抽到哪些單位技能」的資料；角色升級、技能解鎖選單背後的池子
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
 ---
 
-# RCG_UnitSkillDropPool
+# 單位技能掉落池
 
 > 程式類別名稱：`RCG_UnitSkillDropPool`
 
 ## 用途
 
-<!-- TODO: 描述這個 Asset 在遊戲裡負責什麼、什麼情境會用、舉 1-2 個範例。 -->
+定義「**升級或選擇技能時，會抽到哪些 `RCG_UnitSkillData`**」。例如角色升級時會給玩家三選一的技能候選，這些候選就從某個 `RCG_UnitSkillDropPool` 抽。
 
-繼承自 `RCG_Asset<RCG_UnitSkillDropPool>`，實作介面：`UCL.Core.UCLI_ShortName`
+繼承自 `RCG_Asset<RCG_UnitSkillDropPool>`，實作介面：`UCL.Core.UCLI_ShortName`。
 
 ## 編輯器中的樣貌
 
 ```
-<!-- TODO: 描繪此 Asset 在編輯器內的版面 -->
+RCG_UnitSkillDropPool: <ID>
+    DropType  ▾ DropPool / MixPool / FilterDrop
+    ▼ DropPool / MixDropPools / FilterDropData
 ```
 
 ## 主要欄位
 
 | 編輯器顯示 | 必填 | 說明 |
 |---|---|---|
-| **DropPool** | — | <!-- TODO: 說明欄位用途 --> |
-| **FilterType** | — | <!-- TODO: 說明欄位用途 --> |
-| **SkillTag** | — | <!-- TODO: 說明欄位用途 --> |
-| **Tag** | — | <!-- TODO: 說明欄位用途 --> |
-| **OperatorType** | — | <!-- TODO: 說明欄位用途 --> |
-| **Filters** | — | <!-- TODO: 說明欄位用途 --> |
-| **IsInvert** | — | <!-- TODO: 說明欄位用途 --> |
-| **Name** | — | <!-- TODO: 說明欄位用途 --> |
-| **DropPool** | — | <!-- TODO: 說明欄位用途 --> |
-| **MixDropPools** | — | <!-- TODO: 說明欄位用途 --> |
-| **FilterDropData** | — | <!-- TODO: 說明欄位用途 --> |
-| **DropType** | — | <!-- TODO: 說明欄位用途 --> |
+| **DropType** | 是 | `DropPool` / `MixPool` / `FilterDrop` |
+| **DropPool** | DropType=DropPool | 技能清單 + 權重 |
+| **MixDropPools** | DropType=MixPool | 混合其他池子 |
+| **FilterDropData** | DropType=FilterDrop | 用內部 `DropFilter` 篩 |
 
 ## 行為說明
 
-<!-- TODO: 戰鬥 / 載入 / 解鎖時的觸發時機與順序。 -->
+與其他 Drop Pool 同骨架。
 
 ## 注意事項
 
-<!-- TODO: 常見的設計反模式 / 容易踩到的坑。 -->
+*   enum 名稱叫 `UnitSkillDropType`（沒有 `E` 前綴也沒叫 `DropType`），與其他 Drop Pool 命名不一致；歷史遺留差異。
+*   結構與 `RCG_CardDropPool` 類似，差異只在掉落目標換成 `RCG_UnitSkillData`。
 
 ---
 
 ## 附錄：程式人員參考 (Programmer Reference)
 
-> 此段以下使用程式內部術語，受眾轉為程式人員與 AI agent。前半段內容請優先採信。
-
 ### A.1 類別資訊
-
 *   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_DropSettings/RCG_UnitSkillDropPool.cs`
-*   **繼承自**：`RCG_Asset<RCG_UnitSkillDropPool>, UCL.Core.UCLI_ShortName`
-*   **實作介面**：`UCL.Core.UCLI_ShortName`
+*   **繼承自**：`RCG_Asset<RCG_UnitSkillDropPool>`
+*   **AssetGroup**：`EditDropSetting`
 
-### A.2 欄位對照（自動產生，需人工複核）
+### A.2 欄位對照
 
-| 程式欄位 | 編輯器顯示 | 型別 | Localize Key | 備註 |
-|---|---|---|---|---|
-| `m_DropPool` | DropPool | `RCG_UnitSkillDropPoolGenData` | `DropPool` | |
-| `m_FilterType` | FilterType | `FilterType` | `FilterType` | |
-| `m_SkillTag` | SkillTag | `RCG_SkillTagGenData` | `SkillTag` | UCL.Core.PA.Conditional(nameof(m_FilterType), false, FilterType.SkillTag) |
-| `m_Tag` | Tag | `RCG_ItemTagGenData` | `Tag` | UCL.Core.PA.Conditional(nameof(m_FilterType), false, FilterType.Tag) |
-| `m_OperatorType` | OperatorType | `OperatorType` | `OperatorType` | UCL.Core.PA.Conditional(nameof(m_FilterType), false, FilterType.Operator) |
-| `m_Filters` | Filters | `List<DropFilter>` | `Filters` | UCL.Core.PA.Conditional(nameof(m_FilterType), false, FilterType.Operator) |
-| `m_IsInvert` | IsInvert | `bool` | `IsInvert` | |
-| `m_Name` | Name | `RCG_LocalizeData` | `Name` | |
-| `m_DropPool` | DropPool | `RCG_CommonDropSetting<RCG_UnitSkillGenData>` | `DropPool` | UCL.Core.PA.Conditional(nameof(m_DropType), false, UnitSkillDropType.DropPool) |
-| `m_MixDropPools` | MixDropPools | `List<MixDropPoolData>` | `MixDropPools` | UCL.Core.PA.Conditional(nameof(m_DropType), false, UnitSkillDropType.MixPool) |
-| `m_FilterDropData` | FilterDropData | `FilterDropData` | `FilterDropData` | UCL.Core.PA.Conditional(nameof(m_DropType), false, UnitSkillDropType.FilterDrop) |
-| `m_DropType` | DropType | `UnitSkillDropType` | `DropType` | |
+| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+|---|---|---|---|
+| `m_DropPool` | 掉落池 | `RCG_CommonDropSetting<RCG_UnitSkillGenData>` | `Conditional(DropPool)` |
+| `m_MixDropPools` | 混合池 | `List<MixDropPoolData>` | `Conditional(MixPool)` |
+| `m_FilterDropData` | 條件式 | `FilterDropData` | `Conditional(FilterDrop)` |
+| `m_DropType` | DropType | `UnitSkillDropType` enum | 預設 `DropPool` |
 
-### A.3 重要 Method 摘要
+### A.3 重要 Method
 
-<!-- TODO: 補上影響行為的關鍵 method（OnGUI / Preview / 序列化覆寫等）。 -->
+*   **`GetDrops(int)`** / **`GetDropsWithFilterFunc(int, Func)`** — 抽 N 個技能。
+*   **`GetDropRate(...)`** — 標準化權重表。
 
 ### A.4 與其他系統的互動
 
-<!-- TODO: 列出依賴 / 被依賴的類別與系統。 -->
-
-### A.5 已知議題（選填）
-
-<!-- TODO: TODO/FIXME 摘錄、待重構點。 -->
+*   **`RCG_UnitSkillData`** — 掉落目標。
+*   **`RCG_UnitSkillGenData`** / **`RCG_UnitSkillDropPoolGenData`** — Asset Entry 包裝。

@@ -1,48 +1,53 @@
 ---
-title: RCG_QuestDropPool 說明
-description: <!-- TODO: 一句話功能摘要 -->
+title: 任務/事件掉落池 (RCG_QuestDropPool) 說明
+description: 定義「在某情境下會觸發哪些事件 (RCG_QuestData)」的資料；地圖節點、隨機事件來源
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
 ---
 
-# RCG_QuestDropPool
+# 任務/事件掉落池
 
 > 程式類別名稱：`RCG_QuestDropPool`
 
 ## 用途
 
-<!-- TODO: 描述這個 Asset 在遊戲裡負責什麼、什麼情境會用、舉 1-2 個範例。 -->
+定義「**這個情境下可能觸發哪些事件 (Quest)**」。例如「中型城鎮」「森林神祕節點」「夜晚遭遇」分別是不同池，池內列出可能的 `RCG_QuestData`（每個 Quest 是一段事件腳本：對話、選擇、結果）+ 權重。
 
-繼承自 `RCG_Asset<RCG_QuestDropPool>`，實作介面：`UCL.Core.UCLI_ShortName`
+繼承自 `RCG_Asset<RCG_QuestDropPool>`，實作介面：`UCL.Core.UCLI_ShortName`。
 
 ## 編輯器中的樣貌
 
 ```
-<!-- TODO: 描繪此 Asset 在編輯器內的版面 -->
+RCG_QuestDropPool: <ID>
+    DropType  ▾ DropPool / MixPool / FilterDrop
+    ▼ DropPool / MixDropPools / FilterDropData
 ```
 
 ## 主要欄位
 
 | 編輯器顯示 | 必填 | 說明 |
 |---|---|---|
-| **DropPool** | — | <!-- TODO: 說明欄位用途 --> |
-| **FilterType** | — | <!-- TODO: 說明欄位用途 --> |
-| **Tag** | — | <!-- TODO: 說明欄位用途 --> |
-| **OperatorType** | — | <!-- TODO: 說明欄位用途 --> |
-| **Filters** | — | <!-- TODO: 說明欄位用途 --> |
-| **IsInvert** | — | <!-- TODO: 說明欄位用途 --> |
-| **DropPool** | — | <!-- TODO: 說明欄位用途 --> |
-| **MixDropPools** | — | <!-- TODO: 說明欄位用途 --> |
-| **FilterDropData** | — | <!-- TODO: 說明欄位用途 --> |
-| **DropType** | — | <!-- TODO: 說明欄位用途 --> |
+| **DropType** | 是 | `DropPool` / `MixPool` / `FilterDrop` |
+| **DropPool** | DropType=DropPool | 事件清單 + 權重 |
+| **MixDropPools** | DropType=MixPool | 引用其他池子並指定權重 |
+| **FilterDropData** | DropType=FilterDrop | 用內部 `DropFilter`（FilterType: Tag / Operator）篩 |
 
 ## 行為說明
 
-<!-- TODO: 戰鬥 / 載入 / 解鎖時的觸發時機與順序。 -->
+### 三種模式
+與其他 Drop Pool 同。FilterDrop 只支援「事件標籤」單一維度。
+
+### 隱性篩選
+本類別**沒有 unlock 篩選**——預設 filter 永遠 return true（程式內有註解掉的「不連續觸發相同事件」邏輯，目前未啟用）。
+
+### 預覽
+按 `ShowDetail` 即時看當前掉落率。
 
 ## 注意事項
 
-<!-- TODO: 常見的設計反模式 / 容易踩到的坑。 -->
+*   **`enum DropType` 不是 `EDropType`**：與 BattleSetDropPool / ItemDropPool 等命名不一致；這是歷史遺留差異。
+*   **無 Name 欄位**：`GetShortName()` 直接取第一個 drop 的名稱。
+*   **沒有自動清理失效 ID 的 `DeserializeFromJson` override**——壞 ID 不會自動消失，需要手動修。
 
 ---
 
@@ -53,32 +58,32 @@ target_audience: [Designer, Modder, AI_Agent]
 ### A.1 類別資訊
 
 *   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_DropSettings/RCG_QuestDropPool.cs`
-*   **繼承自**：`RCG_Asset<RCG_QuestDropPool>, UCL.Core.UCLI_ShortName`
+*   **繼承自**：`RCG_Asset<RCG_QuestDropPool>`
 *   **實作介面**：`UCL.Core.UCLI_ShortName`
+*   **AssetGroup**：`EditDropSetting`
 
-### A.2 欄位對照（自動產生，需人工複核）
+### A.2 欄位對照
 
 | 程式欄位 | 編輯器顯示 | 型別 | Localize Key | 備註 |
 |---|---|---|---|---|
-| `m_DropPool` | DropPool | `RCG_QuestDropPoolGenData` | `DropPool` | |
-| `m_FilterType` | FilterType | `FilterType` | `FilterType` | |
-| `m_Tag` | Tag | `RCG_EventTagGenData` | `Tag` | UCL.Core.PA.Conditional("m_FilterType", false, FilterType.Tag) |
-| `m_OperatorType` | OperatorType | `OperatorType` | `OperatorType` | UCL.Core.PA.Conditional("m_FilterType", false, FilterType.Operator) |
-| `m_Filters` | Filters | `List<DropFilter>` | `Filters` | UCL.Core.PA.Conditional("m_FilterType", false, FilterType.Operator) |
-| `m_IsInvert` | IsInvert | `bool` | `IsInvert` | |
-| `m_DropPool` | DropPool | `RCG_CommonDropSetting<RCG_QuestGenData>` | `DropPool` | UCL.Core.PA.Conditional(nameof(m_DropType), false, DropType.DropPool) |
-| `m_MixDropPools` | MixDropPools | `List<MixDropPoolData>` | `MixDropPools` | UCL.Core.PA.Conditional(nameof(m_DropType), false, DropType.MixPool) |
-| `m_FilterDropData` | FilterDropData | `FilterDropData` | `FilterDropData` | UCL.Core.PA.Conditional(nameof(m_DropType), false, DropType.FilterDrop) |
-| `m_DropType` | DropType | `DropType` | `DropType` | |
+| `m_DropPool` | 掉落池 | `RCG_CommonDropSetting<RCG_QuestGenData>` | — | `Conditional(DropPool)` |
+| `m_MixDropPools` | 混合池 | `List<MixDropPoolData>` | — | `Conditional(MixPool)` |
+| `m_FilterDropData` | 條件式 | `FilterDropData` = `FilterDropDataBase<RCG_QuestGenData, RCG_QuestData, DropFilter>` | — | `Conditional(FilterDrop)` |
+| `m_DropType` | DropType | `DropType` enum | `DropType` | 預設 `DropPool` |
 
 ### A.3 重要 Method 摘要
 
-<!-- TODO: 補上影響行為的關鍵 method（OnGUI / Preview / 序列化覆寫等）。 -->
+*   **`GetDrops(int, CheckDropConditionData)`** → 主要入口。
+*   **`GetDropsWithFilterFunc(int, Func)`** → 自訂篩選版。
+*   **`GetDropRate(CheckDropConditionData, int)`** → 預設 filter 永遠 true（程式註解掉「不連續觸發相同事件」邏輯）。
 
 ### A.4 與其他系統的互動
 
-<!-- TODO: 列出依賴 / 被依賴的類別與系統。 -->
+*   **`RCG_QuestData`** — 池子掉的目標型別。
+*   **`RCG_QuestGenData`** / **`RCG_QuestDropPoolGenData`** — Asset Entry 包裝；後者預設 ID = `"NormalDrop"`。
+*   **`RCG_EventTagGenData`** — FilterDrop 條件用的事件標籤型別。
 
-### A.5 已知議題（選填）
+### A.5 已知議題
 
-<!-- TODO: TODO/FIXME 摘錄、待重構點。 -->
+*   程式內有註解掉的「不連續觸發相同事件」(`triggeredStory.LastElement()`) 邏輯——若需此行為要解註解。
+*   無 `DeserializeFromJson` override，壞 ID 不會自動清理。

@@ -1,84 +1,69 @@
 ---
-title: RCG_CardEnhenceDropPool 說明
-description: <!-- TODO: 一句話功能摘要 -->
+title: 卡牌強化掉落池 (RCG_CardEnhenceDropPool) 說明
+description: 定義「強化卡牌時可抽到哪些強化分支」的資料；強化選單背後的隨機池
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
 ---
 
-# RCG_CardEnhenceDropPool
+# 卡牌強化掉落池
 
 > 程式類別名稱：`RCG_CardEnhenceDropPool`
 
 ## 用途
 
-<!-- TODO: 描述這個 Asset 在遊戲裡負責什麼、什麼情境會用、舉 1-2 個範例。 -->
+定義「**強化某張卡時，會抽到哪些強化分支 (`RCG_CardEnhenceData`) 作為候選**」。每張卡的 `m_EnhencePool` 欄位會引用一個 `RCG_CardEnhenceDropPool`；強化時系統從此池抽 N 個分支讓玩家挑。
 
-繼承自 `RCG_Asset<RCG_CardEnhenceDropPool>`，實作介面：`UCL.Core.UCLI_ShortName`
+繼承自 `RCG_Asset<RCG_CardEnhenceDropPool>`，實作介面：`UCL.Core.UCLI_ShortName`。
 
 ## 編輯器中的樣貌
 
 ```
-<!-- TODO: 描繪此 Asset 在編輯器內的版面 -->
+RCG_CardEnhenceDropPool: <ID>
+    DropType  ▾ DropPool / MixPool / FilterDrop
+    ▼ DropPool / MixDropPools / FilterDropData
 ```
 
 ## 主要欄位
 
 | 編輯器顯示 | 必填 | 說明 |
 |---|---|---|
-| **DropPool** | — | <!-- TODO: 說明欄位用途 --> |
-| **FilterType** | — | <!-- TODO: 說明欄位用途 --> |
-| **RarityTag** | — | <!-- TODO: 說明欄位用途 --> |
-| **OperatorType** | — | <!-- TODO: 說明欄位用途 --> |
-| **Filters** | — | <!-- TODO: 說明欄位用途 --> |
-| **IsInvert** | — | <!-- TODO: 說明欄位用途 --> |
-| **DropPool** | — | <!-- TODO: 說明欄位用途 --> |
-| **MixDropPools** | — | <!-- TODO: 說明欄位用途 --> |
-| **FilterDropData** | — | <!-- TODO: 說明欄位用途 --> |
-| **DropType** | — | <!-- TODO: 說明欄位用途 --> |
+| **DropType** | 是 | `DropPool` / `MixPool` / `FilterDrop` |
+| **DropPool** | DropType=DropPool | 強化分支清單 + 權重 |
+| **MixDropPools** | DropType=MixPool | 混合其他池子 |
+| **FilterDropData** | DropType=FilterDrop | 用內部 `DropFilter`（Operator）篩 |
 
 ## 行為說明
 
-<!-- TODO: 戰鬥 / 載入 / 解鎖時的觸發時機與順序。 -->
+與其他 Drop Pool 同骨架。內部 `DropFilter` 目前**只支援 Operator 類型**（Tag 已被註解掉），實務上 FilterDrop 模式較少使用，多數採 DropPool 直接列。
+
+抽取時還會被卡牌端 `BannedEnhence` 列表 + `RCG_CardEnhenceCondition` 二次過濾（見 `RCG_CardData.GetEnhenceBranchs`）。
 
 ## 注意事項
 
-<!-- TODO: 常見的設計反模式 / 容易踩到的坑。 -->
+*   **enum 名稱叫 `DropType`**（不是 `EDropType`）。
+*   **DropFilter Tag 已被註解掉**：FilterDrop 模式現階段功能受限；建議用 DropPool 模式直接列。
+*   **強化條件與 BannedEnhence** 的二次篩選在卡牌端進行，本池只負責「初次抽出候選」。
 
 ---
 
 ## 附錄：程式人員參考 (Programmer Reference)
 
-> 此段以下使用程式內部術語，受眾轉為程式人員與 AI agent。前半段內容請優先採信。
-
 ### A.1 類別資訊
-
 *   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_DropSettings/RCG_CardEnhenceDropPool.cs`
-*   **繼承自**：`RCG_Asset<RCG_CardEnhenceDropPool>, UCL.Core.UCLI_ShortName`
-*   **實作介面**：`UCL.Core.UCLI_ShortName`
+*   **繼承自**：`RCG_Asset<RCG_CardEnhenceDropPool>`
+*   **AssetGroup**：`EditDropSetting`
 
-### A.2 欄位對照（自動產生，需人工複核）
+### A.2 欄位對照
 
-| 程式欄位 | 編輯器顯示 | 型別 | Localize Key | 備註 |
-|---|---|---|---|---|
-| `m_DropPool` | DropPool | `RCG_CardEnhenceDropPoolGenData` | `DropPool` | |
-| `m_FilterType` | FilterType | `FilterType` | `FilterType` | |
-| `m_RarityTag` | RarityTag | `RCG_RarityTagGenData` | `RarityTag` | UCL.Core.PA.Conditional("m_FilterType", false, FilterType.RarityTag) |
-| `m_OperatorType` | OperatorType | `OperatorType` | `OperatorType` | UCL.Core.PA.Conditional("m_FilterType", false, FilterType.Operator) |
-| `m_Filters` | Filters | `List<DropFilter>` | `Filters` | UCL.Core.PA.Conditional("m_FilterType", false, FilterType.Operator) |
-| `m_IsInvert` | IsInvert | `bool` | `IsInvert` | |
-| `m_DropPool` | DropPool | `RCG_CommonDropSetting<RCG_CardEnhenceGenData>` | `DropPool` | UCL.Core.PA.Conditional("m_DropType", false, DropType.DropPool) |
-| `m_MixDropPools` | MixDropPools | `List<MixDropPoolData>` | `MixDropPools` | UCL.Core.PA.Conditional("m_DropType", false, DropType.MixPool) |
-| `m_FilterDropData` | FilterDropData | `FilterDropData` | `FilterDropData` | UCL.Core.PA.Conditional("m_DropType", false, DropType.FilterDrop) |
-| `m_DropType` | DropType | `DropType` | `DropType` | |
+| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+|---|---|---|---|
+| `m_DropPool` | 掉落池 | `RCG_CommonDropSetting<RCG_CardEnhenceGenData>` | `Conditional(DropPool)` |
+| `m_MixDropPools` | 混合池 | `List<MixDropPoolData>` | `Conditional(MixPool)` |
+| `m_FilterDropData` | 條件式 | `FilterDropData` | `Conditional(FilterDrop)` |
+| `m_DropType` | DropType | `DropType` enum | 預設 `DropPool` |
 
-### A.3 重要 Method 摘要
+### A.3 與其他系統的互動
 
-<!-- TODO: 補上影響行為的關鍵 method（OnGUI / Preview / 序列化覆寫等）。 -->
-
-### A.4 與其他系統的互動
-
-<!-- TODO: 列出依賴 / 被依賴的類別與系統。 -->
-
-### A.5 已知議題（選填）
-
-<!-- TODO: TODO/FIXME 摘錄、待重構點。 -->
+*   **`RCG_CardEnhenceData`** — 掉落目標（強化分支定義）。
+*   **`RCG_CardEnhenceGenData`** / **`RCG_CardEnhenceDropPoolGenData`** — Asset Entry 包裝。
+*   **`RCG_CardData.m_EnhencePool` / `RCG_CardData.GetEnhenceBranchs`** — 強化流程的呼叫端，會於此池抽出候選後再做二次過濾。

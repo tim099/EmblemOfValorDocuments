@@ -1,74 +1,64 @@
 ---
-title: RCG_StatusDropPool 說明
-description: <!-- TODO: 一句話功能摘要 -->
+title: 狀態效果掉落池 (RCG_StatusDropPool) 說明
+description: 定義「會掉哪些狀態效果」的資料；隨機 Buff/Debuff、神祕祝福等情境用的池
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
 ---
 
-# RCG_StatusDropPool
+# 狀態效果掉落池
 
 > 程式類別名稱：`RCG_StatusDropPool`
 
 ## 用途
 
-<!-- TODO: 描述這個 Asset 在遊戲裡負責什麼、什麼情境會用、舉 1-2 個範例。 -->
+定義「**這個情境下可能抽到哪些狀態效果**」。例如「神壇給予的隨機祝福」「詛咒寶箱的隨機 debuff」「特殊事件的群體 buff」都從這裡抽 `RCG_CustomStatusData`。
 
-繼承自 `RCG_Asset<RCG_StatusDropPool>`，實作介面：`UCL.Core.UCLI_ShortName`
+繼承自 `RCG_Asset<RCG_StatusDropPool>`，實作介面：`UCL.Core.UCLI_ShortName`。
 
 ## 編輯器中的樣貌
 
 ```
-<!-- TODO: 描繪此 Asset 在編輯器內的版面 -->
+RCG_StatusDropPool: <ID>
+    DropType  ▾ DropPool / MixPool      ← 沒有 FilterDrop
+    ▼ DropPool / MixDropPools
 ```
 
 ## 主要欄位
 
 | 編輯器顯示 | 必填 | 說明 |
 |---|---|---|
-| **DropPool** | — | <!-- TODO: 說明欄位用途 --> |
-| **Name** | — | <!-- TODO: 說明欄位用途 --> |
-| **DropPool** | — | <!-- TODO: 說明欄位用途 --> |
-| **MixDropPools** | — | <!-- TODO: 說明欄位用途 --> |
-| **DropType** | — | <!-- TODO: 說明欄位用途 --> |
+| **DropType** | 是 | `DropPool` / `MixPool`（**只有兩種模式**，沒有 FilterDrop） |
+| **DropPool** | DropType=DropPool | 狀態清單 + 權重 |
+| **MixDropPools** | DropType=MixPool | 混合其他池子 |
 
 ## 行為說明
 
-<!-- TODO: 戰鬥 / 載入 / 解鎖時的觸發時機與順序。 -->
+與其他 Drop Pool 骨架類似，但**只有兩種模式**：直接列、混合別的池。沒有「依條件動態篩」這個選項。
 
 ## 注意事項
 
-<!-- TODO: 常見的設計反模式 / 容易踩到的坑。 -->
+*   **沒有 FilterDrop 模式**：要做動態篩選需手動列舉。
+*   **enum 名稱叫 `DropType`**（不是 `EDropType`）。
+*   無 unlock 等 runtime 篩選。
 
 ---
 
 ## 附錄：程式人員參考 (Programmer Reference)
 
-> 此段以下使用程式內部術語，受眾轉為程式人員與 AI agent。前半段內容請優先採信。
-
 ### A.1 類別資訊
-
 *   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_DropSettings/RCG_StatusDropPool.cs`
-*   **繼承自**：`RCG_Asset<RCG_StatusDropPool>, UCL.Core.UCLI_ShortName`
-*   **實作介面**：`UCL.Core.UCLI_ShortName`
+*   **繼承自**：`RCG_Asset<RCG_StatusDropPool>`
+*   **AssetGroup**：`EditDropSetting`
 
-### A.2 欄位對照（自動產生，需人工複核）
+### A.2 欄位對照
 
-| 程式欄位 | 編輯器顯示 | 型別 | Localize Key | 備註 |
-|---|---|---|---|---|
-| `m_DropPool` | DropPool | `RCG_StatusDropPoolGenData` | `DropPool` | |
-| `m_Name` | Name | `RCG_LocalizeData` | `Name` | |
-| `m_DropPool` | DropPool | `RCG_CommonDropSetting<RCG_CustomStatusGenData>` | `DropPool` | UCL.Core.PA.Conditional(nameof(m_DropType), false, DropType.DropPool) |
-| `m_MixDropPools` | MixDropPools | `List<MixDropPoolData>` | `MixDropPools` | UCL.Core.PA.Conditional(nameof(m_DropType), false, DropType.MixPool) |
-| `m_DropType` | DropType | `DropType` | `DropType` | |
+| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+|---|---|---|---|
+| `m_DropPool` | 掉落池 | `RCG_CommonDropSetting<RCG_CustomStatusGenData>` | `Conditional(DropPool)` |
+| `m_MixDropPools` | 混合池 | `List<MixDropPoolData>` | `Conditional(MixPool)` |
+| `m_DropType` | DropType | `DropType` enum | 只有 `DropPool` / `MixPool` |
 
-### A.3 重要 Method 摘要
+### A.3 與其他系統的互動
 
-<!-- TODO: 補上影響行為的關鍵 method（OnGUI / Preview / 序列化覆寫等）。 -->
-
-### A.4 與其他系統的互動
-
-<!-- TODO: 列出依賴 / 被依賴的類別與系統。 -->
-
-### A.5 已知議題（選填）
-
-<!-- TODO: TODO/FIXME 摘錄、待重構點。 -->
+*   **`RCG_CustomStatusData`** — 掉落目標。
+*   **`RCG_CustomStatusGenData`** / **`RCG_StatusDropPoolGenData`** — Asset Entry 包裝。
