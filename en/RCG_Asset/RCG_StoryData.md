@@ -1,115 +1,109 @@
 ---
-title: 故事資料 (RCG_StoryData) 說明
-description: 一段「故事」的完整定義：起始事件、子故事字典、條件、隨機起點、Tag 篩選
+title: Story Data (RCG_StoryData)
+description: Complete story definition — start event, sub-story dictionary, conditions, random start, tag filtering
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-en
 ---
 
-> [!WARNING]
-> Translation pending — this file needs an English translation.
-The original zh-Hant content is included below for reference.
+# Story Data
 
+> Class name: `RCG_StoryData`
 
-# 故事資料
+## Purpose
 
-> 程式類別名稱：`RCG_StoryData`
+**Full script data of a "story"**. More complex than `RCG_MapEventData` — contains a dialogue tree composed of multiple sub-stories (`SubStory`); player choices jump to different sub-stories. Example: "Merchant" can be a Story: starting screen → choice → "Buy" / "Leave" / "Kill merchant" → respective sub-stories → endings.
 
-## 用途
+Inherits from `RCG_Asset<RCG_StoryData>`. Implements: `UCLI_ShortName`.
 
-**一段「故事」的完整劇本資料**。故事比 `RCG_MapEventData` 更複雜——包含多段子故事 (`SubStory`) 構成的對話樹，玩家做選擇後跳到不同子故事。例如「商人」可以是一個 Story：起始畫面 → 選擇 →「購買」/「離開」/「殺商人」 → 各自的子故事 → 結局。
-
-繼承自 `RCG_Asset<RCG_StoryData>`，實作介面：`UCLI_ShortName`。
-
-## 編輯器中的樣貌
+## Editor Layout
 
 ```
 RCG_StoryData: <ID>
-    StoryData (m_StoryData)         ← 故事的元資料
+    StoryData (m_StoryData)         ← story metadata
         Tags / CanTriggerRepeatedly / Conditions
         IsRandomStart / RandomStartStories
-    Story (StartEvent)              ← 起始 SubStory（key = "Start"）
-    SubStory (m_EventDic)           ← 所有子故事 dictionary：{ id → RCG_OptionEventData }
+    Story (StartEvent)              ← start SubStory (key = "Start")
+    SubStory (m_EventDic)           ← all sub-stories dict: { id → RCG_OptionEventData }
 ```
 
-## 主要欄位
+## Main Fields
 
-| 編輯器顯示 | 必填 | 說明 |
+| Editor Display | Required | Description |
 |---|---|---|
-| **Tags** | 否 | 故事標籤（用於 StoryDropPool 篩選） |
-| **CanTriggerRepeatedly** | — | 是否可重複觸發 |
-| **Conditions** | 否 | 觸發條件（OR；空 = 無條件） |
-| **IsRandomStart** | — | 是否從多個起點隨機選一個 |
-| **RandomStartStories** | IsRandomStart=true | 隨機起點清單 + 權重 |
-| **Story** | 是 | 主起始事件（key 固定為 `"Start"`） |
-| **SubStory** | 否 | 所有子故事字典（key = state name，value = `RCG_OptionEventData`） |
+| **Tags** | no | Story tags (used by StoryDropPool filtering) |
+| **CanTriggerRepeatedly** | — | Whether repeatable |
+| **Conditions** | no | Trigger conditions (OR; empty = unconditional) |
+| **IsRandomStart** | — | Whether to randomly select among multiple start points |
+| **RandomStartStories** | when IsRandomStart=true | List of random start points + weights |
+| **Story** | yes | Main start event (key fixed to `"Start"`) |
+| **SubStory** | no | All sub-stories dict (key = state name, value = `RCG_OptionEventData`) |
 
-每個 `RCG_OptionEventData`（子故事）內含對話 / 選項 / 結果效果，可指定下一個 SubStory 的 ID 形成樹狀結構。
+Each `RCG_OptionEventData` (sub-story) contains dialogue / options / result effects; can specify the next SubStory's ID, forming a tree.
 
-## 行為說明
+## Behavior
 
-### 起點選擇 (`GetStartSubStory(iSubStory)`)
-*   如果指定了 `iSubStory` → 用它。
-*   否則若 `m_IsRandomStart` 且 `m_RandomStartStories` 非空 → 按權重隨機抽。
-*   否則 fallback 到 `StartStateName = "Start"`。
+### Start Selection (`GetStartSubStory(iSubStory)`)
+*   If `iSubStory` specified → use it.
+*   Else if `m_IsRandomStart` and `m_RandomStartStories` non-empty → weighted random pick.
+*   Else falls back to `StartStateName = "Start"`.
 
-### 觸發 (`StartStory(token, iSubStory, iIsRoot)`)
-1. 用 `GetStartSubStory(iSubStory)` 決定起點。
-2. 寫入 `RCG_DataService.Ins.StartStory(ID, iSubStory, iIsRoot)`（紀錄已觸發故事）。
-3. 設 `s_CurStoryData = this`（給其他系統查詢當前故事）。
-4. 取對應 SubStory 的 `RCG_OptionEventData.StartEvent(...)` 開始演繹。
-5. 結束後清 `s_CurStoryData = null`。
+### Trigger (`StartStory(token, iSubStory, iIsRoot)`)
+1. Use `GetStartSubStory(iSubStory)` to determine the start point.
+2. Write to `RCG_DataService.Ins.StartStory(ID, iSubStory, iIsRoot)` (records triggered story).
+3. Set `s_CurStoryData = this` (lets other systems query the current story).
+4. Get the corresponding SubStory's `RCG_OptionEventData.StartEvent(...)` and start playing.
+5. Clear `s_CurStoryData = null` on end.
 
-### 條件判斷 (`StoryData.CheckCondition`)
-*   `m_Conditions` 為空 → 永遠回 true。
-*   非空 → `CheckConditions_OR`（OR 關係）。
+### Condition Check (`StoryData.CheckCondition`)
+*   Empty `m_Conditions` → always returns true.
+*   Non-empty → `CheckConditions_OR` (OR relation).
 
-## 注意事項
+## Caveats
 
-*   **`StartStateName = "Start"` 是 magic string**：起始事件 key 固定為這個；其他名稱不會被當起始。
-*   **重複觸發旗標**：`CanTriggerRepeatedly` 預設 true（與 MapEventData 相反）；故事多半允許重複。
-*   **`s_CurStoryData` 是全局靜態**：故事執行期間外部能查到當前故事；但**多個故事不能並行**（會互相覆蓋）。
-*   **`m_EventDic` 自動補空項**：`GetSubStory(state)` 找不到 key 時會自動 add 一個空 `RCG_OptionEventData`，所以呼叫端不會 NRE，但會看到空白故事。
+*   **`StartStateName = "Start"` is a magic string**: the start event key is hardcoded to this; other names won't be treated as start.
+*   **Repeat-trigger flag**: `CanTriggerRepeatedly` defaults to true (opposite of MapEventData); stories usually allow repetition.
+*   **`s_CurStoryData` is global static**: external code can query the current story during execution; **but stories can't run in parallel** (would overwrite each other).
+*   **`m_EventDic` auto-fills empty entries**: `GetSubStory(state)` adds an empty `RCG_OptionEventData` if the key is missing — so callers don't NRE, but you'll see an empty story.
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## Appendix: Programmer Reference
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_StoryData.cs`
-*   **繼承自**：`RCG_Asset<RCG_StoryData>`
-*   **實作介面**：`UCLI_ShortName`
-*   **AssetGroup**：`EditQuestSetting`
-*   **常數**：`StartStateName = "Start"`
+### A.1 Class Info
+*   **File**: `CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_StoryData.cs`
+*   **Inherits**: `RCG_Asset<RCG_StoryData>`
+*   **Implements**: `UCLI_ShortName`
+*   **AssetGroup**: `EditQuestSetting`
+*   **Constants**: `StartStateName = "Start"`
 
-### A.2 欄位對照
+### A.2 Field Mapping
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| Code Field | Editor Display | Type | Notes |
 |---|---|---|---|
-| `m_StoryData` | StoryData | `StoryData`（巢狀） | 元資料：tags / conditions / random start |
-| `m_EventDic` | SubStory | `Dictionary<string, RCG_OptionEventData>` | 子故事樹 |
+| `m_StoryData` | StoryData | `StoryData` (nested) | metadata: tags / conditions / random start |
+| `m_EventDic` | SubStory | `Dictionary<string, RCG_OptionEventData>` | sub-story tree |
 
-`StoryData` 巢狀含 `m_Tags` / `m_CanTriggerRepeatedly` / `m_Conditions` / `m_IsRandomStart` / `m_RandomStartStories`。
+`StoryData` nested: `m_Tags` / `m_CanTriggerRepeatedly` / `m_Conditions` / `m_IsRandomStart` / `m_RandomStartStories`.
 
-### A.3 重要 Method
+### A.3 Key Methods
 
-*   **`StartStory(token, iSubStory, iIsRoot)`** — 主觸發；async；含起點選擇 + DataService 紀錄 + s_CurStoryData 切換。
-*   **`StartEvent` (property)** — `GetSubStory(StartStateName)`，起始事件捷徑。
-*   **`GetSubStory(state)`** — 取子故事；缺則自動 add 空項。
-*   **`StoryData.CheckCondition(data)`** — 觸發條件 OR 檢查。
-*   **`StoryData.GetStartSubStory(iSubStory)`** — 起點選擇邏輯。
-*   **`DefaultStory` (static)** — 預設故事 fallback。
+*   **`StartStory(token, iSubStory, iIsRoot)`** — main trigger; async; includes start selection + DataService record + s_CurStoryData switching.
+*   **`StartEvent` (property)** — `GetSubStory(StartStateName)`, start event shortcut.
+*   **`GetSubStory(state)`** — fetches sub-story; auto-adds empty if missing.
+*   **`StoryData.CheckCondition(data)`** — trigger condition OR check.
+*   **`StoryData.GetStartSubStory(iSubStory)`** — start selection logic.
+*   **`DefaultStory` (static)** — default fallback.
 
-### A.4 與其他系統的互動
+### A.4 System Interactions
 
-*   **`RCG_OptionEventData`** — 每個 SubStory 的內容（對話、選項、結果）。
-*   **`RCG_StoryDropPool`** — 隨機池來源。
-*   **`RCG_DataService.Ins.StartStory`** — runtime 紀錄已觸發故事。
-*   **`RCG_StoryGenData`** — Asset Entry 包裝。
-*   **`RCG_GameManager.Random`** — 隨機起點抽取。
+*   **`RCG_OptionEventData`** — content of each SubStory (dialogue, options, results).
+*   **`RCG_StoryDropPool`** — random pool source.
+*   **`RCG_DataService.Ins.StartStory`** — runtime triggered story record.
+*   **`RCG_StoryGenData`** — Asset Entry wrapper.
+*   **`RCG_GameManager.Random`** — random start point picking.
 
-### A.5 已知議題
+### A.5 Known Issues
 
-*   `s_CurStoryData` 不支援故事並行；極端情況需考慮中斷處理。
-*   `// public class StoryState` 與 `m_OptionEventData` 註解掉，標示舊版單一事件結構轉成 dictionary 的歷史。
-*   `DeserializeFromJson` 內舊版遷移邏輯（`m_EventDic[StartStateName] = m_OptionEventData`）已註解。
+*   `s_CurStoryData` doesn't support concurrent stories; extreme cases need interrupt handling.
+*   `// public class StoryState` and `m_OptionEventData` commented out, marking the legacy single-event structure → dictionary migration history.
+*   `DeserializeFromJson`'s legacy migration logic (`m_EventDic[StartStateName] = m_OptionEventData`) commented out.

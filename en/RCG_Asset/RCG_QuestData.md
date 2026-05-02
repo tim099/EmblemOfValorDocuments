@@ -1,168 +1,162 @@
 ---
-title: 任務資料 (RCG_QuestData) 說明
-description: 一段任務（小地圖）的完整定義：節點配置、戰鬥池、獎勵池、目標、暗霧、隨機生成
+title: Quest Data (RCG_QuestData)
+description: Full definition of one quest (small map) — node layout, battle pools, reward pools, goals, dark mist, random generation
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-en
 ---
 
-> [!WARNING]
-> Translation pending — this file needs an English translation.
-The original zh-Hant content is included below for reference.
+# Quest Data
 
+> Class name: `RCG_QuestData`
 
-# 任務資料
+## Purpose
 
-> 程式類別名稱：`RCG_QuestData`
+**Full definition of one "quest" (small map)**. After entering a quest node from the bigmap, the game generates the corresponding small map: node layout, paths between nodes, enemy configurations, reward pools, dark mist rules, quest goals. Quests support multiple generation modes: hand-edited, pure random, mixed random, Slay-the-Spire style, cave, ruin, etc.
 
-## 用途
+Inherits from `RCG_Asset<RCG_QuestData>`. Implements: `UCL.Core.UI.UCLI_FieldOnGUI`.
 
-**一段「任務」（小地圖）的完整定義**。從大地圖進入任務節點後，遊戲會生成這段任務對應的小地圖：節點配置、節點間路徑、敵人配置、獎勵池、暗霧規則、任務目標。任務支援多種生成方式：手動編輯、純隨機、混合隨機、殺戮尖塔風格、洞窟、遺跡⋯
-
-繼承自 `RCG_Asset<RCG_QuestData>`，實作介面：`UCL.Core.UI.UCLI_FieldOnGUI`。
-
-## 編輯器中的樣貌
+## Editor Layout
 
 ```
 RCG_QuestData: <ID>
     Name / QuestObjective / QuestIcon / BGM / Map prefab
-    QuestGoals                 ← 任務目標（主要 / 次要）
-    FieldEffects               ← 場地效果（可開關）
-    StoryPool                  ← 此任務的事件池
-    QuestBattles               ← 預設戰鬥池（按敵人類型分）
-    Card / Item / EquipmentDropPools  ← 各類獎勵池（按敵人類型分）
-    BattleScene                ← 預設戰鬥場景
+    QuestGoals                 ← quest goals (primary / secondary)
+    FieldEffects               ← field effects (toggleable)
+    StoryPool                  ← event pool for this quest
+    QuestBattles               ← default battle pool (per enemy type)
+    Card / Item / EquipmentDropPools  ← reward pools (per enemy type)
+    BattleScene                ← default battle scene
     QuestType                  ← Default / RandomGen / MixRandom / SlayTheSpire / CaveGen / RuinGen / TestEvents / TestBattles
-    [QuestType 對應的子設定]      ← 各種 RandomGenData
-    DetailSetting              ← 條件 / Tag / 難度 / 暗霧 / 地圖大小 / 自動進入等
-    MapEditData                ← 節點編輯資料（隱藏，用 QuestEditor 編）
-    [按鈕] Open QuestEditor    ← Editor playing 時可開節點編輯器
-    [按鈕] Export Quest Info   ← 匯出此任務的怪物 / 戰鬥資訊到 Markdown
+    [QuestType-specific sub-settings]      ← various RandomGenData
+    DetailSetting              ← conditions / tags / difficulty / dark mist / map size / auto-enter, etc.
+    MapEditData                ← node edit data (hidden, edit via QuestEditor)
+    [button] Open QuestEditor    ← node editor (Editor playing only)
+    [button] Export Quest Info   ← export this quest's monster / battle info to Markdown
 ```
 
-## 主要欄位
+## Main Fields
 
-| 編輯器顯示 | 必填 | 說明 |
+| Editor Display | Required | Description |
 |---|---|---|
-| **Name / QuestObjective** | 是 | 任務名 / 目標描述（多語系） |
-| **QuestIcon** | 是 | 任務圖（大地圖節點顯示） |
-| **BGM** | 是 | 背景音樂 |
-| **Map** | 是 | 對應的小地圖 Prefab |
-| **QuestGoals** | 否 | 主要 / 次要任務目標（達成觸發獎勵） |
-| **FieldEffects** | 否 | 此任務的場地效果（可開關） |
-| **StoryPool** | 否 | 此任務的故事事件池 |
-| **QuestBattles** | 否 | 按敵人類型對應的戰鬥池（普通 / 精英 / Boss⋯） |
-| **CardDropPools / ItemDropPools / EquipmentDropPools** | 否 | 按敵人類型對應的獎勵池；缺漏時 fallback 到 EnemyType 的預設池 |
-| **BattleScene** | 否 | 預設戰鬥場景（無指定時用此） |
-| **QuestType** | 是 | 地圖生成方式（決定下方哪個子設定可用） |
-| **DetailSetting** | 是 | 細節（條件 / Tag / 難度 / 暗霧設定 / 地圖大小 / `AutoEnterIfOnly` 等） |
+| **Name / QuestObjective** | yes | Quest name / objective description (localized) |
+| **QuestIcon** | yes | Quest icon (shown on bigmap node) |
+| **BGM** | yes | Background music |
+| **Map** | yes | Corresponding small map Prefab |
+| **QuestGoals** | no | Primary / secondary quest goals (rewards on completion) |
+| **FieldEffects** | no | Field effects for this quest (toggleable) |
+| **StoryPool** | no | Story event pool for this quest |
+| **QuestBattles** | no | Battle pool by enemy type (Normal / Elite / Boss, etc.) |
+| **CardDropPools / ItemDropPools / EquipmentDropPools** | no | Reward pools by enemy type; missing → fallback to EnemyType's default pool |
+| **BattleScene** | no | Default battle scene (used when not specified) |
+| **QuestType** | yes | Map generation method (determines which sub-setting is shown) |
+| **DetailSetting** | yes | Details (conditions / tags / difficulty / dark mist settings / map size / `AutoEnterIfOnly`, etc.) |
 
-`DetailSetting` 內含：
+`DetailSetting` contains:
 
-| 子欄位 | 說明 |
+| Sub-field | Description |
 |---|---|
-| **CompleteConditions** | 顯示前置條件（AND；不符合則隱藏） |
-| **IncompatibleConditions** | 互斥條件（不符合則隱藏） |
-| **TopMenuState / QuestTags / QuestLv** | 上方選單狀態 / Tag 列表 / 難度等級 |
-| **QuestLength / QuestDarkMistChange** | 任務長度 / 暗霧變化（會被 `DifficultyData.m_DarkMistMult` 乘） |
-| **DarkMistRelatedSettings** | 暗霧細節：移動時是否上升、暗霧外觀、節點抗性自動分配 |
-| **Difficulty / AddDifficultyAfterPass** | 任務基礎難度 / 通關後的難度增量 |
-| **QuestProgress / QuestEventIcons** | 進度值 / 事件圖示 |
-| **CustomizeMapSize / MapWidth / MapHeight** | 自訂地圖長寬 |
-| **AutoEnterIfOnly** | 大地圖只有此任務時自動進入 |
+| **CompleteConditions** | Display prerequisite conditions (AND; hide if not met) |
+| **IncompatibleConditions** | Mutually exclusive conditions (AND; hide if not met) |
+| **TopMenuState / QuestTags / QuestLv** | Top menu state / tag list / difficulty level |
+| **QuestLength / QuestDarkMistChange** | Quest length / dark mist change (multiplied by `DifficultyData.m_DarkMistMult`) |
+| **DarkMistRelatedSettings** | Dark mist details: rises on movement, mist appearance, auto-distribute node resistance |
+| **Difficulty / AddDifficultyAfterPass** | Quest base difficulty / difficulty increment after clear |
+| **QuestProgress / QuestEventIcons** | Progress value / event icons |
+| **CustomizeMapSize / MapWidth / MapHeight** | Custom map size |
+| **AutoEnterIfOnly** | Auto-enter when this is the only quest on bigmap |
 
-## 行為說明
+## Behavior
 
-### 隨機生成 (`GetMapEditData`)
-依 `QuestType` 分流到對應的 GenData：
+### Random Generation (`GetMapEditData`)
+Branches by `QuestType`:
 *   `MixRandom` → `m_QuestMixRandomData.RandomGen` + `BalanceDistanceIteration`
-*   `RandomGen` / `SlayTheSpire` / `SlsHorizontal` / `CaveGen` / `TestEvents` → 各自的 RandomGen
-*   `Default` → 直接讀預存的 `m_MapEditData`
-*   `RuinGen` / `TestBattles` → **未實作**（log error）
+*   `RandomGen` / `SlayTheSpire` / `SlsHorizontal` / `CaveGen` / `TestEvents` → respective RandomGen
+*   `Default` → reads pre-saved `m_MapEditData` directly
+*   `RuinGen` / `TestBattles` → **unimplemented** (logs error)
 
-### 任務目標自動生成 (`GenerateQuestGoals` static)
-若任務沒設目標，靜態方法會依當前大地圖階段的獎勵池生成：
-*   **主目標**（基於 hash seed）：3 種輪換——裝備獎 / 單位技能獎 / 卡牌獎；要求是「擊敗 Boss」（Boss tag 任務）或「擊敗 N 個精英」。
-*   **次目標**：3 種輪換——靈魂值門檻 / 暗霧等級門檻 / 一般敵擊敗數；獎勵是金錢 / 靈魂值 / 道具。
+### Quest Goal Auto-Generation (`GenerateQuestGoals` static)
+If a quest has no goals, the static method generates them based on the current bigmap stage's reward pools:
+*   **Primary goal** (hash-seeded): 3 rotating rewards — equipment / unit skill / card; requirement is "defeat boss" (Boss tag quest) or "defeat N elites".
+*   **Secondary goal**: 3 rotating — soul threshold / dark mist level threshold / common enemy defeat count; rewards are gold / soul / item.
 
-### 挑戰目標附加 (`AppendGameChallengeGoals` static)
-把 `RCG_DataService.Ins.m_ChallengeGoalDatas` 的未完成挑戰目標標記為 `m_IsChallengeGoal` 並附加到任務目標。
+### Append Challenge Goals (`AppendGameChallengeGoals` static)
+Marks `RCG_DataService.Ins.m_ChallengeGoalDatas` undone challenge goals as `m_IsChallengeGoal` and appends to the quest goals.
 
-### 通關 (`QuestComplete`)
-`Difficulty += m_DetailSetting.m_AddDifficultyAfterPass`：通關此任務後永久提升難度。
+### Clear (`QuestComplete`)
+`Difficulty += m_DetailSetting.m_AddDifficultyAfterPass`: difficulty permanently rises after clearing this quest.
 
-### 進度 (`QuestProgress`)
-*   `BigMapType.Loop`（舊版 Loop 大地圖）→ 直接回 `QuestProgressToComplete`。
-*   新版（按 Tag 計數）→ 含任一 `BigMapData.QuestProgressTags` 的 Tag → 回 1，否則回 0。
+### Progress (`QuestProgress`)
+*   `BigMapType.Loop` (legacy Loop bigmap) → returns `QuestProgressToComplete` directly.
+*   Newer (tag-based) → if any of `BigMapData.QuestProgressTags` matches → returns 1; else 0.
 
-### 條件檢查
-*   **`IsPrerequirementMet(selected)`** — 已通關過 → false；`CompleteConditions` 全 AND 通過。
-*   **`IsQuestAvailable(selected)`** — 已通關過 → false；`IncompatibleConditions` 全 AND 通過。
+### Condition Checks
+*   **`IsPrerequirementMet(selected)`** — if already cleared → false; `CompleteConditions` all AND must pass.
+*   **`IsQuestAvailable(selected)`** — if already cleared → false; `IncompatibleConditions` all AND must pass.
 
-## 注意事項
+## Caveats
 
-*   **`QuestType` 換掉時記得清空 `MapEditData`**：否則舊隨機資料會殘留干擾。`RemoveRandomNodes` 可清。
-*   **`AutoEnterIfOnly` 只在常駐任務 / 起始祝福場景才有效**：大地圖檢查只剩此任務時自動進入。
-*   **目標自動生成是 deterministic**：用 quest IDs 的 hash 算 seed，**重複進入同一組任務會生成相同目標**。
-*   **`RuinGen` / `TestBattles` 未實作**：選了會 LogError 而沒有實際生成。
-*   **`m_FieldEffects` 元素是 `ToggleableFieldEffectGenData`**：可關閉，runtime 走 `FieldEffects` property 過濾出 enabled 的。
-*   **`Export Quest Info` 按鈕**：匯出怪物配置 Markdown 到 `Assets/Export/Quest/<ID>.md`，方便外部審查戰鬥配置。
+*   **Switching `QuestType` requires clearing `MapEditData`**: otherwise leftover random data interferes. `RemoveRandomNodes` clears.
+*   **`AutoEnterIfOnly` only effective for permanent / starting-blessing scenarios**: bigmap auto-enters when only this quest remains.
+*   **Auto goal generation is deterministic**: uses hash of quest IDs for seed — **the same quest combo always generates the same goals**.
+*   **`RuinGen` / `TestBattles` unimplemented**: selecting them logs error without generating.
+*   **`m_FieldEffects` elements are `ToggleableFieldEffectGenData`**: can be disabled; runtime uses `FieldEffects` property to filter enabled ones.
+*   **`Export Quest Info` button**: exports monster configuration Markdown to `Assets/Export/Quest/<ID>.md` for external review of battle setup.
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## Appendix: Programmer Reference
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_MapScripts/RCG_QuestData.cs`
-*   **繼承自**：`RCG_Asset<RCG_QuestData>`
-*   **實作介面**：`UCL.Core.UI.UCLI_FieldOnGUI`
-*   **AssetGroup**：`EditQuestSetting`
-*   **CurQuest** (static) — 最近建構的 RCG_QuestData，方便外部存取
+### A.1 Class Info
+*   **File**: `CardGame/Assets/Scripts/RCG_Scripts/RCG_MapScripts/RCG_QuestData.cs`
+*   **Inherits**: `RCG_Asset<RCG_QuestData>`
+*   **Implements**: `UCL.Core.UI.UCLI_FieldOnGUI`
+*   **AssetGroup**: `EditQuestSetting`
+*   **CurQuest** (static) — most recently constructed RCG_QuestData, for external lookup
 
-### A.2 欄位對照（節選）
+### A.2 Field Mapping (selected)
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| Code Field | Editor Display | Type | Notes |
 |---|---|---|---|
 | `m_Name` / `m_QuestObjective` | Name / Objective | `RCG_LocalizeData` | |
-| `m_QuestIcon` / `m_BGM` / `m_Map` | 圖 / BGM / 地圖 | `RCG_SpriteData` / `RCG_BGMGenData` / `RCG_PrefabResData` | |
+| `m_QuestIcon` / `m_BGM` / `m_Map` | icon / BGM / map | `RCG_SpriteData` / `RCG_BGMGenData` / `RCG_PrefabResData` | |
 | `m_QuestGoals` | QuestGoals | `List<RCG_QuestGoalData>` | |
 | `m_FieldEffects` | FieldEffects | `List<ToggleableFieldEffectGenData>` | |
 | `m_Tags` | Tags | `List<RCG_EventTagGenData>` | |
 | `m_StoryPool` | StoryPool | `RCG_StoryDropPoolGenData` | |
 | `m_MapEditData` | MapEditData | `MapEditData` | `[UCL_HideOnGUI]` |
 | `m_QuestBattles` | QuestBattles | `Dictionary<RCG_EnemyTypeTagGenData, RCG_BattleSetDropPoolGenData>` | |
-| `m_CardDropPools / m_ItemDropPools / m_EquipmentDropPools` | 各獎勵池 | `Dictionary<EnemyType, *DropPoolGenData>` | |
+| `m_CardDropPools / m_ItemDropPools / m_EquipmentDropPools` | reward pools | `Dictionary<EnemyType, *DropPoolGenData>` | |
 | `m_BattleScene` | BattleScene | `RCG_BattleSceneGenData` | |
-| `m_QuestType` | QuestType | `QuestType` enum | 8 種模式 |
-| `m_QuestRandomGenData / m_QuestMixRandomData / m_QuestCaveGenData / m_SlayTheSpireGenData / ...` | 各 GenData | 各自類別 | `Conditional(對應 QuestType)` |
+| `m_QuestType` | QuestType | `QuestType` enum | 8 modes |
+| `m_QuestRandomGenData / m_QuestMixRandomData / m_QuestCaveGenData / m_SlayTheSpireGenData / ...` | various GenData | various classes | `Conditional(matching QuestType)` |
 | `m_DetailSetting` | DetailSetting | `DetailSetting` | |
 
-### A.3 重要 Method 摘要
+### A.3 Key Methods
 
-*   **`GetMapEditData(isLoadMap)`** — 主入口；按 QuestType 隨機生成或讀預存。
-*   **`QuestComplete()`** — 通關後 Difficulty +=。
-*   **`GenerateQuestGoals` (static)** — 自動產主 + 次目標。
-*   **`AppendGameChallengeGoals` (static)** — 附加挑戰目標。
-*   **`GetCardDropPool / GetItemDropPool / GetEquipmentDropPool / GetBattleSet`** — 按敵人類型取對應池；缺則 fallback。
-*   **`IsPrerequirementMet / IsQuestAvailable`** — 顯示條件檢查。
-*   **`QuestProgress` (property)** — 新舊兩種計算方式。
-*   **`SaveGame / LoadGame`** — 隨機生成的 MapEditData 序列化。
-*   **`ExportQuestInfoToJson`** — 匯出怪物資訊 Markdown 到 `Assets/Export/Quest/`。
-*   **`OnGUI(field, dataDic, params)`** — 自訂繪製（PreviewTexture + Export 按鈕）。
+*   **`GetMapEditData(isLoadMap)`** — main entry; random gen or load saved per QuestType.
+*   **`QuestComplete()`** — Difficulty += after clear.
+*   **`GenerateQuestGoals` (static)** — auto-generates primary + secondary goals.
+*   **`AppendGameChallengeGoals` (static)** — appends challenge goals.
+*   **`GetCardDropPool / GetItemDropPool / GetEquipmentDropPool / GetBattleSet`** — fetch pool by enemy type; falls back if missing.
+*   **`IsPrerequirementMet / IsQuestAvailable`** — display condition checks.
+*   **`QuestProgress` (property)** — two computation methods (legacy / new).
+*   **`SaveGame / LoadGame`** — random-generated MapEditData serialization.
+*   **`ExportQuestInfoToJson`** — exports monster info Markdown to `Assets/Export/Quest/`.
+*   **`OnGUI(field, dataDic, params)`** — custom rendering (PreviewTexture + Export button).
 
-### A.4 與其他系統的互動
+### A.4 System Interactions
 
-*   **`MapEditData`** — 節點 / 路徑容器。
-*   **`RCG_QuestDropPool`** — Quest 的隨機池。
-*   **`RCG_BigMapData.QuestProgressTags`** — 進度判斷依據。
-*   **`RCG_QuestRandomGenData / RCG_QuestMixRandomData / RCG_QuestCaveGenData / RCG_SlayTheSpireGenData / ...`** — 各 QuestType 的生成器。
-*   **`RCG_QuestGoalData / QuestGoalRequirementData / GoalReward*`** — 目標 / 獎勵系統。
-*   **`RCG_DataService.Ins.m_ChallengeGoalDatas`** — 挑戰目標來源。
-*   **`UI.RCG_QuestEditorUI`** — 節點編輯器。
+*   **`MapEditData`** — node / path container.
+*   **`RCG_QuestDropPool`** — random pool of Quests.
+*   **`RCG_BigMapData.QuestProgressTags`** — basis for progress.
+*   **`RCG_QuestRandomGenData / RCG_QuestMixRandomData / RCG_QuestCaveGenData / RCG_SlayTheSpireGenData / ...`** — generators per QuestType.
+*   **`RCG_QuestGoalData / QuestGoalRequirementData / GoalReward*`** — goal / reward system.
+*   **`RCG_DataService.Ins.m_ChallengeGoalDatas`** — source of challenge goals.
+*   **`UI.RCG_QuestEditorUI`** — node editor.
 
-### A.5 已知議題
+### A.5 Known Issues
 
-*   `RuinGen` / `TestBattles` 未實作，選了只 LogError。
-*   `GenerateQuestGoals` 用 hash seed，缺乏隨機種子重置機制——同一組 IDs 永遠生同樣目標。
-*   `OnGUI` 內舊版圖形繪製代碼（GL.Begin / GL.LINES）大段註解，現改用 PreviewTexture。
-*   多處 `// QWQ` / `// QWQ23` 註解標示待重構與舊版遷移點。
+*   `RuinGen` / `TestBattles` unimplemented — selecting just LogErrors.
+*   `GenerateQuestGoals` uses hash seed, no random seed reset — same IDs always generate same goals.
+*   `OnGUI`'s old graphics rendering code (GL.Begin / GL.LINES) commented out, replaced by PreviewTexture.
+*   Multiple `// QWQ` / `// QWQ23` markers indicate pending refactor and legacy migration points.

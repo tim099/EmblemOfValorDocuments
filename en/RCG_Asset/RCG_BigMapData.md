@@ -1,31 +1,25 @@
 ---
-title: 大地圖資料 (RCG_BigMapData) 說明
-description: 一張完整大地圖的設定（章節骨架）：任務生成模式、狀態機、暗霧、解鎖、起始裝備、進度規則
+title: Big Map Data (RCG_BigMapData)
+description: A complete bigmap (chapter) skeleton — quest generation modes, state machine, dark mist, unlock, starting equipment, progress rules
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-en
 ---
 
-> [!WARNING]
-> Translation pending — this file needs an English translation.
-The original zh-Hant content is included below for reference.
+# Big Map Data
 
+> Class name: `RCG_BigMapData`
 
-# 大地圖資料
+## Purpose
 
-> 程式類別名稱：`RCG_BigMapData`
+**The complete chapter skeleton of one bigmap**. Each BigMap is a full game journey: from start to boss, stepping on quest nodes in between, advancing progress by quest tag. This data defines:
+*   Quest generation mode (default rules / quest pool / pool+mix)
+*   Multi-state machine (`MapState`: each state has its own quest pool, reward pools, transition conditions)
+*   Dark mist settings, unlock conditions, starting equipment, available challenge goals
+*   Permanent + final quest pools
 
-## 用途
+Inherits from `RCG_Asset<RCG_BigMapData>`. Implements: `RCGI_Unloackable`.
 
-**一張完整大地圖的章節骨架設定**。每個 BigMap 是一段完整的遊戲歷程：從起點走到 Boss、中間踩各種任務節點、依任務 tag 推進進度。本資料定義：
-*   任務生成模式（預設規則 / 任務池 / 池+混合）
-*   多階段狀態機（`MapState`：每階段有自己的任務池、獎勵池、進入下階段條件）
-*   暗霧設定、解鎖條件、起始裝備、可用挑戰目標
-*   常駐 + 最終任務池
-
-繼承自 `RCG_Asset<RCG_BigMapData>`，實作介面：`RCGI_Unloackable`。
-
-## 編輯器中的樣貌
+## Editor Layout
 
 ```
 RCG_BigMapData: <ID>
@@ -33,124 +27,124 @@ RCG_BigMapData: <ID>
     BigMapBackground
     TopMenuState
     QuestGenerateType         ← Default / QuestPool / QuestPoolMix
-    MaxShowingQuestCount      ← 同時最多顯示多少個任務（Default 模式）
-    QuestProgressToComplete   ← 解鎖最終關所需任務進度（0 = 忽略）
-    QuestPoolSetting          ← (QuestPool/QuestPoolMix) 多階段狀態機
-    PermanentQuests           ← (QuestPoolMix) 常駐任務
-    FinalQuests               ← (QuestPoolMix) 最終任務
-    QuestProgressTags         ← Boss 任務的 Tag 標籤（Forest/Mountain/Boss⋯）
-    DetailSetting             ← 隱藏旗標 / 教學設定 / 解鎖 / 起始裝備等
+    MaxShowingQuestCount      ← max quests shown at once (Default mode)
+    QuestProgressToComplete   ← quest progress required to unlock final (0 = ignore)
+    QuestPoolSetting          ← (QuestPool/QuestPoolMix) multi-state machine
+    PermanentQuests           ← (QuestPoolMix) always-shown quests (e.g., rest)
+    FinalQuests               ← (QuestPoolMix) final quests (after Final condition met)
+    QuestProgressTags         ← Boss quest tags (Forest/Mountain/Boss, etc.)
+    DetailSetting             ← hide flags / tutorial / unlock / starting equipment, etc.
 ```
 
-## 主要欄位（節選）
+## Main Fields (selected)
 
-| 編輯器顯示 | 必填 | 說明 |
+| Editor Display | Required | Description |
 |---|---|---|
-| **QuestGenerateType** | 是 | `Default`（預設規則）/ `QuestPool`（純任務池）/ `QuestPoolMix`（池+常駐+最終混合） |
-| **MaxShowingQuestCount** | Default 時 | 同時可選任務數（預設 3） |
-| **QuestProgressToComplete** | — | 解鎖最終關所需任務進度數；> 0 才會顯示進度指標 |
-| **QuestPoolSetting** | QuestPool/Mix | 多階段狀態機（每個 `MapState` 有自己的任務池 / 獎勵池 / 進入條件） |
-| **PermanentQuests** | QuestPoolMix | 常駐任務（如休息點）：總是出現且**不計算顯示數量限制** |
-| **FinalQuests** | QuestPoolMix | 最終任務（達成 Final 條件後才出現） |
-| **QuestProgressTags** | Default/Mix | 哪些 Tag 算「進度任務」（通常是 Boss 標籤） |
-| **DetailSetting** | 是 | 細節設定：HideThisBigMap / RandomQuestOrder / Difficulty / EnterBigMapTutorial / ShowMode / IsTutorial / BigMapType (Default/Loop) / Unlock / OverridingCharacters / StartingEquipments / AvailableChallenges 等 |
+| **QuestGenerateType** | yes | `Default` (default rules) / `QuestPool` (pure quest pool) / `QuestPoolMix` (pool + permanent + final mixed) |
+| **MaxShowingQuestCount** | when Default | Max quests shown at once (default 3) |
+| **QuestProgressToComplete** | — | Progress required to unlock final; > 0 enables progress indicator |
+| **QuestPoolSetting** | when QuestPool/Mix | Multi-state machine (each `MapState` has its own quest pool / reward pools / transition conditions) |
+| **PermanentQuests** | when QuestPoolMix | Always-shown quests (e.g., rest stops): always appear, **don't count toward display limit** |
+| **FinalQuests** | when QuestPoolMix | Final quests (appear only after Final condition met) |
+| **QuestProgressTags** | when Default/Mix | Tags counted as "progress quests" (usually Boss) |
+| **DetailSetting** | yes | Detailed: HideThisBigMap / RandomQuestOrder / Difficulty / EnterBigMapTutorial / ShowMode / IsTutorial / BigMapType (Default/Loop) / Unlock / OverridingCharacters / StartingEquipments / AvailableChallenges, etc. |
 
-`MapState` 內含每階段資料：
-*   `MaxShowingQuestCount` / `QuestDropSettings`（含條件式權重的任務池清單）
-*   `EquipmentRewardPools / UnitSkillRewardPools / CardRewardPools / ItemRewardPools`：階段專屬獎勵池
-*   `NextStateConditions`（OR）/ `FinalConditions`（OR）
+`MapState` per-stage data:
+*   `MaxShowingQuestCount` / `QuestDropSettings` (conditional weighted quest pool list)
+*   `EquipmentRewardPools / UnitSkillRewardPools / CardRewardPools / ItemRewardPools`: stage-specific reward pools
+*   `NextStateConditions` (OR) / `FinalConditions` (OR)
 
-## 行為說明
+## Behavior
 
 ### `EnterBigMap(newLoop)`
-新一局時重置進度與通過任務記錄。
+On a new run, resets progress and cleared-quest record.
 
 ### `GenerateQuests()`
-依 `QuestGenerateType` 分流：
-*   **Default**：不在這裡，由其他 manager 處理。
-*   **QuestPool**：純抽當前 MapState 的任務池。
-*   **QuestPoolMix**：複雜邏輯——
-    1. 起始祝福事件（首次進入時）
-    2. 上個任務若為常駐/特殊 → 生成常駐任務 + 跳過選項
-    3. 上個任務為 Boss → 重新隨機生成（按 ProgressTag 篩選）
-    4. 滿足最終條件 → 只顯示最終任務
-    5. 一般情況：依環境 Tag 去重、Boss 任務 + 一般任務按比例混合
+Branches by `QuestGenerateType`:
+*   **Default**: not handled here, handled by other manager.
+*   **QuestPool**: pure draw from current MapState's quest pool.
+*   **QuestPoolMix**: complex logic —
+    1. Starting blessing event (first entry)
+    2. Last quest was permanent / special → generate permanent quests + skip option
+    3. Last quest was Boss → re-randomize (filtered by ProgressTag)
+    4. Final condition met → show final quests only
+    5. Default: dedup environment tags, mix Boss + normal quests by ratio
 
 ### `QuestStart(questData)`
-進入任務時若 `CurState.CheckFinal()` 為 true → 標記為最終地圖（讓勝利後彈通關 UI）。
+On entering a quest, if `CurState.CheckFinal()` is true → flag as final map (triggers victory UI on win).
 
 ### `PassedQuest(questId, progress)`
-通關任務時：
-1. `m_PassedQuests` 加入此 ID。
-2. 寫入 `MapStatePassQuestCount` / `PassQuestCount` Tag（GameTag 系統）。
-3. 檢查 `CurState.CheckTransition()` → 進入下一個 MapState（並重置 MapStatePassQuestCount）。
+On completing a quest:
+1. Add ID to `m_PassedQuests`.
+2. Write to `MapStatePassQuestCount` / `PassQuestCount` Tag (GameTag system).
+3. Check `CurState.CheckTransition()` → advance to next MapState (and reset MapStatePassQuestCount).
 
 ### `QuestCompleteAsync()`
-若是最終地圖 → 顯示 `RCG_VictoryUI`，由玩家選擇是否繼續（繼續 = 進入下一輪 Loop）。
+If final map → show `RCG_VictoryUI`, player chooses to continue (continue = next Loop).
 
-## 注意事項
+## Caveats
 
-*   **`QuestGenerateType.Default`** 是舊版規則，新地圖建議用 `QuestPoolMix`。
-*   **`PermanentQuests` 不計數量限制**：要做休息點 / 永久商店這種「總是顯示」的任務節點放這裡。
-*   **`m_QuestProgressToComplete` 與 `FinalQuests`** 一起使用：未達進度時 FinalQuests 不會出現。
-*   **`HideThisBigMap`** 真值不止來自 `m_HideThisBigMap`：還有「`OverrideAvailableGameModes` 不含當前 GameVersion」也會隱藏。Demo 版鎖部分章節用此機制。
-*   **`ShowMode`** 控制教學模式下的顯示：`ShowIfEnableTutorial` / `ShowIfDisableTutorial` 對應教學狀態切換。
-*   **`Tutorial` 寫死 ID**：`BigMap_Challenge_Card`，是教學專用大地圖。
+*   **`QuestGenerateType.Default`** is the legacy rule; new maps should use `QuestPoolMix`.
+*   **`PermanentQuests` doesn't count toward display limit**: use this for always-shown quest nodes like rest stops or permanent shops.
+*   **`m_QuestProgressToComplete` and `FinalQuests`** are used together: FinalQuests doesn't appear until progress threshold met.
+*   **`HideThisBigMap` true** comes from more than `m_HideThisBigMap`: also "OverrideAvailableGameModes doesn't include current GameVersion" causes hiding. Demo version uses this to lock chapters.
+*   **`ShowMode`** controls visibility under tutorial mode: `ShowIfEnableTutorial` / `ShowIfDisableTutorial` toggle on tutorial state.
+*   **`Tutorial` hardcoded ID**: `BigMap_Challenge_Card`, the tutorial-specific bigmap.
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## Appendix: Programmer Reference
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_MapScripts/RCG_BigMapData.cs`
-*   **繼承自**：`RCG_Asset<RCG_BigMapData>`
-*   **實作介面**：`RCGI_Unloackable`
-*   **AssetGroup**：`EditQuestSetting`
-*   **常數**：`TutorialName = "BigMap_Challenge_Card"`
+### A.1 Class Info
+*   **File**: `CardGame/Assets/Scripts/RCG_Scripts/RCG_MapScripts/RCG_BigMapData.cs`
+*   **Inherits**: `RCG_Asset<RCG_BigMapData>`
+*   **Implements**: `RCGI_Unloackable`
+*   **AssetGroup**: `EditQuestSetting`
+*   **Constants**: `TutorialName = "BigMap_Challenge_Card"`
 
-### A.2 欄位對照（節選）
+### A.2 Field Mapping (selected)
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| Code Field | Editor Display | Type | Notes |
 |---|---|---|---|
 | `m_Name` / `m_Description` | Name / Description | `RCG_LocalizeData` | |
 | `m_QuestIcon` | QuestIcon | `RCG_SpriteData` | |
 | `m_BGM` | BGM | `RCG_BGMGenData` | |
-| `m_BigMap` | BigMap | `RCG_PrefabResData` | 大地圖 prefab |
+| `m_BigMap` | BigMap | `RCG_PrefabResData` | bigmap prefab |
 | `m_BigMapBackground` | BigMapBackground | `RCG_SpriteData` | |
 | `m_TopMenuState` | TopMenuState | `TopMenuState` enum | |
 | `m_QuestGenerateType` | QuestGenerateType | `QuestGenerateType` enum | |
 | `m_MaxShowingQuestCount` | MaxShowingQuestCount | `int` | `Conditional(Default)` |
 | `m_QuestProgressToComplete` | QuestProgressToComplete | `int` | |
-| `m_QuestPoolSetting` | QuestPoolSetting | `QuestPoolSetting`（巢狀） | `Conditional(QuestPool / QuestPoolMix)` |
-| `m_PermanentQuests` / `m_FinalQuests` | 常駐 / 最終 | `MapState` | `Conditional(QuestPoolMix)` |
+| `m_QuestPoolSetting` | QuestPoolSetting | `QuestPoolSetting` (nested) | `Conditional(QuestPool / QuestPoolMix)` |
+| `m_PermanentQuests` / `m_FinalQuests` | permanent / final | `MapState` | `Conditional(QuestPoolMix)` |
 | `m_QuestProgressTags` | QuestProgressTags | `List<RCG_QuestData.QuestTag>` | |
-| `m_DetailSetting` | DetailSetting | `DetailSetting`（巢狀） | |
+| `m_DetailSetting` | DetailSetting | `DetailSetting` (nested) | |
 
-### A.3 重要 Method 摘要
+### A.3 Key Methods
 
-*   **`EnterBigMap(newLoop)`** — 進入大地圖；新局重置進度。
-*   **`GenerateQuests()`** — 主任務生成入口。
-*   **`GenerateQuestsQuestPool()`** / **`GenerateQuestsQuestPoolMix()`** — 兩套生成實作。
-*   **`QuestStart(questData)`** — 任務開始；標記最終地圖旗標。
-*   **`PassedQuest(questId, progress)`** — 通關時更新 Tag、進入下個 MapState。
-*   **`QuestCompleteAsync(token, map)`** — 任務完成；最終地圖會彈通關 UI。
-*   **`AutoTriggerQuests()`** — 起始祝福事件 / 自動進入單一任務。
-*   **`CurState`** — `m_QuestPoolSetting.m_MapStates[saveData.m_State]`。
-*   **`HideThisBigMap`** / **`ShowThisBigMap`** — 多重判斷可見性。
-*   **`MapState.GetQuestDropPool`** — 按條件式權重隨機抽池。
-*   **`MapState.CheckTransition` / `CheckFinal`** — 狀態切換 / 最終判定（OR）。
+*   **`EnterBigMap(newLoop)`** — entry to bigmap; resets progress on new run.
+*   **`GenerateQuests()`** — main quest generation entry.
+*   **`GenerateQuestsQuestPool()`** / **`GenerateQuestsQuestPoolMix()`** — two implementations.
+*   **`QuestStart(questData)`** — on quest start; flags final map.
+*   **`PassedQuest(questId, progress)`** — on completion; updates tags, advances MapState.
+*   **`QuestCompleteAsync(token, map)`** — on quest complete; final map shows victory UI.
+*   **`AutoTriggerQuests()`** — starting blessing / auto-enter single-quest scenarios.
+*   **`CurState`** — `m_QuestPoolSetting.m_MapStates[saveData.m_State]`.
+*   **`HideThisBigMap`** / **`ShowThisBigMap`** — multi-factor visibility check.
+*   **`MapState.GetQuestDropPool`** — picks pool by conditional weights.
+*   **`MapState.CheckTransition` / `CheckFinal`** — state transition / final check (OR).
 
-### A.4 與其他系統的互動
+### A.4 System Interactions
 
-*   **`RCG_BigMapManager`** — runtime 主入口。
-*   **`RCG_QuestData`** / **`RCG_QuestDropPool`** — 任務系統。
-*   **`RCG_BigMapGenData`** — Asset Entry；預設 `BigMap_Challenge_Card`。
-*   **`BigMapSaveData`** — runtime 進度儲存。
-*   **`RCG_DifficultyData.m_AdditionalQuestProgress`** — 難度附加進度。
-*   **`RCG_GameSettingData.m_GameVersion`** — Demo 版本鎖定判斷。
-*   **`RCG_TutorialService`** — 教學模式可見性判斷。
+*   **`RCG_BigMapManager`** — runtime main entry.
+*   **`RCG_QuestData`** / **`RCG_QuestDropPool`** — quest system.
+*   **`RCG_BigMapGenData`** — Asset Entry; default `BigMap_Challenge_Card`.
+*   **`BigMapSaveData`** — runtime progress storage.
+*   **`RCG_DifficultyData.m_AdditionalQuestProgress`** — difficulty-bonus progress.
+*   **`RCG_GameSettingData.m_GameVersion`** — Demo lock check.
+*   **`RCG_TutorialService`** — tutorial-mode visibility check.
 
-### A.5 已知議題
+### A.5 Known Issues
 
-*   `// QWQ23` 標記散落多處，標示舊版資料格式遷移與待確認邏輯。
-*   `GenerateQuestsQuestPoolMix` 邏輯極長（300+ 行單一方法），多處註解掉的 LogError，維護困難。
+*   `// QWQ23` markers throughout, indicating legacy data format migration and pending verifications.
+*   `GenerateQuestsQuestPoolMix` is a very long method (300+ lines), with many commented-out LogErrors — hard to maintain.
