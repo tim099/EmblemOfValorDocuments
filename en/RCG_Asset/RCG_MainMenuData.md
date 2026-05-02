@@ -1,82 +1,76 @@
 ---
-title: 主選單資料 (RCG_MainMenuData) 說明
-description: 主選單畫面的設定容器（背景、按鈕、版面）；目前內容主要由 RCG_MainMenuSetting 處理
+title: Main Menu Data (RCG_MainMenuData)
+description: Container for main menu screen settings (background, buttons, layout); content mostly handled by RCG_MainMenuSetting
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-en
 ---
 
-> [!WARNING]
-> Translation pending — this file needs an English translation.
-The original zh-Hant content is included below for reference.
+# Main Menu Data
 
+> Class name: `RCG_MainMenuData`
 
-# 主選單資料
+## Purpose
 
-> 程式類別名稱：`RCG_MainMenuData`
+**Main menu screen settings** — wraps an `RCG_MainMenuSetting`, allowing different builds / versions to use different main menus (e.g., simplified menu for showcase, locked buttons for Demo).
 
-## 用途
+Inherits from `RCG_Asset<RCG_MainMenuData>`.
 
-**主選單畫面的設定**——包裝一個 `RCG_MainMenuSetting`，讓不同 build / 版本能套不同主選單（例如展覽版用簡化選單、Demo 版鎖部分按鈕）。
-
-繼承自 `RCG_Asset<RCG_MainMenuData>`。
-
-## 編輯器中的樣貌
+## Editor Layout
 
 ```
 RCG_MainMenuData: <ID = Default>
-    MainMenuSetting   ← 實際的主選單設定（背景、按鈕、版面、過場⋯）
+    MainMenuSetting   ← actual main menu setting (background, buttons, layout, transitions, etc.)
 ```
 
-## 主要欄位
+## Main Fields
 
-| 編輯器顯示 | 必填 | 說明 |
+| Editor Display | Required | Description |
 |---|---|---|
-| **MainMenuSetting** | 是 | 主選單設定本體（`RCG_MainMenuSetting`），含背景、按鈕、版面細節等 |
+| **MainMenuSetting** | yes | The main menu setting body (`RCG_MainMenuSetting`), containing background, buttons, layout details |
 
-## 行為說明
+## Behavior
 
-本類別本身只是個薄薄的包裝；實際邏輯都在 `RCG_MainMenuSetting`（不是 RCG_Asset 子類，是純資料容器）。
+This class is just a thin wrapper; actual logic is in `RCG_MainMenuSetting` (not a RCG_Asset subclass; pure data container).
 
-### Static 入口
-*   `RCG_MainMenuData.CreateInstance()` — 從 Asset 取 `Default` 實例（強制重讀）。
-*   `RCG_MainMenuData.Ins` 已被註解；引用點改走 `RCG_GameSettingData.m_MainMenu`。
+### Static Entries
+*   `RCG_MainMenuData.CreateInstance()` — fetches `Default` instance (forced reload).
+*   `RCG_MainMenuData.Ins` is commented out; reference flow goes through `RCG_GameSettingData.m_MainMenu`.
 
-### 引用關係
-`RCG_GameSettingData.m_MainMenu`（型別 `RCG_MainMenuEntry`）引用此資料；不同遊戲版本可在 GameSettingData 上指定不同 MainMenuData。
+### Reference Relations
+`RCG_GameSettingData.m_MainMenu` (type `RCG_MainMenuEntry`) references this data; different game versions can specify different MainMenuData via GameSettingData.
 
-## 注意事項
+## Caveats
 
-*   **ID 預設為 `Default`**：本類別預期單一 Asset；要做版本變體就建多個 ID。
-*   **`m_MainMenuSetting` 標 `[AlwaysExpendOnGUI]`**：Inspector 內預設展開，方便編輯。
-*   **`Ins` static 已被註解**：取資料統一從 GameSettingData 走，不要直接 `RCG_MainMenuData.Util.GetData(...)`。
+*   **Default ID is `Default`**: this class expects a single Asset; for version variants, create multiple IDs.
+*   **`m_MainMenuSetting` is `[AlwaysExpendOnGUI]`**: auto-expanded in Inspector for ease of editing.
+*   **`Ins` static is commented out**: data fetch goes through GameSettingData; don't call `RCG_MainMenuData.Util.GetData(...)` directly.
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## Appendix: Programmer Reference
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_MainMenuData.cs`
-*   **繼承自**：`RCG_Asset<RCG_MainMenuData>`
-*   **AssetGroup**：`EditGameSetting`
-*   **常數**：`DefaultID = "Default"`
+### A.1 Class Info
+*   **File**: `CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_MainMenuData.cs`
+*   **Inherits**: `RCG_Asset<RCG_MainMenuData>`
+*   **AssetGroup**: `EditGameSetting`
+*   **Constants**: `DefaultID = "Default"`
 
-### A.2 欄位對照
+### A.2 Field Mapping
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| Code Field | Editor Display | Type | Notes |
 |---|---|---|---|
 | `m_MainMenuSetting` | MainMenuSetting | `RCG_MainMenuSetting` | `[AlwaysExpendOnGUI]` |
 
-### A.3 重要 Method
+### A.3 Key Methods
 
-*   **`CreateInstance()` (static)** — `Util.GetData(DefaultID, false)`。
-*   建構式預設 `ID = DefaultID`。
+*   **`CreateInstance()` (static)** — `Util.GetData(DefaultID, false)`.
+*   Constructor defaults `ID = DefaultID`.
 
-### A.4 與其他系統的互動
+### A.4 System Interactions
 
-*   **`RCG_MainMenuSetting`** — 實際內容。
-*   **`RCG_MainMenuEntry`** — Asset Entry 包裝；`RCG_GameSettingData.m_MainMenu` 用此型別引用。
+*   **`RCG_MainMenuSetting`** — actual content.
+*   **`RCG_MainMenuEntry`** — Asset Entry wrapper; `RCG_GameSettingData.m_MainMenu` uses this type.
 
-### A.5 已知議題
+### A.5 Known Issues
 
-*   `Ins` static 已被註解，標示「請走 GameSettingData 取」的設計轉變。
+*   `Ins` static is commented out, marking the design shift to "fetch via GameSettingData".

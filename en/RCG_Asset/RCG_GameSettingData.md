@@ -1,90 +1,84 @@
 ---
-title: 遊戲設定 (RCG_GameSettingData) 說明
-description: 不同版本（Demo / 正式版）的遊戲級設定：主選單、最大解鎖等級、教學重置、商店刷新成本
+title: Game Setting Data (RCG_GameSettingData)
+description: Per-build (Demo / Release) game-level settings — main menu, max unlock level, tutorial reset, shop refresh price
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-en
 ---
 
-> [!WARNING]
-> Translation pending — this file needs an English translation.
-The original zh-Hant content is included below for reference.
+# Game Setting Data
 
+> Class name: `RCG_GameSettingData`
 
-# 遊戲設定
+## Purpose
 
-> 程式類別名稱：`RCG_GameSettingData`
+**Build-level game settings** — lets different builds (Demo / Release / Showcase) apply different settings. The system uses `Application.version` as the ID to fetch the corresponding Asset; if no exact-match exists, falls back to `Default`.
 
-## 用途
+Inherits from `RCG_Asset<RCG_GameSettingData>`.
 
-**版本級的遊戲設定**——讓不同 build（Demo / 正式版 / 展覽版）能套不同設定。系統會用 `Application.version` 當作 ID 從中找對應 Asset；如果沒有同 ID 的，fallback 到 `Default`。
-
-繼承自 `RCG_Asset<RCG_GameSettingData>`。
-
-## 編輯器中的樣貌
+## Editor Layout
 
 ```
 RCG_GameSettingData: <ID = Application.version>
     GameVersion          ← Default / Demo
-    MainMenu             ← 主選單設定引用
-    MaxUnlockLevel       ← 最大解鎖等級上限
-    ResetTutorialOnNewGame ← 是否每次開新遊戲重置教學
-    RefreshBlessingShopPrice ← 祝福商店刷新成本基數
+    MainMenu             ← reference to main menu setting
+    MaxUnlockLevel       ← max unlock level cap
+    ResetTutorialOnNewGame ← whether to reset tutorial on new game
+    RefreshBlessingShopPrice ← blessing shop refresh price base
 ```
 
-## 主要欄位
+## Main Fields
 
-| 編輯器顯示 | 必填 | 說明 |
+| Editor Display | Required | Description |
 |---|---|---|
-| **GameVersion** | 是 | `Default`（普通版）或 `Demo`（鎖定部分功能 / 解鎖等級） |
-| **MainMenu** | 是 | 主選單設定的引用（`RCG_MainMenuEntry`） |
-| **MaxUnlockLevel** | 是 | 最大解鎖等級；超過後等級不再成長（預設 1000） |
-| **ResetTutorialOnNewGame** | — | 每次開新遊戲時重置教學，**展覽機**用 |
-| **RefreshBlessingShopPrice** | 是 | 刷新祝福商店成本基數；總成本 = (剩餘可購買物品數 - 4) × 此值（預設 10） |
+| **GameVersion** | yes | `Default` (regular) or `Demo` (locks features / unlock levels) |
+| **MainMenu** | yes | Reference to main menu setting (`RCG_MainMenuEntry`) |
+| **MaxUnlockLevel** | yes | Max unlock level; level stops growing past this (default 1000) |
+| **ResetTutorialOnNewGame** | — | Reset tutorial on each new game; for **showcase builds** |
+| **RefreshBlessingShopPrice** | yes | Base for blessing shop refresh; total = (remaining buyable count - 4) × this (default 10) |
 
-## 行為說明
+## Behavior
 
-### Asset 取得 (`Ins`)
-`RCG_GameSettingData.Ins` 用 `Application.version` 當 ID 從 Asset 庫取對應實例。**因此 Asset 命名要符合 build 版本號**（如 `0.1.0` / `0.2.0-demo`）；若沒精確匹配，`Util.GetData(version, useDefaultIfMissing = true)` 會 fallback 到 `Default`。
+### Asset Fetch (`Ins`)
+`RCG_GameSettingData.Ins` uses `Application.version` as ID to fetch the corresponding Asset. **So Asset IDs should match the build version** (e.g., `0.1.0` / `0.2.0-demo`); if no exact match, `Util.GetData(version, useDefaultIfMissing = true)` falls back to `Default`.
 
-### Demo 版限制
-`GameVersion = Demo` 時遊戲邏輯會自動鎖定一些功能（例如：強制 `MaxUnlockLevel` 為較低值、禁用某些章節）。具體鎖定邏輯散落在各 manager；本檔只是個 flag。
+### Demo Restrictions
+When `GameVersion = Demo`, game logic auto-restricts certain features (e.g., forces lower `MaxUnlockLevel`, disables certain chapters). The actual restriction logic is scattered across managers; this file just holds a flag.
 
-## 注意事項
+## Caveats
 
-*   **ID 必須對應 Application.version**：建版號改了，舊的 Asset 不會自動套用（需新增同名 Asset 或讓 Default 涵蓋）。
-*   **`m_GameSetting` 已被註解**：原本 `RCG_GameInitData.m_GameSetting` 引用此 Asset，現在改用 `Application.version` 自動查找。
-*   **`RefreshBlessingShopPrice` 公式**：含負數 case（剩餘 ≤ 4 時成本為 0 或負數），實際價格邏輯需 clamp 到 ≥ 0。
+*   **ID must correspond to Application.version**: when the build version changes, old Assets won't auto-apply (need to add a new same-name Asset or rely on Default).
+*   **`m_GameSetting` commented out**: legacy `RCG_GameInitData.m_GameSetting` referenced this; now uses `Application.version` auto-lookup.
+*   **`RefreshBlessingShopPrice` formula**: includes negative case (when remaining ≤ 4, price is 0 or negative); actual price logic must clamp to ≥ 0.
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## Appendix: Programmer Reference
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_GameSettingData.cs`
-*   **繼承自**：`RCG_Asset<RCG_GameSettingData>`
-*   **AssetGroup**：`EditGameSetting`
+### A.1 Class Info
+*   **File**: `CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_GameSettingData.cs`
+*   **Inherits**: `RCG_Asset<RCG_GameSettingData>`
+*   **AssetGroup**: `EditGameSetting`
 
-### A.2 欄位對照
+### A.2 Field Mapping
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| Code Field | Editor Display | Type | Notes |
 |---|---|---|---|
 | `m_GameVersion` | GameVersion | `GameVersion` enum | `Default` / `Demo` |
 | `m_MainMenu` | MainMenu | `RCG_MainMenuEntry` | |
-| `m_MaxUnlockLevel` | MaxUnlockLevel | `int` | 預設 1000 |
-| `m_ResetTutorialOnNewGame` | ResetTutorialOnNewGame | `bool` | 預設 false |
-| `m_RefreshBlessingShopPrice` | RefreshBlessingShopPrice | `int` | 預設 10 |
+| `m_MaxUnlockLevel` | MaxUnlockLevel | `int` | Default 1000 |
+| `m_ResetTutorialOnNewGame` | ResetTutorialOnNewGame | `bool` | Default false |
+| `m_RefreshBlessingShopPrice` | RefreshBlessingShopPrice | `int` | Default 10 |
 
-### A.3 重要 Method
+### A.3 Key Methods
 
-*   **`Ins` (static)** — `Util.GetData(Application.version, useDefaultIfMissing = true)`。
+*   **`Ins` (static)** — `Util.GetData(Application.version, useDefaultIfMissing = true)`.
 
-### A.4 與其他系統的互動
+### A.4 System Interactions
 
-*   **`RCG_MainMenuData`** — `m_MainMenu` 引用的主選單設定。
-*   **`RCG_GameInitData`** — 遊戲初始資料；舊版 `m_GameSetting` 欄位已註解，現由 `Application.version` 自動關聯。
-*   **`RCG_GameSettingGenData`** — Asset Entry；預設 ID = `"Default"`。
+*   **`RCG_MainMenuData`** — main menu setting referenced by `m_MainMenu`.
+*   **`RCG_GameInitData`** — game init data; legacy `m_GameSetting` field commented out, now auto-related via `Application.version`.
+*   **`RCG_GameSettingGenData`** — Asset Entry; default ID = `"Default"`.
 
-### A.5 已知議題
+### A.5 Known Issues
 
-*   `Ins` 中的 `Debug.Log("Application.version: ...")` 已標記 "log!!"——應該是 dev 用，release 前要移除。
+*   `Debug.Log("Application.version: ...")` in `Ins` is marked "log!!" — dev-only, must remove before release.

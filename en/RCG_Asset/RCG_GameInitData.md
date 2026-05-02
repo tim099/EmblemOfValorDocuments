@@ -1,94 +1,88 @@
 ---
-title: 遊戲初始資料 (RCG_GameInitData) 說明
-description: 遊戲全局單例設定：起始道具/裝備/技能、卡牌系統設定、Pooling、編輯器設定、暗霧
+title: Game Init Data (RCG_GameInitData)
+description: Global singleton settings — starting items/equipment/skills, card system settings, pooling, editor settings, dark mist
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-en
 ---
 
-> [!WARNING]
-> Translation pending — this file needs an English translation.
-The original zh-Hant content is included below for reference.
+# Game Init Data
 
+> Class name: `RCG_GameInitData`
 
-# 遊戲初始資料
+## Purpose
 
-> 程式類別名稱：`RCG_GameInitData`
+**The game's global singleton settings Asset** (single instance, ID fixed to `Default`). Contains:
+*   Starting items / equipment / active powers / resources
+*   Card system settings (`RCG_CardGameSetting`)
+*   Pooling settings (object pools)
+*   Prefab resource settings
+*   Editor settings
+*   Dark mist setting list
+*   Equipment type → icon mapping
 
-## 用途
+Inherits from `RCG_Asset<RCG_GameInitData>`.
 
-**遊戲的全局唯一設定資料**（單例 Asset，ID 固定為 `Default`）。包含：
-*   起始物品 / 裝備 / 主動能力 / 資源
-*   卡牌系統設定（`RCG_CardGameSetting`）
-*   Pooling 設定（物件池）
-*   Prefab 資源設定
-*   編輯器設定
-*   暗霧設定清單
-*   裝備類型對應的圖示
-
-繼承自 `RCG_Asset<RCG_GameInitData>`。
-
-## 編輯器中的樣貌
+## Editor Layout
 
 ```
 RCG_GameInitData: Default
     GameVersion / DefaultLanguage
-    CardGameSetting       ← 卡牌系統的全局設定
-    PrefabResSetting      ← 通用 prefab 路徑
-    PoolingGenDataSetting ← 物件池設定
-    DarkMistSettings      ← 暗霧設定清單
+    CardGameSetting       ← card system global settings
+    PrefabResSetting      ← common prefab paths
+    PoolingGenDataSetting ← object pool settings
+    DarkMistSettings      ← dark mist setting list
     EditorSetting
     InitItems / InitActivePowers / InitEquipments / InitResources
-    EquipmentTypeIcon     ← 裝備類型 → 圖示對應
+    EquipmentTypeIcon     ← equipment type → icon mapping
 ```
 
-## 主要欄位
+## Main Fields
 
-| 編輯器顯示 | 必填 | 說明 |
+| Editor Display | Required | Description |
 |---|---|---|
-| **GameVersion** | 是 | 遊戲版本（`RCG_GameVersionGenData`） |
-| **DefaultLanguage** | 是 | 預設語系 |
-| **CardGameSetting** | 是 | 卡牌系統設定（手牌數、抽牌規則等） |
-| **PrefabResSetting** | 是 | 通用 prefab 路徑設定 |
-| **PoolingGenDataSetting** | 是 | 物件池設定（哪些 prefab 要 pool / 初始量） |
-| **DarkMistSettings** | 否 | 暗霧設定清單（多個 `RCG_DarkMistSettingsData` 引用） |
-| **EditorSetting** | 否 | 編輯器相關設定 |
-| **InitItems / InitActivePowers / InitEquipments / InitResources** | 否 | 開新遊戲時的起始物品 / 主動能力 / 裝備 / 資源 |
-| **EquipmentTypeIcon** | 否 | `EquipmentType → RCG_SpriteData` 對應，UI 顯示用 |
+| **GameVersion** | yes | Game version (`RCG_GameVersionGenData`) |
+| **DefaultLanguage** | yes | Default language |
+| **CardGameSetting** | yes | Card system settings (hand size, draw rules, etc.) |
+| **PrefabResSetting** | yes | Common prefab path settings |
+| **PoolingGenDataSetting** | yes | Pool settings (which prefabs to pool / initial size) |
+| **DarkMistSettings** | no | Dark mist setting list (multiple `RCG_DarkMistSettingsData` references) |
+| **EditorSetting** | no | Editor-related settings |
+| **InitItems / InitActivePowers / InitEquipments / InitResources** | no | Starting items / active powers / equipment / resources for new game |
+| **EquipmentTypeIcon** | no | `EquipmentType → RCG_SpriteData` mapping for UI |
 
-## 行為說明
+## Behavior
 
 ### `GameInit()`
-開新遊戲時呼叫，把 `m_InitItems` / `m_InitEquipments` / `m_InitActivePowers` 全部加到玩家身上（個別 Asset 自帶 `AddItem` 邏輯）。
+Called when starting a new game; adds `m_InitItems` / `m_InitEquipments` / `m_InitActivePowers` to the player (each Asset has its own `AddItem` logic).
 
 ### `GetEquipmentIcon(EquipmentType)`
-查 `m_EquipmentTypeIcon` 字典；找不到對應 key 時 LogError 並 fallback 到第一個 entry。
+Looks up `m_EquipmentTypeIcon` dictionary; if key missing, LogError and falls back to first entry.
 
-### Static 入口
-*   `RCG_GameInitData.Ins` — 取 ID `Default` 的 Asset。
-*   `CreateInstance()` — 從 Asset 重新生成一份起始資料（`useDefaultIfMissing = false`）。
+### Static Entries
+*   `RCG_GameInitData.Ins` — fetches the `Default` Asset.
+*   `CreateInstance()` — re-loads from Asset (`useDefaultIfMissing = false`).
 
-## 注意事項
+## Caveats
 
-*   **ID 固定為 `Default`**：本類別預期只有一個 Asset。新增其他 ID 不會被系統自動讀取（除非透過 `Util.GetData` 手動呼叫）。
-*   **`m_GameSetting` 已被註解**：曾規劃讓 GameInitData 引用 GameSettingData，現在改由 `Application.version` 自動關聯。
-*   **`m_UnlockSetting` 已被註解**：解鎖設定改由 `RCG_UnlockData` 處理。
-*   **`m_InitEquipments` 標 TODO**：「準備移到角色設定資料中 不同角色自帶不同裝備」——未來可能搬到 `RCG_CharacterData`。
-*   **裝備類型圖示找不到時的 fallback**：用第一個 entry，可能不是想要的；漏設會看到錯誤的圖示。
+*   **ID fixed to `Default`**: this class expects a single Asset. New IDs won't be auto-loaded (unless explicitly via `Util.GetData`).
+*   **`m_GameSetting` commented out**: was once planned to reference GameSettingData here; now uses `Application.version` auto-lookup.
+*   **`m_UnlockSetting` commented out**: unlock settings now handled by `RCG_UnlockData`.
+*   **`m_InitEquipments` TODO**: "to be moved to character data, characters bring their own initial equipment" — may migrate to `RCG_CharacterData`.
+*   **Equipment icon fallback**: when not found, falls back to the first entry — may not be the desired icon; missing entries cause wrong icons.
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## Appendix: Programmer Reference
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_GameInitDatas/RCG_GameInitData.cs`
-*   **繼承自**：`RCG_Asset<RCG_GameInitData>`
-*   **AssetGroup**：`EditGameSetting`
-*   **常數**：`DefaultID = "Default"`
+### A.1 Class Info
+*   **File**: `CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_GameInitDatas/RCG_GameInitData.cs`
+*   **Inherits**: `RCG_Asset<RCG_GameInitData>`
+*   **AssetGroup**: `EditGameSetting`
+*   **Constants**: `DefaultID = "Default"`
 
-### A.2 欄位對照
+### A.2 Field Mapping
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| Code Field | Editor Display | Type | Notes |
 |---|---|---|---|
 | `m_GameVersion` | GameVersion | `RCG_GameVersionGenData` | |
 | `m_DefaultLanguage` | DefaultLanguage | `UCL_LanguageCodeEntry` | |
@@ -103,21 +97,21 @@ RCG_GameInitData: Default
 | `m_InitResources` | InitResources | `List<RCG_ResourceGenData>` | |
 | `m_EquipmentTypeIcon` | EquipmentTypeIcon | `Dictionary<EquipmentType, RCG_SpriteData>` | |
 
-### A.3 重要 Method 摘要
+### A.3 Key Methods
 
-*   **`Ins` / `CreateInstance` (static)** — 兩種取得入口（前者用 cache，後者強制重讀）。
-*   **`GameInit()`** — 開新遊戲時加入起始物品 / 裝備 / 能力。
-*   **`GetEquipmentIcon(type)`** — 圖示查詢；找不到 fallback 第一個。
-*   **`CardGameSetting / PoolingGenDataSetting / PrefabResSetting` (static properties)** — 快捷存取。
+*   **`Ins` / `CreateInstance` (static)** — two fetch entries (cached / forced reload).
+*   **`GameInit()`** — adds starting items / equipment / abilities on new game.
+*   **`GetEquipmentIcon(type)`** — icon lookup; falls back to first on miss.
+*   **`CardGameSetting / PoolingGenDataSetting / PrefabResSetting` (static properties)** — quick accessors.
 
-### A.4 與其他系統的互動
+### A.4 System Interactions
 
-*   **`RCG_DataService`** — runtime 玩家資料；`InitItems` 等加入此處。
-*   **`RCG_DarkMistSettingsData`** — 暗霧設定清單元素。
-*   **`RCG_CardGameSetting`** — 卡牌系統設定。
-*   **`UCL_LanguageCodeEntry`** — 語系設定。
+*   **`RCG_DataService`** — runtime player data; init items added here.
+*   **`RCG_DarkMistSettingsData`** — dark mist setting list elements.
+*   **`RCG_CardGameSetting`** — card system settings.
+*   **`UCL_LanguageCodeEntry`** — language settings.
 
-### A.5 已知議題
+### A.5 Known Issues
 
-*   `m_GameSetting` / `m_UnlockSetting` / `m_CardClassBackgroundImages` 等多處已註解，標示舊版設計改動。
-*   `m_InitEquipments` 待搬移到角色資料的 TODO。
+*   `m_GameSetting` / `m_UnlockSetting` / `m_CardClassBackgroundImages` etc. multiple commented-out blocks, marking design changes.
+*   `m_InitEquipments` TODO to move to character data.

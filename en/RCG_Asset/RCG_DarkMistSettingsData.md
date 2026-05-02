@@ -1,105 +1,99 @@
 ---
-title: 暗霧設定 (RCG_DarkMistSettingsData) 說明
-description: 暗霧機制的等級數據：不同暗霧等級下對玩家的弱化效果與對敵方的強化效果
+title: Dark Mist Settings (RCG_DarkMistSettingsData)
+description: Per-level data for the dark mist mechanic — debuffs to player, buffs to enemies at different mist levels
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-en
 ---
 
-> [!WARNING]
-> Translation pending — this file needs an English translation.
-The original zh-Hant content is included below for reference.
+# Dark Mist Settings
 
+> Class name: `RCG_DarkMistSettingsData`
 
-# 暗霧設定
+## Purpose
 
-> 程式類別名稱：`RCG_DarkMistSettingsData`
+**Per-level data for the dark mist mechanic**. Dark mist is an environmental pressure that grows as the game progresses; higher mist level = weaker player, stronger enemies. This data defines "what each side gets at each mist level" — usually carried by two shared `CustomStatus` (`DarkMistBuff` / `DarkMistDebuff`), auto-applied at battle start.
 
-## 用途
+Inherits from `RCG_Asset<RCG_DarkMistSettingsData>`.
 
-**暗霧機制的等級數據**。暗霧是隨遊戲進行不斷加深的環境壓力，等級越高玩家越弱、敵方越強。本資料定義「在不同暗霧等級下，雙方獲得什麼效果」——通常是以兩個共用的 `CustomStatus`（`DarkMistBuff` / `DarkMistDebuff`）為載體，戰鬥開始時自動套用。
-
-繼承自 `RCG_Asset<RCG_DarkMistSettingsData>`。
-
-## 編輯器中的樣貌
+## Editor Layout
 
 ```
 RCG_DarkMistSettingsData: <ID>
-    DarkMistBuffGenData      ← 給敵方的強化狀態 ID
-    DarkMistDebuffGenData    ← 給玩家的弱化狀態 ID
-    DarkMistDatas            ← 各等級資料清單（DarkMistLevelData）
+    DarkMistBuffGenData      ← shared "enemy buff" status ID
+    DarkMistDebuffGenData    ← shared "player debuff" status ID
+    DarkMistDatas            ← per-level data list (DarkMistLevelData)
         TriggerLevel
-        DarkMistBuffStatusData    ← 此等級下的強化效果
-        DarkMistDebuffStatusData  ← 此等級下的弱化效果
-        Effects                   ← 戰鬥開始時觸發的 BattleSetting
+        DarkMistBuffStatusData    ← buff effects at this level
+        DarkMistDebuffStatusData  ← debuff effects at this level
+        Effects                   ← BattleSettings to fire on battle start
 ```
 
-## 主要欄位
+## Main Fields
 
-| 編輯器顯示 | 必填 | 說明 |
+| Editor Display | Required | Description |
 |---|---|---|
-| **DarkMistBuffGenData** | 是 | 共用的「敵方強化狀態」ID（預設 `DarkMistBuff`） |
-| **DarkMistDebuffGenData** | 是 | 共用的「玩家弱化狀態」ID（預設 `DarkMistDebuff`） |
-| **DarkMistDatas** | 是 | 各等級資料清單（按 `TriggerLevel` 排序，**最後元素優先**） |
+| **DarkMistBuffGenData** | yes | Shared "enemy buff status" ID (default `DarkMistBuff`) |
+| **DarkMistDebuffGenData** | yes | Shared "player debuff status" ID (default `DarkMistDebuff`) |
+| **DarkMistDatas** | yes | Per-level data list (sorted by `TriggerLevel`, **last element wins**) |
 
-每個 `DarkMistLevelData` 內含：
+Each `DarkMistLevelData` contains:
 
-| 子欄位 | 說明 |
+| Sub-field | Description |
 |---|---|
-| **TriggerLevel** | 此等級觸發門檻（暗霧等級 ≥ 此值才使用本筆設定） |
-| **DarkMistBuffStatusData** | 此等級下的敵方強化效果（覆寫到 `DarkMistBuff` Status 上） |
-| **DarkMistDebuffStatusData** | 此等級下的玩家弱化效果（覆寫到 `DarkMistDebuff` Status 上） |
-| **Effects** | 戰鬥開始時觸發的 `RCG_BattleSetting` 序列 |
+| **TriggerLevel** | This level's threshold (mist level ≥ this triggers this entry) |
+| **DarkMistBuffStatusData** | Enemy buff effects at this level (overwritten onto `DarkMistBuff` status) |
+| **DarkMistDebuffStatusData** | Player debuff effects at this level (overwritten onto `DarkMistDebuff` status) |
+| **Effects** | `RCG_BattleSetting` sequence fired on battle start |
 
-## 行為說明
+## Behavior
 
-### 取得當前等級資料 (`GetCurrentDarkMistLevelData`)
-從清單**末端往前**找第一個 `TriggerLevel ≤ iLevel` 的資料；因此清單必須**按 TriggerLevel 升冪排序**才能正確匹配（例如 `[0, 5, 10, 20]`）。
+### Get Current Level Data (`GetCurrentDarkMistLevelData`)
+Walks the list **from the end backwards**, returns the first entry with `TriggerLevel ≤ iLevel`. So the list **must be sorted ascending by TriggerLevel** (e.g., `[0, 5, 10, 20]`) for correct matching.
 
-### 觸發 (`OnTriggerEffect`)
-找到對應等級資料後，把該資料的 `m_Effects` 全部加到動作佇列。
+### Triggering (`OnTriggerEffect`)
+After finding the current level data, queues all `m_Effects` into the action queue.
 
-### 覆寫狀態 (`UpdateDarkMistEffect`)
-把當前等級的 `DarkMistBuffStatusData` 寫入共用 `DarkMistBuff` Status 的 `m_Effects`——這是**就地修改全局 Status Asset**，每次戰鬥開始前重設一次。
+### Status Override (`UpdateDarkMistEffect`)
+Writes the current level's `DarkMistBuffStatusData` to the shared `DarkMistBuff` Status's `m_Effects`. **This is in-place modification of the global Status Asset**, reset before each battle.
 
-## 注意事項
+## Caveats
 
-*   **DarkMistDatas 必須升冪排序**（依 `TriggerLevel`）：取資料邏輯依賴此前提，逆序或亂序會找錯級。
-*   **共用 Status 是動態覆寫**：`DarkMistBuff` / `DarkMistDebuff` 兩個 `RCG_CustomStatusData` 的 effects 會被 runtime 覆寫；不要手動修這兩個 Asset。
-*   **被多個來源使用**：`RCG_GameInitData.m_DarkMistSettings` 是清單，可有多套（例：難度不同套不同暗霧）。
-*   **Preview 已被註解掉**：編輯器內預覽用基底類預設繪製。
+*   **DarkMistDatas must be ascending** (by `TriggerLevel`): the lookup logic depends on this; reverse / random order will pick the wrong tier.
+*   **Shared Status is dynamically overwritten**: the two `RCG_CustomStatusData` Assets `DarkMistBuff` / `DarkMistDebuff` get their effects overwritten at runtime; don't manually edit them.
+*   **Used by multiple sources**: `RCG_GameInitData.m_DarkMistSettings` is a list; can hold multiple sets (e.g., per-difficulty).
+*   **Preview is commented out**: editor uses base class default rendering for preview.
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## Appendix: Programmer Reference
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_DarkMistSettingsData.cs`
-*   **繼承自**：`RCG_Asset<RCG_DarkMistSettingsData>`
-*   **AssetGroup**：`EditQuestSetting`
+### A.1 Class Info
+*   **File**: `CardGame/Assets/Scripts/RCG_Scripts/RCG_DarkMistSettingsData.cs`
+*   **Inherits**: `RCG_Asset<RCG_DarkMistSettingsData>`
+*   **AssetGroup**: `EditQuestSetting`
 
-### A.2 欄位對照
+### A.2 Field Mapping
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| Code Field | Editor Display | Type | Notes |
 |---|---|---|---|
-| `m_DarkMistBuffGenData` | DarkMistBuffGenData | `RCG_CustomStatusGenData` | 預設 `"DarkMistBuff"` |
-| `m_DarkMistDebuffGenData` | DarkMistDebuffGenData | `RCG_CustomStatusGenData` | 預設 `"DarkMistDebuff"` |
-| `m_DarkMistDatas` | DarkMistDatas | `List<DarkMistLevelData>` | 各等級資料 |
+| `m_DarkMistBuffGenData` | DarkMistBuffGenData | `RCG_CustomStatusGenData` | Default `"DarkMistBuff"` |
+| `m_DarkMistDebuffGenData` | DarkMistDebuffGenData | `RCG_CustomStatusGenData` | Default `"DarkMistDebuff"` |
+| `m_DarkMistDatas` | DarkMistDatas | `List<DarkMistLevelData>` | Per-level data |
 
-### A.3 重要 Method
+### A.3 Key Methods
 
-*   **`OnTriggerEffect(data, level)`** — 找對應等級資料 → 套用 effects。
-*   **`GetCurrentDarkMistLevelData(level)`** — 從尾端往前查 `TriggerLevel ≤ level` 的元素。
-*   **`UpdateDarkMistEffect(level)`** — 覆寫共用 Buff Status 的 effects。
-*   **`SetDarkMistBuff(status)`** — 用 JSON 序列化複寫 Buff 整個 Asset。
+*   **`OnTriggerEffect(data, level)`** — find current level data → apply effects.
+*   **`GetCurrentDarkMistLevelData(level)`** — scan from end for `TriggerLevel ≤ level`.
+*   **`UpdateDarkMistEffect(level)`** — overwrite shared Buff Status effects.
+*   **`SetDarkMistBuff(status)`** — JSON-serialize / overwrite the entire Buff Asset.
 
-### A.4 與其他系統的互動
+### A.4 System Interactions
 
-*   **`RCG_CustomStatusData`** — `DarkMistBuff` / `DarkMistDebuff` 兩個全局狀態。
-*   **`RCG_GameInitData.m_DarkMistSettings`** — 引用此資料的清單。
-*   **`RCG_BattleSetting`** — `m_Effects` 的元素型別。
+*   **`RCG_CustomStatusData`** — the two global statuses `DarkMistBuff` / `DarkMistDebuff`.
+*   **`RCG_GameInitData.m_DarkMistSettings`** — list referencing this data.
+*   **`RCG_BattleSetting`** — element type of `m_Effects`.
 
-### A.5 已知議題
+### A.5 Known Issues
 
-*   `Preview` 完整實作已註解；改用基底類預設繪製。
-*   清單必須手動排序，缺乏自動排序保證；若資料順序錯亂會找錯等級。
+*   `Preview` full implementation commented out; uses base default rendering.
+*   List must be manually sorted; no auto-sort guarantee — out-of-order data picks the wrong tier.
