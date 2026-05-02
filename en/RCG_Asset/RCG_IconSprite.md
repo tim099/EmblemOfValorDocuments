@@ -1,110 +1,104 @@
 ---
-title: TMP 圖示資料 (RCG_IconSprite) 說明
-description: 給 TextMeshPro 用的 inline 圖示資源；UI 描述中的小圖示（HP / 護甲 / 卡牌等）來源
+title: TMP Icon Sprite (RCG_IconSprite)
+description: Inline icons for TextMeshPro — small icons in UI descriptions (HP / armor / card, etc.)
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-en
 ---
 
-> [!WARNING]
-> Translation pending — this file needs an English translation.
-The original zh-Hant content is included below for reference.
+# TMP Icon Sprite
 
+> Class name: `RCG_IconSprite`
 
-# TMP 圖示資料
+## Purpose
 
-> 程式類別名稱：`RCG_IconSprite`
+**Inline icons for TextMeshPro**. Card descriptions, status help, and battle log frequently show "+5 HP" / "-3 armor" with small icons next to them — those icons come from TMP's `<sprite name=...>` tag inserted into text. This Asset is the source of those icons. The system auto-bundles all `RCG_IconSprite` Assets into one `TMP_SpriteAsset` for text rendering.
 
-## 用途
+Inherits from `RCG_Asset<RCG_IconSprite>`.
 
-**給 TextMeshPro 用的 inline 圖示資源**。卡牌描述、狀態說明、戰鬥日誌中常出現「+5 HP」「-3 護甲」之類的文字，HP / 護甲等小圖示就是用 TMP 的 `<sprite name=...>` 標籤插入；本 Asset 就是這些圖示的來源。系統自動把所有 `RCG_IconSprite` 打包成一張 `TMP_SpriteAsset` 給文字渲染。
-
-繼承自 `RCG_Asset<RCG_IconSprite>`。
-
-## 編輯器中的樣貌
+## Editor Layout
 
 ```
 RCG_IconSprite: <ID>
-    Icon       ← 圖示 sprite
-    Scale      ← 縮放（TMP 內顯示用）
-    BearingX   ← 水平基線偏移
-    BearingY   ← 垂直基線偏移（預設 0.85）
+    Icon       ← icon sprite
+    Scale      ← scale (in TMP display)
+    BearingX   ← horizontal baseline offset
+    BearingY   ← vertical baseline offset (default 0.85)
 ```
 
-## 主要欄位
+## Main Fields
 
-| 編輯器顯示 | 必填 | 說明 |
+| Editor Display | Required | Description |
 |---|---|---|
-| **Icon** | 是 | 圖示 sprite（`RCG_SpriteData`），預設 `Status_BloodDrain` |
-| **Scale** | 是 | 在 TMP 內的縮放（預設 1） |
-| **BearingX** | — | 水平基線偏移 |
-| **BearingY** | — | 垂直基線偏移（預設 0.85，對應 TMP 文字基線） |
+| **Icon** | yes | Icon sprite (`RCG_SpriteData`); default `Status_BloodDrain` |
+| **Scale** | yes | Scale in TMP (default 1) |
+| **BearingX** | — | Horizontal baseline offset |
+| **BearingY** | — | Vertical baseline offset (default 0.85, aligns with TMP text baseline) |
 
-## 行為說明
+## Behavior
 
 ### TMPKey
-每個 IconSprite 自動產生 TMP 標籤：`<sprite name={ID}>`。在文字裡用這個就能 inline 顯示對應圖示。
+Each IconSprite auto-generates a TMP tag: `<sprite name={ID}>`. Use this in text for inline icon display.
 
-### 自動打包成 TMP_SpriteAsset
-`InitSpriteAsset(token)` 在啟動時掃所有 `RCG_IconSprite` 並打包成單一 `TMP_SpriteAsset`；模組重新載入時 (`UCL_ModuleService.OnLoadedModule`) 會自動 refresh。
+### Auto-Bundle into TMP_SpriteAsset
+`InitSpriteAsset(token)` scans all `RCG_IconSprite` at startup and bundles them into a single `TMP_SpriteAsset`; auto-refreshes when modules reload (`UCL_ModuleService.OnLoadedModule`).
 
-### `Save()` 觸發 RefreshSpriteAsset
-編輯器內存檔本 Asset 會自動觸發 `RefreshSpriteAsset()` 重建打包，立即看到變更。
+### `Save()` Triggers RefreshSpriteAsset
+Saving this Asset in editor auto-triggers `RefreshSpriteAsset()` to rebuild the bundle and see changes immediately.
 
-### 內建 static 引用
+### Built-in Static References
 *   `EffectIcon_Target` / `EffectIcon_CountDown` / `EffectIcon_Armor` / `EffectIcon_Health` / `EffectIcon_Card` / `EffectIcon_Die` / `EffectIcon_Energy` / `EffectIcon_Magnifier`
-這些是程式內常用的圖示，直接用 static property 取得。
+These are common icons used in code, accessed directly via static properties.
 
-### Editor 工具
-*   **`Output sprite sheet`**（編輯器專用）：匯出整套 sprite sheet 圖（合圖檔）。
-*   **`Refresh SpriteAsset`**：手動重新打包。
+### Editor Tools
+*   **`Output sprite sheet`** (Editor only): exports the entire sprite sheet image (composite atlas).
+*   **`Refresh SpriteAsset`**: manually re-bundles.
 
-## 注意事項
+## Caveats
 
-*   **打包是 async**：`InitSpriteAsset` 用 `s_IsRefreshingSpriteAsset` 旗標互斥，避免並行打包；refresh 中再呼叫會等到上次結束。
-*   **`BearingY = 0.85` 預設**：與 TMP 字型基線對齊，調整可能會讓圖示飄上飄下。
-*   **預設 ID `AbsorbShield`**（`RCG_IconSpriteGenData.DefaultID`）。
-*   **`m_Disable` 已被註解**：曾規劃跳過 disabled 圖示；目前所有圖示都會被打包。
-*   **`LocalizeName` 行為**：UI 模式回 TMPKey（圖示），非 UI 模式回 i18n 翻譯（純文字）；卡牌描述系統依 `RCG_BattleSetting.IsShowOnUI` 切換。
+*   **Bundling is async**: `InitSpriteAsset` uses `s_IsRefreshingSpriteAsset` flag for mutex; concurrent calls wait for the previous one to finish.
+*   **Default `BearingY = 0.85`**: aligns with TMP font baseline; tweaking can make icons drift up/down.
+*   **Default ID `AbsorbShield`** (`RCG_IconSpriteGenData.DefaultID`).
+*   **`m_Disable` is commented out**: was once planned to skip disabled icons; currently all icons are bundled.
+*   **`LocalizeName` behavior**: UI mode → TMPKey (icon), non-UI mode → i18n translation (plain text); the card description system switches based on `RCG_BattleSetting.IsShowOnUI`.
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## Appendix: Programmer Reference
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_IconSprite.cs`
-*   **繼承自**：`RCG_Asset<RCG_IconSprite>`
-*   **AssetGroup**：`EditTags`
+### A.1 Class Info
+*   **File**: `CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_IconSprite.cs`
+*   **Inherits**: `RCG_Asset<RCG_IconSprite>`
+*   **AssetGroup**: `EditTags`
 
-### A.2 欄位對照
+### A.2 Field Mapping
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| Code Field | Editor Display | Type | Notes |
 |---|---|---|---|
-| `m_Icon` | Icon | `RCG_SpriteData` | 預設 `Status_BloodDrain` |
-| `m_Scale` | Scale | `float` | 預設 1 |
-| `m_BearingX` | BearingX | `float` | 預設 0 |
-| `m_BearingY` | BearingY | `float` | 預設 0.85 |
+| `m_Icon` | Icon | `RCG_SpriteData` | Default `Status_BloodDrain` |
+| `m_Scale` | Scale | `float` | Default 1 |
+| `m_BearingX` | BearingX | `float` | Default 0 |
+| `m_BearingY` | BearingY | `float` | Default 0.85 |
 
-### A.3 重要 Method（含 static）
+### A.3 Key Methods (including statics)
 
-*   **`InitSpriteAsset(token)` (static async)** — 啟動時打包；含 OnLoadedModule 訂閱。
-*   **`GenerateSpriteAsset(token)` (static)** — 載入所有 icons 並建立 `TMP_SpriteAsset`。
-*   **`RefreshSpriteAsset / RefreshSpriteAssetAsync`** — 重新打包（重複呼叫互斥）。
-*   **`LoadIconSprites(token)` (private static)** — 讀所有 textures + names + icons 的 helper。
-*   **`Save()` (override)** — 觸發 RefreshSpriteAsset。
-*   **`TMPKey` (property)** — `<sprite name={ID}>`。
-*   多個 static `EffectIcon_*` 快速引用。
+*   **`InitSpriteAsset(token)` (static async)** — startup bundling; subscribes OnLoadedModule.
+*   **`GenerateSpriteAsset(token)` (static)** — loads all icons and creates `TMP_SpriteAsset`.
+*   **`RefreshSpriteAsset / RefreshSpriteAssetAsync`** — re-bundle (mutex on repeated calls).
+*   **`LoadIconSprites(token)` (private static)** — helper to read all textures + names + icons.
+*   **`Save()` (override)** — triggers RefreshSpriteAsset.
+*   **`TMPKey` (property)** — `<sprite name={ID}>`.
+*   Multiple static `EffectIcon_*` shortcut references.
 
-### A.4 與其他系統的互動
+### A.4 System Interactions
 
-*   **`TMP_SpriteAsset`** — TextMeshPro 圖示資源。
-*   **`RCG_TMPTools`** — 打包與工具（`CreateSpriteAsset / RefreshSpriteAsset / CreateIconSpriteSheetEditor`）。
-*   **`RCG_SpriteData`** — 來源 sprite。
-*   **`UCL_ModuleService.OnLoadedModule`** — 模組重載時自動 refresh。
-*   **`RCG_BattleSetting.IsShowOnUI`** — 文字描述模式切換。
-*   **`RCG_IconSpriteGenData`** — Asset Entry；預設 `AbsorbShield`。
+*   **`TMP_SpriteAsset`** — TextMeshPro icon resource.
+*   **`RCG_TMPTools`** — bundling and tools (`CreateSpriteAsset / RefreshSpriteAsset / CreateIconSpriteSheetEditor`).
+*   **`RCG_SpriteData`** — source sprite.
+*   **`UCL_ModuleService.OnLoadedModule`** — module reload auto-refresh.
+*   **`RCG_BattleSetting.IsShowOnUI`** — text description mode switch.
+*   **`RCG_IconSpriteGenData`** — Asset Entry; default `AbsorbShield`.
 
-### A.5 已知議題
+### A.5 Known Issues
 
-*   `m_Disable` / `CheckSpriteAsset / GenerateSpriteAsset (sync ver)` 等多處註解，標示舊版同步打包流程已改 async。
-*   `s_IsRefreshingSpriteAsset` 是全局 static flag，極端情況下若 task 拋例外未復位可能卡住未來 refresh。
+*   `m_Disable` / `CheckSpriteAsset / GenerateSpriteAsset (sync ver)` etc. multiple commented blocks marking the legacy sync bundling flow → async.
+*   `s_IsRefreshingSpriteAsset` is a global static flag; if a task throws an exception without resetting, future refreshes may hang.

@@ -1,87 +1,81 @@
 ---
-title: 背景音樂 (RCG_BGMData) 說明
-description: BGM 設定：音檔、音量；支援 PlayBGM（取代）與 PushBGM（堆疊）兩種播放模式
+title: Background Music (RCG_BGMData)
+description: BGM settings — audio file, volume; supports PlayBGM (replace) and PushBGM (stack) modes
 last_updated: 2026-05-02
 target_audience: [Designer, Modder, AI_Agent]
-translation_status: pending-en
 ---
 
-> [!WARNING]
-> Translation pending — this file needs an English translation.
-The original zh-Hant content is included below for reference.
+# Background Music
 
+> Class name: `RCG_BGMData`
 
-# 背景音樂
+## Purpose
 
-> 程式類別名稱：`RCG_BGMData`
+**BGM template**. Unlike one-shot SE (`RCG_SEData`), BGM is continuously playing background music; map, battle, and menu have their own BGMs. This data defines the BGM's audio file, volume, and memo.
 
-## 用途
+Inherits from `RCG_Asset<RCG_BGMData>`.
 
-**背景音樂的模板**。與一次性音效 (`RCG_SEData`) 不同，BGM 是持續播放的背景音樂；地圖、戰鬥、選單各有自己的 BGM。本資料定義 BGM 的音檔、音量、備註。
-
-繼承自 `RCG_Asset<RCG_BGMData>`。
-
-## 編輯器中的樣貌
+## Editor Layout
 
 ```
 RCG_BGMData: <ID>
-    BGM        ← 音檔（RCG_AudioData，預設 GroupBGM）
-    Volume     ← 音量
-    Note       ← 備註
+    BGM        ← audio file (RCG_AudioData; default GroupBGM)
+    Volume     ← volume
+    Note       ← memo
 ```
 
-## 主要欄位
+## Main Fields
 
-| 編輯器顯示 | 必填 | 說明 |
+| Editor Display | Required | Description |
 |---|---|---|
-| **BGM** | 是 | 音檔，預設 `BGM_MapBGM` |
-| **Volume** | 是 | 音量 0~1（slider），預設 1.0 |
-| **Note** | 否 | 備註（編輯時自用） |
+| **BGM** | yes | Audio file; default `BGM_MapBGM` |
+| **Volume** | yes | Volume 0~1 (slider), default 1.0 |
+| **Note** | no | Memo (for editor use) |
 
-## 行為說明
+## Behavior
 
 ### `PlayBGM()` vs `PushBGM()`
-*   **PlayBGM**：取代當前 BGM（停掉舊的、播新的）。
-*   **PushBGM**：堆疊到 BGM stack 上（常用於「戰鬥開始播戰鬥音樂、結束 pop 回原本的地圖音樂」）。
-兩者都有對應的 async 版本（`PlayBGMAsync` / `PushBGMAsync`）。
+*   **PlayBGM**: replaces the current BGM (stops old, plays new).
+*   **PushBGM**: stacks onto the BGM stack (commonly used for "play battle BGM at battle start, pop back to map BGM at battle end").
+Both have async versions (`PlayBGMAsync` / `PushBGMAsync`).
 
-### `m_BGM.IsEmpty` 時靜默 return
-不會 LogError；只有 clip 載入失敗（IsEmpty=false 但 GetClip 回 null）才會 LogError。
+### `m_BGM.IsEmpty` Silently Returns
+No LogError; only logs an error when the clip load fails (IsEmpty=false but GetClip returns null).
 
-### 預設 ID
-`RCG_BGMData.DefaultBGM = "BGM_MapBGM"`：地圖預設 BGM。
+### Default ID
+`RCG_BGMData.DefaultBGM = "BGM_MapBGM"`: default map BGM.
 
-## 注意事項
+## Caveats
 
-*   **PushBGM 沒有對應的 PopBGM 在這個檔**：pop 邏輯在 `UCL_GameAudioService` 自己處理（外層呼叫 `PopBGM`）。
-*   **BGM 與 SE 走不同混音器**：分別有獨立音量控制；挑錯路徑會被當成 SE。
-*   **無 `Preview` override**：用基底類預設繪製，編輯器內看不到音檔波形預覽。
+*   **No corresponding PopBGM in this file**: pop logic is handled by `UCL_GameAudioService` directly (caller invokes `PopBGM`).
+*   **BGM and SE go through different mixers**: independent volume controls; wrong path means wrong category.
+*   **No `Preview` override**: uses base default rendering; no waveform preview in editor.
 
 ---
 
-## 附錄：程式人員參考 (Programmer Reference)
+## Appendix: Programmer Reference
 
-### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_BGMData.cs`
-*   **繼承自**：`RCG_Asset<RCG_BGMData>`
-*   **AssetGroup**：`EditGameSetting`
-*   **常數**：`DefaultBGM = "BGM_MapBGM"`
+### A.1 Class Info
+*   **File**: `CardGame/Assets/Scripts/RCG_Scripts/RCG_CardGames/RCG_CommonDatas/RCG_BGMData.cs`
+*   **Inherits**: `RCG_Asset<RCG_BGMData>`
+*   **AssetGroup**: `EditGameSetting`
+*   **Constants**: `DefaultBGM = "BGM_MapBGM"`
 
-### A.2 欄位對照
+### A.2 Field Mapping
 
-| 程式欄位 | 編輯器顯示 | 型別 | 備註 |
+| Code Field | Editor Display | Type | Notes |
 |---|---|---|---|
-| `m_BGM` | BGM | `RCG_AudioData` | 預設 `ModResource + GroupBGM + DefaultBGM` |
+| `m_BGM` | BGM | `RCG_AudioData` | Default `ModResource + GroupBGM + DefaultBGM` |
 | `m_Volume` | Volume | `float` | `[UCL_Slider(0, 1)]` |
 | `m_Note` | Note | `string` | |
 
-### A.3 重要 Method
+### A.3 Key Methods
 
-*   **`PlayBGM() / PlayBGMAsync()`** — 取代當前 BGM。
-*   **`PushBGM() / PushBGMAsync()`** — 堆疊播放。
+*   **`PlayBGM() / PlayBGMAsync()`** — replace current BGM.
+*   **`PushBGM() / PushBGMAsync()`** — stack play.
 
-### A.4 與其他系統的互動
+### A.4 System Interactions
 
-*   **`UCL.Core.Game.UCL_GameAudioService`** — 實際播放服務（`PlayBGM` / `PushBGM`）。
-*   **`RCG_AudioData`** — 音檔資源封裝。
-*   **`RCG_BGMGenData`** — Asset Entry。
+*   **`UCL.Core.Game.UCL_GameAudioService`** — actual playback service (`PlayBGM` / `PushBGM`).
+*   **`RCG_AudioData`** — audio file resource wrapper.
+*   **`RCG_BGMGenData`** — Asset Entry.
