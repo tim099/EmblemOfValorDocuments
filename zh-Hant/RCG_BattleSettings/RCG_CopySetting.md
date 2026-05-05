@@ -1,7 +1,7 @@
 ---
 title: 複製 說明
 description: 複製選取的手牌，可指定加入手牌、牌堆或棄牌堆
-last_updated: 2026-05-02
+last_updated: 2026-05-05
 target_audience: [Designer, Modder, AI_Agent]
 ---
 
@@ -39,7 +39,7 @@ target_audience: [Designer, Modder, AI_Agent]
 ## 附錄：程式人員參考 (Programmer Reference)
 
 ### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_CopySetting.cs`
+*   **檔案路徑**：[`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_CopySetting.cs`](../../../CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_CopySetting.cs)
 *   **繼承自**：`RCG_BattleSetting`
 *   **無 i18n 類別名 key**：i18n key `RCG_CopySetting` 用於描述（「複製」），但 `AllTypes` 顯示為 stripped name 「Copy」
 
