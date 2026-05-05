@@ -1,7 +1,7 @@
 ---
 title: 重複觸發(迴圈) 說明
 description: 把指定的組合效果重複執行 N 次的控制流戰鬥設定
-last_updated: 2026-05-02
+last_updated: 2026-05-05
 target_audience: [Designer, Modder, AI_Agent]
 ---
 
@@ -64,7 +64,7 @@ target_audience: [Designer, Modder, AI_Agent]
 > 此段以下使用程式內部術語，受眾轉為程式人員與 AI agent。前半段內容請優先採信。
 
 ### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_LoopSetting.cs`
+*   **檔案路徑**：[`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_LoopSetting.cs`](../../../CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_LoopSetting.cs)
 *   **繼承自**：`RCG_BattleSetting`
 *   **i18n 類別名 key**：`RCG_LoopSetting` → 「重複觸發(迴圈)」
 
@@ -78,11 +78,16 @@ target_audience: [Designer, Modder, AI_Agent]
 ### A.3 重要 Method 摘要
 *   **`AddAction`**：
     ```csharp
-    int aLoopTimes = m_LoopTimes.GetValue(iData);
-    for (int i = 0; i < aLoopTimes; i++)
-        m_LoopContent.AddAction(iData, AddActionMode.InsertInOrder);
+    iData.AddActionTrigger(() => {
+        int aLoopTimes = m_LoopTimes.GetValue(iData);  // 在 Trigger 內部即時求值
+        for (int i = 0; i < aLoopTimes; i++)
+            m_LoopContent.AddAction(iData, AddActionMode.InsertInOrder);
+    }, iAddActionMode, this);
     ```
-    **重點**：每圈用 `InsertInOrder`，保證動作順序與外層串接。
+    **重點**：
+    - 整個 Loop 包成單一 `AddActionTrigger`，第三參數 `this` 用於除錯時識別來源。
+    - `m_LoopTimes.GetValue` 在 Trigger 觸發時才求值，支援動態變數（中途改變的「剩手牌數」等）。
+    - 每圈用 `InsertInOrder`，保證 N 圈動作維持原順序、不被外層其他併發 Trigger 插斷。
 *   **`GetDescriptionFormat`**：
     1. 暫存 `iData.m_FullSentence`，設為 `false` 取乾淨內容描述。
     2. `LocalizedStringUtils.CapitalizeString` 把首字大寫（暫時 hack）。

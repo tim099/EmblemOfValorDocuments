@@ -1,7 +1,7 @@
 ---
 title: 隨機觸發 說明
 description: 隨機選取效果觸發、依機率觸發、或依變數機率觸發三種模式
-last_updated: 2026-05-02
+last_updated: 2026-05-05
 target_audience: [Designer, Modder, AI_Agent]
 ---
 
@@ -45,7 +45,7 @@ target_audience: [Designer, Modder, AI_Agent]
 ## 附錄：程式人員參考 (Programmer Reference)
 
 ### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_RandomTriggerSetting.cs`
+*   **檔案路徑**：[`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_RandomTriggerSetting.cs`](../../../CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_RandomTriggerSetting.cs)
 *   **繼承自**：`RCG_BattleSetting`
 *   **i18n 類別名 key**：`RCG_RandomTriggerSetting` → 「隨機觸發」
 
@@ -64,8 +64,17 @@ target_audience: [Designer, Modder, AI_Agent]
     *   `RandomPick` → `RCG_GameManager.Random.RandomPick(allEnabled, count)`，逐一 `AddAction(InsertInOrder)`。
     *   `TriggerByRate` → `Random.Range(0, 100) < m_TriggerRate` → 若觸發，全 enable 子設定逐一 AddAction。
     *   `TriggerByVariableRate` → 同上但機率取 `m_VariableRate.GetValue(iData)`。
+*   **`Infos`** → 聚合所有 enable 候選的 `Infos` 並 `AppendIfNotRepeat` 去重。
+*   **`GetDescriptionParams`** → 索引 `[0]` 為機率描述（VariableRate 模式為變數描述，其他模式為 `m_TriggerRate.ToString()`，**RandomPick 模式 `[0]` 為佔位但不會用到**）；後接候選子設定參數（前綴 `_{i}`）。
+*   **`GetDescriptionFormat`** →
+    *   `RandomPick`：候選用 `"[xxx]"` 框並換行串接，模板帶入 `m_RandomPickCount.GetDescription`。
+    *   `TriggerByRate / VariableRate`：候選用 `","` 分隔串接，模板帶入 `aParams[0].Item1`。
 *   **`GetFusionCandidateSettings`** → 對所有 enable 子的候選聚合（不含自身）。
 *   **`GetFusionBaseSetting`**：clone + 重建 `m_TriggerSettings` 為 placeholder 化版本。
 
 ### A.4 與其他系統的互動
 *   **`RCG_GameManager.Random.RandomPick / Range`**：種子控制的隨機來源（影響重現性）。
+*   **`enum.GetLocalizeDes`** (擴充方法)：依 `RandomTriggerMode` 取得對應 i18n 模板字串。
+
+### A.5 已知議題
+*   檔頭原本是 `/* AutoHeader Test */` 區塊註解；2026-05-05 G01-5 註解作業時依 [CLAUDE.md](../../../CLAUDE.md) 「禁止 `/* */`」改為 `// AutoHeader Test`。若 AutoHeader 工具依賴此標記，請改為偵測 `//` 形式。

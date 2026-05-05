@@ -1,7 +1,7 @@
 ---
 title: 條件判斷說明
 description: 依條件分流的戰鬥設定；條件成立執行一條路徑，否則執行另一條
-last_updated: 2026-05-02
+last_updated: 2026-05-05
 target_audience: [Designer, Modder, AI_Agent]
 ---
 
@@ -69,7 +69,7 @@ target_audience: [Designer, Modder, AI_Agent]
 > 此段以下使用程式內部術語，受眾轉為程式人員與 AI agent。前半段內容請優先採信。
 
 ### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_ConditionalSetting.cs`
+*   **檔案路徑**：[`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_ConditionalSetting.cs`](../../../CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_ConditionalSetting.cs)
 *   **繼承自**：`RCG_BattleSetting`
 *   **i18n 類別名 key**：`RCG_ConditionalSetting` → 「條件判斷」
 
@@ -86,6 +86,7 @@ target_audience: [Designer, Modder, AI_Agent]
 ### A.3 重要 Method 摘要
 *   **`AddAction`**：在 `AddActionTrigger` 中以 `m_CardConditions.CheckConditions_AND(iData)` 判斷，分流呼叫 `IfConditionFit` 或 `ElseCondition` 中各子設定的 `AddAction(iData, InsertInOrder)`。
 *   **`Infos`** → 聚合 `m_CardConditions[*].Infos` + `IfConditionFit[*].Infos` + `ElseCondition[*].Infos`，全部 `AppendIfNotRepeat` 去重。
+*   **`GetDescriptionShort`** → 忽略條件，把 If + Else 子描述串成多行。**注意：If 走 `GetDescriptionShort`，Else 走 `GetDescription`**（看似不一致，沿用既有行為，未列入修正範圍）。
 *   **`GetBattleSettings<T> / (Type)`** → 自身 + 遞迴兩條路徑（**注意 OR 都遞迴，不挑分支**）。
 *   **`GetDescriptionFormat`**：
     1. 暫存 `iData.m_FullSentence`，設 `false`。
