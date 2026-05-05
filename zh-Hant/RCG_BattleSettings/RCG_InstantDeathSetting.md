@@ -1,7 +1,7 @@
 ---
 title: 即死 說明
 description: 直接擊殺目標；可選無條件即死或低於指定 HP 即死兩種模式
-last_updated: 2026-05-02
+last_updated: 2026-05-05
 target_audience: [Designer, Modder, AI_Agent]
 ---
 
@@ -42,7 +42,7 @@ target_audience: [Designer, Modder, AI_Agent]
 ## 附錄：程式人員參考 (Programmer Reference)
 
 ### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_InstantDeathSetting.cs`
+*   **檔案路徑**：[`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_InstantDeathSetting.cs`](../../../CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_InstantDeathSetting.cs)
 *   **繼承自**：`RCG_BattleSetting`
 *   **i18n 類別名 key**：`RCG_InstantDeathSetting` → 「即死」
 

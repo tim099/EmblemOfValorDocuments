@@ -1,7 +1,7 @@
 ---
 title: 治療設定說明
 description: 對選定目標恢復生命值的戰鬥設定，支援固定值與百分比兩種治療方式
-last_updated: 2026-05-02
+last_updated: 2026-05-05
 target_audience: [Designer, Modder, AI_Agent]
 ---
 
@@ -58,7 +58,7 @@ target_audience: [Designer, Modder, AI_Agent]
 > 此段以下使用程式內部術語，受眾轉為程式人員與 AI agent。前半段內容請優先採信。
 
 ### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_HealSetting.cs`
+*   **檔案路徑**：[`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_HealSetting.cs`](../../../CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_HealSetting.cs)
 *   **繼承自**：`RCG_BattleSetting`
 *   **i18n 類別名 key**：`RCG_HealSetting` → 「治療」
 

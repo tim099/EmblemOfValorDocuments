@@ -1,7 +1,7 @@
 ---
 title: Diminished（已被削弱占位）說明
 description: 「無效卡牌效果」削弱後的占位類別；顯示紅字提示且不可再被削弱
-last_updated: 2026-05-02
+last_updated: 2026-05-05
 target_audience: [Designer, Modder, AI_Agent]
 ---
 
@@ -35,7 +35,7 @@ target_audience: [Designer, Modder, AI_Agent]
 ## 附錄：程式人員參考 (Programmer Reference)
 
 ### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_DiminishedPlaceholder.cs`
+*   **檔案路徑**：[`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_DiminishedPlaceholder.cs`](../../../CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_DiminishedPlaceholder.cs)
 *   **繼承自**：`RCG_PlaceholderSetting`
 *   **無 i18n 類別名 key**：編輯器顯示 stripped name `Diminished`
 

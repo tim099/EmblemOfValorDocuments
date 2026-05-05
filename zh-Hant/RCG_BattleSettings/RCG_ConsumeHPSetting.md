@@ -1,7 +1,7 @@
 ---
 title: 消耗生命值 說明
 description: 對目標扣血（固定值或當前 / 最大 HP 百分比）；用於自損型效果
-last_updated: 2026-05-02
+last_updated: 2026-05-05
 target_audience: [Designer, Modder, AI_Agent]
 ---
 
@@ -42,7 +42,7 @@ target_audience: [Designer, Modder, AI_Agent]
 ## 附錄：程式人員參考 (Programmer Reference)
 
 ### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_ConsumeHPSetting.cs`
+*   **檔案路徑**：[`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_ConsumeHPSetting.cs`](../../../CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_ConsumeHPSetting.cs)
 *   **繼承自**：`RCG_BattleSetting`
 *   **i18n 類別名 key**：`RCG_ConsumeHPSetting` → 「消耗生命值」
 

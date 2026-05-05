@@ -1,7 +1,7 @@
 ---
 title: 攻擊指令 說明
 description: 與「攻擊」類似但可指定攻擊者；用於「指揮另一個單位攻擊」的情境
-last_updated: 2026-05-02
+last_updated: 2026-05-05
 target_audience: [Designer, Modder, AI_Agent]
 ---
 
@@ -49,7 +49,7 @@ target_audience: [Designer, Modder, AI_Agent]
 ## 附錄：程式人員參考 (Programmer Reference)
 
 ### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_AttackCommandSetting.cs`
+*   **檔案路徑**：[`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_AttackCommandSetting.cs`](../../../CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_AttackCommandSetting.cs)
 *   **繼承自**：`RCG_BattleSetting`
 *   **`[System.Serializable]`** 標記
 *   **i18n 類別名 key**：`RCG_AttackCommandSetting` → 「攻擊指令」
@@ -79,3 +79,5 @@ target_audience: [Designer, Modder, AI_Agent]
 
 ### A.5 已知議題
 *   與 `RCG_AttackSetting` 重複碼極多（attack 力 / 次數 / VFX / DetailSetting / preview 邏輯）— 應重構為共用基底或 helper。
+*   **i18n key 命名 typo**：`AttackDommand_Des` 應為 `AttackCommand_Des`，但改名會破壞舊資料故保留。
+*   **本類無 GetPreviewDamage / Fusion 覆寫**：兩者都走父類預設（-1 / null），與 AttackSetting 行為不同 —— 設計師若想要預覽傷害請改用 AttackSetting。

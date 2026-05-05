@@ -1,7 +1,7 @@
 ---
 title: 攻擊設定說明
 description: 對目標造成傷害的戰鬥設定；含攻擊力、攻擊次數、類型、標籤、特效與進階詳細設定
-last_updated: 2026-05-02
+last_updated: 2026-05-05
 target_audience: [Designer, Modder, AI_Agent]
 ---
 
@@ -88,7 +88,7 @@ target_audience: [Designer, Modder, AI_Agent]
 > 此段以下使用程式內部術語，受眾轉為程式人員與 AI agent。前半段內容請優先採信。
 
 ### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_AttackSetting.cs`
+*   **檔案路徑**：[`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_AttackSetting.cs`](../../../CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_AttackSetting.cs)
 *   **繼承自**：`RCG_BattleSetting`
 *   **`[System.Serializable]`** 標記
 *   **i18n 類別名 key**：`RCG_AttackSetting` → 「攻擊」
@@ -132,6 +132,16 @@ target_audience: [Designer, Modder, AI_Agent]
 *   **`RCG_SelectTargetData` / `SelectTargetType` / `UnitRange`** → 通用目標選擇器；`AttackRange` enum 是淘汰前的舊型態。
 *   **`IntVariable`** → 攻擊力 / 攻擊次數的數值容器。
 *   **`RCG_MonsterTagGenData`** → 特攻判定用的怪物標籤。
+
+### A.5+ AddAction 流程要點
+1. 解析攻擊者：`iData.User` 為主，缺值時 fallback 取 `RCG_BattleManager.Ins.AllAliveUnits[0]`（防呆）。
+2. 攻擊次數：`m_AtkTimes.GetValue(iData)` → 非 `IgnoreBuff` 時再套 `aUser.m_UnitStatus.GetAtkTimes(...)` 修正。
+3. 反擊 VFX：`m_CounterAttackVFX = true` 且 `iData.AttackData != null` 時，沿用對方的 `AttackVFXGenData`。
+4. 反擊類型：`AttackType.Counter` 會依 `iData.AttackData.AttackType` 自適應；無源傷害時退化為 `Normal`。
+5. **Chaos 狀態特例**：若攻擊者帶 `UnitState.Chaos` 且目標為「指定目標」(`UnitRange.Target`)，目標會被改為「全場（含友方）隨機」。
+6. 執行模式：
+   - `AttackAtOnce = true` → 把 N 段目標清單合併成單筆 `AttackData`，動畫一次播放。
+   - `AttackAtOnce = false` → 跑 N 段獨立 `RCG_AttackAction`，每段重新解析目標（敵人陣亡會影響後續）。
 
 ### A.6 已知議題
 *   `AttackRange` enum 已被 `RCG_SelectTargetData` 取代，但仍保留枚舉定義 — 反序列化舊 JSON 用。
