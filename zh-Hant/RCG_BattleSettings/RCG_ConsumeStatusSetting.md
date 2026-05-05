@@ -1,7 +1,7 @@
 ---
 title: 消耗狀態 說明
 description: 消耗自身狀態層數觸發效果；層數不足時可選擇阻擋使用或不觸發
-last_updated: 2026-05-02
+last_updated: 2026-05-05
 target_audience: [Designer, Modder, AI_Agent]
 ---
 
@@ -43,7 +43,7 @@ target_audience: [Designer, Modder, AI_Agent]
 ## 附錄：程式人員參考 (Programmer Reference)
 
 ### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_ConsumeStatusSetting.cs`
+*   **檔案路徑**：[`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_ConsumeStatusSetting.cs`](../../../CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_ConsumeStatusSetting.cs)
 *   **繼承自**：`RCG_BattleSetting`
 *   **i18n 類別名 key**：`RCG_ConsumeStatusSetting` → 「消耗狀態」
 

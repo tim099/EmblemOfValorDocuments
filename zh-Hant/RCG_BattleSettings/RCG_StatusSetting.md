@@ -1,7 +1,7 @@
 ---
 title: 狀態 說明
 description: 給予 / 減少 / 移除 / 轉換 / 吸收 / 隨機抽取狀態的全功能設定
-last_updated: 2026-05-02
+last_updated: 2026-05-05
 target_audience: [Designer, Modder, AI_Agent]
 ---
 
@@ -61,7 +61,7 @@ target_audience: [Designer, Modder, AI_Agent]
 ## 附錄：程式人員參考 (Programmer Reference)
 
 ### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_StatusSetting.cs`
+*   **檔案路徑**：[`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_StatusSetting.cs`](../../../CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_StatusSetting.cs)
 *   **繼承自**：`RCG_BattleSetting`
 *   **`[System.Serializable]`** 標記
 *   **i18n 類別名 key**：`RCG_StatusSetting` → 「狀態」
