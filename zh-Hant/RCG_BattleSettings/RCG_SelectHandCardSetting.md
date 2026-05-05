@@ -1,7 +1,7 @@
 ---
 title: 選取手牌 說明
 description: 開啟選牌 UI（或自動選），把選中的卡寫入後續設定可引用的 SelectedHandCards
-last_updated: 2026-05-02
+last_updated: 2026-05-05
 target_audience: [Designer, Modder, AI_Agent]
 ---
 
@@ -57,7 +57,7 @@ target_audience: [Designer, Modder, AI_Agent]
 ## 附錄：程式人員參考 (Programmer Reference)
 
 ### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_SelectHandCardSetting.cs`
+*   **檔案路徑**：[`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_SelectHandCardSetting.cs`](../../../CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_SelectHandCardSetting.cs)
 *   **繼承自**：`RCG_BattleSetting`
 *   **i18n 類別名 key**：`RCG_SelectHandCardSetting` → 「選取手牌」
 *   **同檔內巢狀類**：`SelectType` (13 個值) / `DescriptionType` (3 個值) / `DetailSetting` (含 `m_DescriptionType`)

@@ -1,7 +1,7 @@
 ---
 title: 棄牌 說明
 description: 將手牌移出（棄牌、消滅、回牌堆頂、保留等）；支援多種選取方式與標籤篩選
-last_updated: 2026-05-02
+last_updated: 2026-05-05
 target_audience: [Designer, Modder, AI_Agent]
 ---
 
@@ -43,7 +43,7 @@ target_audience: [Designer, Modder, AI_Agent]
 ## 附錄：程式人員參考 (Programmer Reference)
 
 ### A.1 類別資訊
-*   **檔案路徑**：`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_CardDiscardSetting.cs`
+*   **檔案路徑**：[`CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_CardDiscardSetting.cs`](../../../CardGame/Assets/Scripts/RCG_Scripts/RCG_GameDatas/RCG_BattleSettings/RCG_CardDiscardSetting.cs)
 *   **繼承自**：`RCG_BattleSetting`
 *   **i18n 類別名 key**：`RCG_CardDiscardSetting` → 「棄牌」
 *   **同檔案巢狀類**：`SelectCardSetting`（支援以 `RCG_CardTagGenData` 過濾，含 `m_NotIncludedTags` 反選與 `m_WithoutEnhancement`）
