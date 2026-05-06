@@ -1,6 +1,6 @@
 ---
 title: Cmd_ExportNotes API
-description: 依 targets 参数导出 Card / Equipment / Item 的 Note / Description 为 Markdown；整合自旧版 Cmd_ExportAllNotes / Cmd_ExportCardNotes / Cmd_ExportEquipmentNotes / Cmd_ExportItemNotes 四个独立指令
+description: 依 targets 参数导出 Card / Equipment / Item / Story 的 Note / Description 为 Markdown；整合自旧版 Cmd_ExportAllNotes / Cmd_ExportCardNotes / Cmd_ExportEquipmentNotes / Cmd_ExportItemNotes 四个独立指令，并扩充支持 story（2026-05-06）
 source_file: CardGame/Assets/Scripts/RCG_Scripts/RCG_AgentCommands/Cmd_ExportNotes.cs
 namespace: RCG.AgentCommands
 last_updated: 2026-05-06
@@ -14,7 +14,11 @@ target_audience: [AI_Agent, Tools_Maintainer, Game_Designer]
 
 ## 1. 概览
 
-`Cmd_ExportNotes` 是 RCG 项目层的 Agent Command，依 `targets` 参数导出 Card / Equipment / Item 三类资料的 Note / Description 为 Markdown 文件（落在 `docs/Catalogs/<Type>_Notes_Export.md`）。
+`Cmd_ExportNotes` 是 RCG 项目层的 Agent Command，依 `targets` 参数导出 Card / Equipment / Item / Story **四类**资料的 Note / Description 为 Markdown 文件（落在 `docs/Catalogs/<Type>_Notes_Export.md`）。
+
+> [!NOTE]
+> **Story target 行为**（2026-05-06 新增）：
+> Story 没有 `m_Note` 字段，导出内容仿 Editor Preview 显示 — 含每个 Story 的 Tags / SubStory 结构、每个 SubStory 的 Description / Image / Options 表格（含 Transition 与 MapEvents 摘要）。输出文件：`docs/Catalogs/Story_Notes_Export.md`。
 
 > [!IMPORTANT]
 > **取代旧版 4 个独立指令**（2026-05-06 整合）：
@@ -35,28 +39,31 @@ target_audience: [AI_Agent, Tools_Maintainer, Game_Designer]
 
 | 参数 | 必填 | 默认 | 说明 |
 |---|:-:|---|---|
-| `targets` | ❌ | `all` | 逗号分隔的导出对象，token 可选 `card` / `equipment` / `item` / `all`（大小写不敏感）。空字符串、缺省、或包含 `all` 时会导出全部三类 |
+| `targets` | ❌ | `all` | 逗号分隔的导出对象，token 可选 `card` / `equipment` / `item` / `story` / `all`（大小写不敏感）。空字符串、缺省、或包含 `all` 时会导出全部四类 |
 
 **合法写法范例**：
 
 | `targets` 值 | 实际导出 |
 |---|---|
-| (省略整个 Args) | Card + Equipment + Item |
-| `all` | Card + Equipment + Item |
+| (省略整个 Args) | Card + Equipment + Item + Story |
+| `all` | Card + Equipment + Item + Story |
 | `card` | 仅 Card |
+| `story` | 仅 Story（含 SubStory 结构与 Options 表格） |
 | `card,item` | Card + Item |
-| `Card, Item` | Card + Item（大小写 / 空白皆 OK） |
-| `all,card` | Card + Equipment + Item（`all` 展开后 `card` 变冗余，会去重） |
+| `card,story` | Card + Story |
+| `Card, Story` | Card + Story（大小写 / 空白皆 OK） |
+| `all,card` | Card + Equipment + Item + Story（`all` 展开后 `card` 变冗余，会去重） |
 | `card,card` | 仅 Card（自动去重） |
-| `""` 或 `" , "` | Card + Equipment + Item（空 fallback 到 all） |
+| `""` 或 `" , "` | Card + Equipment + Item + Story（空 fallback 到 all） |
 
 **错误输入**会抛出 `ArgumentException`（Runner 写入 `LastRunError`）：
 
 | 错误输入 | 错误消息 |
 |---|---|
-| `cards`（多 s） | `Unknown targets: [cards]. Valid: all, card, equipment, item` |
-| `equipments` | `Unknown targets: [equipments]. Valid: all, card, equipment, item` |
-| `random` | `Unknown targets: [random]. Valid: all, card, equipment, item` |
+| `cards`（多 s） | `Unknown targets: [cards]. Valid: all, card, equipment, item, story` |
+| `equipments` | `Unknown targets: [equipments]. Valid: all, card, equipment, item, story` |
+| `stories`（多 ies） | `Unknown targets: [stories]. Valid: all, card, equipment, item, story` |
+| `random` | `Unknown targets: [random]. Valid: all, card, equipment, item, story` |
 
 ## 3. 内部行为
 
@@ -67,6 +74,7 @@ target_audience: [AI_Agent, Tools_Maintainer, Game_Designer]
 | `card` | `RCG_CardDataEditorPage.ExportNotesToMarkdown()` | `docs/Catalogs/Card_Notes_Export.md` |
 | `equipment` | `RCG_EquipmentDataEditorPage.ExportNotesToMarkdown()` | `docs/Catalogs/Equipment_Notes_Export.md` |
 | `item` | `RCG_ItemDataEditorPage.ExportNotesToMarkdown()` | `docs/Catalogs/Item_Notes_Export.md` |
+| `story` | `RCG_StoryDataEditorPage.ExportNotesToMarkdown()` | `docs/Catalogs/Story_Notes_Export.md` |
 
 > [!NOTE]
 > **错误处理**：若某个 EditorPage 在执行中抛异常，**剩余 target 不会继续执行**（fail fast）。Runner 会记录 `LastRunResult: Failed` 与异常消息，用户修完问题后可重跑。

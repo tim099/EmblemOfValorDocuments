@@ -1,6 +1,6 @@
 ---
 title: Cmd_ExportNotes API
-description: targets パラメータに応じて Card / Equipment / Item の Note / Description を Markdown として書き出す。旧版の Cmd_ExportAllNotes / Cmd_ExportCardNotes / Cmd_ExportEquipmentNotes / Cmd_ExportItemNotes 4 指令を統合
+description: targets パラメータに応じて Card / Equipment / Item / Story の Note / Description を Markdown として書き出す。旧版の Cmd_ExportAllNotes / Cmd_ExportCardNotes / Cmd_ExportEquipmentNotes / Cmd_ExportItemNotes 4 指令を統合し、story を追加サポート（2026-05-06）
 source_file: CardGame/Assets/Scripts/RCG_Scripts/RCG_AgentCommands/Cmd_ExportNotes.cs
 namespace: RCG.AgentCommands
 last_updated: 2026-05-06
@@ -14,7 +14,11 @@ target_audience: [AI_Agent, Tools_Maintainer, Game_Designer]
 
 ## 1. 概要
 
-`Cmd_ExportNotes` は RCG プロジェクト層の Agent Command で、`targets` パラメータに応じて Card / Equipment / Item の Note / Description を Markdown ファイル（`docs/Catalogs/<Type>_Notes_Export.md`）として書き出します。
+`Cmd_ExportNotes` は RCG プロジェクト層の Agent Command で、`targets` パラメータに応じて Card / Equipment / Item / Story **4 種類**の Note / Description を Markdown ファイル（`docs/Catalogs/<Type>_Notes_Export.md`）として書き出します。
+
+> [!NOTE]
+> **Story target の動作**（2026-05-06 追加）：
+> Story には `m_Note` フィールドがないため、エディタの Preview 表示を模した内容を出力します — 各 Story の Tags / SubStory 構造、各 SubStory の Description / Image / Options テーブル（Transition と MapEvents の要約付き）を含みます。出力ファイル：`docs/Catalogs/Story_Notes_Export.md`。
 
 > [!IMPORTANT]
 > **旧版 4 指令を置き換え**（2026-05-06 統合）：
@@ -35,28 +39,31 @@ target_audience: [AI_Agent, Tools_Maintainer, Game_Designer]
 
 | パラメータ | 必須 | デフォルト | 説明 |
 |---|:-:|---|---|
-| `targets` | ❌ | `all` | カンマ区切りの書き出し対象。トークンは `card` / `equipment` / `item` / `all` から選択（大文字小文字不問）。空文字列、未指定、`all` を含む場合は 3 種類すべてを書き出し |
+| `targets` | ❌ | `all` | カンマ区切りの書き出し対象。トークンは `card` / `equipment` / `item` / `story` / `all` から選択（大文字小文字不問）。空文字列、未指定、`all` を含む場合は 4 種類すべてを書き出し |
 
 **有効な書き方の例**：
 
 | `targets` 値 | 実際の書き出し |
 |---|---|
-| (Args 全体を省略) | Card + Equipment + Item |
-| `all` | Card + Equipment + Item |
+| (Args 全体を省略) | Card + Equipment + Item + Story |
+| `all` | Card + Equipment + Item + Story |
 | `card` | Card のみ |
+| `story` | Story のみ（SubStory 構造と Options テーブルを含む） |
 | `card,item` | Card + Item |
-| `Card, Item` | Card + Item（大文字小文字 / 空白も許容） |
-| `all,card` | Card + Equipment + Item（`all` を展開後 `card` は冗長になり重複排除） |
+| `card,story` | Card + Story |
+| `Card, Story` | Card + Story（大文字小文字 / 空白も許容） |
+| `all,card` | Card + Equipment + Item + Story（`all` を展開後 `card` は冗長になり重複排除） |
 | `card,card` | Card のみ（自動重複排除） |
-| `""` または `" , "` | Card + Equipment + Item（空は all にフォールバック） |
+| `""` または `" , "` | Card + Equipment + Item + Story（空は all にフォールバック） |
 
 **不正な入力**は `ArgumentException` を投げます（Runner は `LastRunError` に記録）：
 
 | 不正な入力 | エラーメッセージ |
 |---|---|
-| `cards`（s が余分） | `Unknown targets: [cards]. Valid: all, card, equipment, item` |
-| `equipments` | `Unknown targets: [equipments]. Valid: all, card, equipment, item` |
-| `random` | `Unknown targets: [random]. Valid: all, card, equipment, item` |
+| `cards`（s が余分） | `Unknown targets: [cards]. Valid: all, card, equipment, item, story` |
+| `equipments` | `Unknown targets: [equipments]. Valid: all, card, equipment, item, story` |
+| `stories`（ies が余分） | `Unknown targets: [stories]. Valid: all, card, equipment, item, story` |
+| `random` | `Unknown targets: [random]. Valid: all, card, equipment, item, story` |
 
 ## 3. 内部動作
 
@@ -67,6 +74,7 @@ target_audience: [AI_Agent, Tools_Maintainer, Game_Designer]
 | `card` | `RCG_CardDataEditorPage.ExportNotesToMarkdown()` | `docs/Catalogs/Card_Notes_Export.md` |
 | `equipment` | `RCG_EquipmentDataEditorPage.ExportNotesToMarkdown()` | `docs/Catalogs/Equipment_Notes_Export.md` |
 | `item` | `RCG_ItemDataEditorPage.ExportNotesToMarkdown()` | `docs/Catalogs/Item_Notes_Export.md` |
+| `story` | `RCG_StoryDataEditorPage.ExportNotesToMarkdown()` | `docs/Catalogs/Story_Notes_Export.md` |
 
 > [!NOTE]
 > **エラーハンドリング**：いずれかの EditorPage が実行中に例外を投げた場合、**残りの target は実行されません**（fail fast）。Runner は `LastRunResult: Failed` と例外メッセージを記録し、ユーザーが問題を修正してから再実行できます。
